@@ -57,6 +57,7 @@
 
 <div class="slide-card" class:active onclick={handleClick} onkeydown={(e) => e.key === 'Enter' && handleClick()} role="button" tabindex="0">
   <div class="card-header">
+    <span class="drag-handle" title="Drag to reorder">{'\u2807'}</span>
     <span class="arrow">{active ? '\u25BC' : '\u25B6'}</span>
     <span class="slide-label">{index + 1}. {slide.type}</span>
     {#if active}
@@ -104,6 +105,19 @@
     font-size: 12px;
     font-weight: 500;
     user-select: none;
+  }
+
+  .drag-handle {
+    font-size: 14px;
+    color: var(--color-text-muted, #9ca3af);
+    flex-shrink: 0;
+    cursor: grab;
+    line-height: 1;
+    margin-right: 2px;
+  }
+
+  .drag-handle:active {
+    cursor: grabbing;
   }
 
   .arrow {

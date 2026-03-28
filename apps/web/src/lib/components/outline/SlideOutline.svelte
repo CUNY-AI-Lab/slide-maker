@@ -3,9 +3,13 @@
   import AddSlideMenu from './AddSlideMenu.svelte'
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId } from '$lib/stores/ui'
+  import { dndzone } from 'svelte-dnd-action'
+
+  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
 
   let deck = $state<any>(null)
   let activeId = $state<string | null>(null)
+  let dragItems = $state<any[]>([])
 
   $effect(() => {
     const unsub = currentDeck.subscribe((v) => { deck = v })
@@ -17,7 +21,38 @@
     return unsub
   })
 
-  let slides = $derived(deck?.slides ?? [])
+  // Sync dragItems from store when not actively dragging
+  $effect(() => {
+    dragItems = (deck?.slides ?? []).map((s: any) => ({ ...s }))
+  })
+
+  function handleConsider(e: CustomEvent<{ items: any[] }>) {
+    dragItems = e.detail.items
+  }
+
+  async function handleFinalize(e: CustomEvent<{ items: any[] }>) {
+    dragItems = e.detail.items
+
+    // Update the store with the new order
+    currentDeck.update((d) => {
+      if (!d) return d
+      return { ...d, slides: dragItems.map((item, i) => ({ ...item, order: i })) }
+    })
+
+    // Persist to API
+    if (deck) {
+      try {
+        await fetch(`${API_URL}/api/decks/${deck.id}/slides/reorder`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ order: dragItems.map((item) => item.id) }),
+        })
+      } catch (err) {
+        console.error('Failed to persist slide reorder:', err)
+      }
+    }
+  }
 </script>
 
 <div class="slide-outline">
@@ -28,15 +63,22 @@
     {/if}
   </div>
 
-  <div class="slide-list">
-    {#if slides.length === 0}
+  {#if dragItems.length === 0}
+    <div class="slide-list">
       <div class="empty">No slides yet</div>
-    {:else}
-      {#each slides as slide, i (slide.id)}
+    </div>
+  {:else}
+    <div
+      class="slide-list"
+      use:dndzone={{ items: dragItems, flipDurationMs: 200 }}
+      onconsider={handleConsider}
+      onfinalize={handleFinalize}
+    >
+      {#each dragItems as slide, i (slide.id)}
         <SlideCard {slide} active={slide.id === activeId} index={i} />
       {/each}
-    {/if}
-  </div>
+    </div>
+  {/if}
 </div>
 
 <style>
