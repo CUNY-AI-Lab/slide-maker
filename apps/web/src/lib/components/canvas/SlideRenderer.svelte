@@ -1,11 +1,14 @@
 <script lang="ts">
   import BlockRenderer from '$lib/components/renderers/BlockRenderer.svelte'
+  import BlockWrapper from './BlockWrapper.svelte'
+  import { updateSlideInDeck } from '$lib/stores/deck'
 
   let { slide, editable = false }: {
     slide: {
       id: string;
+      deckId: string;
       type: string;
-      blocks: Array<{ id: string; type: string; data: Record<string, unknown>; order: number }>;
+      blocks: Array<{ id: string; type: string; data: Record<string, unknown>; layout?: { x: number; y: number; width: number; height: number } | null; order: number }>;
     };
     editable: boolean;
   } = $props()
@@ -15,6 +18,23 @@
   )
 
   let slideType = $derived(slide.type ?? 'body')
+
+  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
+
+  async function handleLayoutChange(blockId: string, layout: { x: number; y: number; width: number; height: number }) {
+    // Update store
+    updateSlideInDeck(slide.id, (s) => ({
+      ...s,
+      blocks: s.blocks.map((b) => b.id === blockId ? { ...b, layout } : b),
+    }))
+    // Persist to API
+    fetch(`${API_URL}/api/decks/${slide.deckId}/slides/${slide.id}/blocks/${blockId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ layout }),
+    }).catch(console.error)
+  }
 </script>
 
 <div class="slide" data-slide-type={slideType}>
@@ -25,7 +45,13 @@
   {:else}
     <div class="slide-content" class:layout-title={slideType === 'title'} class:layout-section={slideType === 'section-divider'} class:layout-body={slideType === 'body'} class:layout-resources={slideType === 'resources'}>
       {#each sortedBlocks as block (block.id)}
-        <BlockRenderer {block} {editable} />
+        {#if editable}
+          <BlockWrapper {block} onLayoutChange={handleLayoutChange}>
+            <BlockRenderer {block} {editable} />
+          </BlockWrapper>
+        {:else}
+          <BlockRenderer {block} {editable} />
+        {/if}
       {/each}
     </div>
   {/if}
@@ -81,6 +107,7 @@
   }
 
   .slide-content {
+    position: relative;
     display: flex;
     flex-direction: column;
     flex: 1;

@@ -19,7 +19,9 @@
   },
   "dependencies": {
     "@slide-maker/shared": "workspace:*",
-    "svelte-dnd-action": "^0.9.69"
+    "moveable": "^0.53.0",
+    "svelte-dnd-action": "^0.9.69",
+    "svelte-moveable": "^0.45.0"
   },
   "type": "module"
 }

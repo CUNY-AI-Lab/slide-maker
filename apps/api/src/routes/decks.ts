@@ -415,18 +415,32 @@ decksRouter.patch('/:id/slides/:slideId/blocks/:blockId', async (c) => {
   const deckId = c.req.param('id')
 
   const body = await c.req.json()
-  const { data: blockData } = body
+  const { data: blockData, layout } = body
 
   const existing = await db.select().from(contentBlocks).where(eq(contentBlocks.id, blockId)).get()
   if (!existing) {
     return c.json({ error: 'Block not found' }, 404)
   }
 
-  const mergedData = { ...(existing.data as Record<string, unknown>), ...blockData }
-  await db.update(contentBlocks).set({ data: mergedData }).where(eq(contentBlocks.id, blockId))
+  const updates: Record<string, unknown> = {}
+
+  if (blockData !== undefined) {
+    const mergedData = { ...(existing.data as Record<string, unknown>), ...blockData }
+    updates.data = mergedData
+  }
+
+  if (layout !== undefined) {
+    updates.layout = layout
+  }
+
+  if (Object.keys(updates).length > 0) {
+    await db.update(contentBlocks).set(updates).where(eq(contentBlocks.id, blockId))
+  }
+
   await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId))
 
-  return c.json({ block: { ...existing, data: mergedData } })
+  const updated = await db.select().from(contentBlocks).where(eq(contentBlocks.id, blockId)).get()
+  return c.json({ block: updated })
 })
 
 // DELETE /:id/slides/:slideId/blocks/:blockId — Remove a block
