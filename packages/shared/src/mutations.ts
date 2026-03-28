@@ -1,10 +1,10 @@
-import type { BlockType, SlideType } from './block-types.js'
+import type { SlideLayout, ModuleType, Zone } from './block-types.js'
 
 export type Mutation =
   | { action: 'addSlide'; payload: AddSlidePayload }
   | { action: 'removeSlide'; payload: { slideId: string } }
   | { action: 'updateBlock'; payload: { slideId: string; blockId: string; data: Record<string, unknown> } }
-  | { action: 'addBlock'; payload: { slideId: string; block: { type: BlockType; data: Record<string, unknown> }; insertAfter?: string } }
+  | { action: 'addBlock'; payload: { slideId: string; block: { type: ModuleType; zone: Zone; data: Record<string, unknown>; stepOrder?: number }; insertAfter?: string } }
   | { action: 'removeBlock'; payload: { slideId: string; blockId: string } }
   | { action: 'reorderSlides'; payload: { order: string[] } }
   | { action: 'reorderBlocks'; payload: { slideId: string; order: string[] } }
@@ -13,8 +13,8 @@ export type Mutation =
   | { action: 'updateMetadata'; payload: { field: string; value: string } }
 
 export interface AddSlidePayload {
-  type: SlideType
-  blocks: { type: BlockType; data: Record<string, unknown> }[]
+  layout: SlideLayout
+  modules: { type: ModuleType; zone: Zone; data: Record<string, unknown>; stepOrder?: number }[]
   insertAfter?: string
 }
 

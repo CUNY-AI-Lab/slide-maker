@@ -1,4 +1,4 @@
-import type { BlockType, SlideType } from './block-types.js'
+import type { SlideLayout, Zone, ModuleType } from './block-types.js'
 import type { Mutation } from './mutations.js'
 
 export interface Deck {
@@ -21,45 +21,38 @@ export interface DeckMetadata {
 export interface Slide {
   id: string
   deckId: string
-  type: SlideType
+  layout: SlideLayout
   order: number
+  splitRatio: string
   notes: string | null
-  fragments: boolean
   createdAt: number
   updatedAt: number
   blocks: ContentBlock[]
 }
 
-// SlideType is defined in and exported from block-types.ts to avoid circular imports
-
 export interface ContentBlock {
   id: string
   slideId: string
-  type: BlockType
+  type: ModuleType
+  zone: Zone
   data: Record<string, unknown>
-  layout: BlockLayout | null
   order: number
-}
-
-export interface BlockLayout {
-  x: number
-  y: number
-  width: number
-  height: number
+  stepOrder: number | null
 }
 
 export interface Template {
   id: string
   name: string
-  slideType: SlideType
-  blocks: TemplateBlock[]
+  layout: SlideLayout
+  modules: TemplateModule[]
   thumbnail: string | null
   builtIn: boolean
   createdBy: string | null
 }
 
-export interface TemplateBlock {
-  type: BlockType
+export interface TemplateModule {
+  type: ModuleType
+  zone: Zone
   data: Record<string, unknown>
 }
 

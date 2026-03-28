@@ -48,11 +48,10 @@ export const deckAccess = sqliteTable('deck_access', {
 export const slides = sqliteTable('slides', {
   id: text('id').primaryKey(),
   deckId: text('deck_id').notNull().references(() => decks.id, { onDelete: 'cascade' }),
-  type: text('type', { enum: ['title', 'section-divider', 'body', 'resources'] }).notNull(),
-  layout: text('layout').notNull().default('single'),
+  layout: text('layout').notNull().default('layout-split'),
   order: integer('order').notNull(),
+  splitRatio: text('split_ratio').notNull().default('0.45'),
   notes: text('notes'),
-  fragments: integer('fragments', { mode: 'boolean' }).notNull().default(false),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
   updatedAt: integer('updated_at', { mode: 'timestamp_ms' }).notNull(),
 })
@@ -61,10 +60,10 @@ export const contentBlocks = sqliteTable('content_blocks', {
   id: text('id').primaryKey(),
   slideId: text('slide_id').notNull().references(() => slides.id, { onDelete: 'cascade' }),
   type: text('type').notNull(),
+  zone: text('zone').notNull().default('content'),
   data: text('data', { mode: 'json' }).notNull().default('{}'),
-  layout: text('layout', { mode: 'json' }),
   order: integer('order').notNull(),
-  fragmentOrder: integer('fragment_order'),
+  stepOrder: integer('step_order'),
 })
 
 // ── Resources ──
@@ -72,8 +71,8 @@ export const contentBlocks = sqliteTable('content_blocks', {
 export const templates = sqliteTable('templates', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
-  slideType: text('slide_type', { enum: ['title', 'section-divider', 'body', 'resources'] }).notNull(),
-  blocks: text('blocks', { mode: 'json' }).notNull().default('[]'),
+  layout: text('layout').notNull(),
+  modules: text('modules', { mode: 'json' }).notNull().default('[]'),
   thumbnail: text('thumbnail'),
   builtIn: integer('built_in', { mode: 'boolean' }).notNull().default(false),
   createdBy: text('created_by'),
