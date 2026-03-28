@@ -1,0 +1,25 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd /opt/slide-maker
+            git pull origin main
+            pnpm install --frozen-lockfile
+            pnpm build
+            pnpm db:push
+            pnpm db:seed
+            pm2 restart slide-maker-api || pm2 start "pnpm --filter api dev" --name slide-maker-api
+            pm2 restart slide-maker-web || pm2 start "pnpm --filter web dev" --name slide-maker-web
