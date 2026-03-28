@@ -5,6 +5,7 @@ import { env } from './env.js'
 import auth from './routes/auth.js'
 import admin from './routes/admin.js'
 import { decksRouter } from './routes/decks.js'
+import exportRouter from './routes/export.js'
 import chat from './routes/chat.js'
 import providers from './routes/providers.js'
 import resources from './routes/resources.js'
@@ -21,6 +22,7 @@ app.get('/api/health', (c) => c.json({ status: 'ok' }))
 app.route('/api/auth', auth)
 app.route('/api/admin', admin)
 app.route('/api/decks', decksRouter)
+app.route('/api/decks', exportRouter)
 app.route('/api/chat', chat)
 app.route('/api/providers', providers)
 app.route('/api', resources)
