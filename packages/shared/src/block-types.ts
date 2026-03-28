@@ -14,6 +14,9 @@ export const BLOCK_TYPES = [
 
 export type BlockType = (typeof BLOCK_TYPES)[number]
 
+export const SLIDE_TYPES = ['title', 'section-divider', 'body', 'resources'] as const
+export type SlideType = (typeof SLIDE_TYPES)[number]
+
 export interface HeadingData {
   text: string
   level: 1 | 2 | 3 | 4

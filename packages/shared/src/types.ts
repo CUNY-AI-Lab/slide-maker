@@ -1,4 +1,4 @@
-import type { BlockType } from './block-types.js'
+import type { BlockType, SlideType } from './block-types.js'
 import type { Mutation } from './mutations.js'
 
 export interface Deck {
@@ -30,7 +30,7 @@ export interface Slide {
   blocks: ContentBlock[]
 }
 
-export type SlideType = 'title' | 'section-divider' | 'body' | 'resources'
+// SlideType is defined in and exported from block-types.ts to avoid circular imports
 
 export interface ContentBlock {
   id: string

@@ -1,5 +1,4 @@
-import type { BlockType } from './block-types.js'
-import type { SlideType } from './types.js'
+import type { BlockType, SlideType } from './block-types.js'
 
 export type Mutation =
   | { action: 'addSlide'; payload: AddSlidePayload }
