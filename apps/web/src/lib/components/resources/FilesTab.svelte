@@ -320,9 +320,9 @@
   }
 
   .file-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     overflow-y: auto;
     flex: 1;
     min-height: 0;
@@ -331,13 +331,13 @@
   .file-card {
     position: relative;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     background: var(--color-bg-secondary, #f9fafb);
     border: 1px solid var(--color-border, #e5e7eb);
     border-radius: 8px;
-    padding: 8px;
-    gap: 6px;
+    padding: 6px 8px;
+    gap: 8px;
     transition: border-color 0.15s, box-shadow 0.15s;
   }
 
@@ -378,8 +378,9 @@
   }
 
   .thumb-wrapper {
-    width: 100%;
-    aspect-ratio: 1;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
     border-radius: 6px;
     overflow: hidden;
     background: var(--color-border, #e5e7eb);
@@ -393,12 +394,13 @@
   }
 
   .type-icon {
-    width: 100%;
-    aspect-ratio: 1;
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 32px;
+    font-size: 22px;
     background: var(--color-border, #e5e7eb);
     border-radius: 6px;
   }
@@ -407,10 +409,15 @@
     font-size: 11px;
     color: var(--color-text, #1f2937);
     margin: 0;
-    text-align: center;
-    width: 100%;
+    flex: 1;
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .delete-btn {
+    position: static;
+    flex-shrink: 0;
   }
 </style>
