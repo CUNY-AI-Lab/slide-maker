@@ -10,12 +10,14 @@
     editable = false,
     placeholder = 'Type here...',
     onchange,
+    oneditorready,
     class: className = '',
   }: {
     content: string
     editable: boolean
     placeholder?: string
     onchange?: (html: string) => void
+    oneditorready?: (editor: Editor) => void
     class?: string
   } = $props()
 
@@ -70,6 +72,8 @@
         updateToolbarState()
       },
     })
+
+    oneditorready?.(editor)
   })
 
   onDestroy(() => {
@@ -129,43 +133,6 @@
 </script>
 
 <div class="rich-text-editor {className}">
-  {#if editable}
-    <div
-      bind:this={toolbarEl}
-      class="editor-toolbar"
-    >
-      <button
-        class="toolbar-btn"
-        class:active={isBold}
-        onmousedown={withPreventDefault(toggleBold)}
-        title="Bold"
-      ><strong>B</strong></button>
-      <button
-        class="toolbar-btn"
-        class:active={isItalic}
-        onmousedown={withPreventDefault(toggleItalic)}
-        title="Italic"
-      ><em>I</em></button>
-      <button
-        class="toolbar-btn"
-        class:active={isLink}
-        onmousedown={withPreventDefault(toggleLink)}
-        title="Link"
-      >&#x1F517;</button>
-      <button
-        class="toolbar-btn"
-        class:active={isBulletList}
-        onmousedown={withPreventDefault(toggleBulletList)}
-        title="Bullet List"
-      >&bull;</button>
-      <button
-        class="toolbar-btn"
-        class:active={isOrderedList}
-        onmousedown={withPreventDefault(toggleOrderedList)}
-        title="Ordered List"
-      >1.</button>
-    </div>
-  {/if}
   <div bind:this={editorEl} class="tiptap-mount"></div>
 </div>
 
@@ -242,39 +209,4 @@
     height: 0;
   }
 
-  /* Editor toolbar — persistent bar above text */
-  .editor-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    padding: 3px 4px;
-    margin-bottom: 6px;
-    background: #1e293b;
-    border-radius: 6px;
-    white-space: nowrap;
-  }
-
-  .toolbar-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 28px;
-    height: 28px;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: white;
-    font-size: 13px;
-    cursor: pointer;
-    transition: background 0.1s ease;
-    padding: 0;
-  }
-
-  .toolbar-btn:hover {
-    background: rgba(255, 255, 255, 0.15);
-  }
-
-  .toolbar-btn.active {
-    background: #3b82f6;
-  }
 </style>

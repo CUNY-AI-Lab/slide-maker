@@ -8,10 +8,13 @@
   import CardGridBlock from './CardGridBlock.svelte'
   import EmbedBlock from './EmbedBlock.svelte'
 
-  let { block, editable = false, onDataChange }: {
+  import type { Editor } from '@tiptap/core'
+
+  let { block, editable = false, onDataChange, onEditorReady }: {
     block: { id: string; type: string; data: Record<string, unknown>; fragmentOrder?: number | null };
     editable: boolean;
     onDataChange?: (blockId: string, newData: Record<string, unknown>) => void;
+    onEditorReady?: (editor: Editor) => void;
   } = $props()
 
   const rendererMap: Record<string, any> = {
@@ -33,7 +36,7 @@
     <span class="fragment-badge">Step {block.fragmentOrder + 1}</span>
   {/if}
   {#if Renderer}
-    <Renderer data={block.data} {editable} onchange={(newData: Record<string, unknown>) => onDataChange?.(block.id, newData)} />
+    <Renderer data={block.data} {editable} onchange={(newData: Record<string, unknown>) => onDataChange?.(block.id, newData)} oneditorready={block.type === 'text' ? onEditorReady : undefined} />
   {:else}
     <div class="unknown-block">Unknown block type: {block.type}</div>
   {/if}

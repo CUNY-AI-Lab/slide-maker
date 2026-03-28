@@ -3,7 +3,9 @@
   import BlockWrapper from './BlockWrapper.svelte'
   import { updateSlideInDeck } from '$lib/stores/deck'
 
-  let { slide, editable = false }: {
+  import type { Editor } from '@tiptap/core'
+
+  let { slide, editable = false, onEditorReady }: {
     slide: {
       id: string;
       deckId: string;
@@ -12,6 +14,7 @@
       blocks: Array<{ id: string; type: string; data: Record<string, unknown>; layout?: { x: number; y: number; width: number; height: number } | null; order: number }>;
     };
     editable: boolean;
+    onEditorReady?: (editor: Editor) => void;
   } = $props()
 
   let sortedBlocks = $derived(
@@ -75,10 +78,10 @@
           {#each leftBlocks as block (block.id)}
             {#if editable}
               <BlockWrapper {block} onLayoutChange={handleLayoutChange}>
-                <BlockRenderer {block} {editable} onDataChange={handleDataChange} />
+                <BlockRenderer {block} {editable} onDataChange={handleDataChange} {onEditorReady} />
               </BlockWrapper>
             {:else}
-              <BlockRenderer {block} {editable} onDataChange={handleDataChange} />
+              <BlockRenderer {block} {editable} onDataChange={handleDataChange} {onEditorReady} />
             {/if}
           {/each}
         </div>
@@ -86,10 +89,10 @@
           {#each rightBlocks as block (block.id)}
             {#if editable}
               <BlockWrapper {block} onLayoutChange={handleLayoutChange}>
-                <BlockRenderer {block} {editable} onDataChange={handleDataChange} />
+                <BlockRenderer {block} {editable} onDataChange={handleDataChange} {onEditorReady} />
               </BlockWrapper>
             {:else}
-              <BlockRenderer {block} {editable} onDataChange={handleDataChange} />
+              <BlockRenderer {block} {editable} onDataChange={handleDataChange} {onEditorReady} />
             {/if}
           {/each}
         </div>
@@ -100,10 +103,10 @@
       {#each sortedBlocks as block (block.id)}
         {#if editable}
           <BlockWrapper {block} onLayoutChange={handleLayoutChange}>
-            <BlockRenderer {block} {editable} onDataChange={handleDataChange} />
+            <BlockRenderer {block} {editable} onDataChange={handleDataChange} {onEditorReady} />
           </BlockWrapper>
         {:else}
-          <BlockRenderer {block} {editable} onDataChange={handleDataChange} />
+          <BlockRenderer {block} {editable} onDataChange={handleDataChange} {onEditorReady} />
         {/if}
       {/each}
     </div>

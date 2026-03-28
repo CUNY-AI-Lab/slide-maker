@@ -2,7 +2,8 @@
   import { fitText } from '$lib/utils/text-measure'
   import RichTextEditor from './RichTextEditor.svelte'
 
-  let { data = {}, editable = false, onchange }: { data: Record<string, unknown>; editable: boolean; onchange?: (newData: Record<string, unknown>) => void } = $props()
+  import type { Editor } from '@tiptap/core'
+  let { data = {}, editable = false, onchange, oneditorready }: { data: Record<string, unknown>; editable: boolean; onchange?: (newData: Record<string, unknown>) => void; oneditorready?: (editor: Editor) => void } = $props()
 
   let text = $derived(typeof data.markdown === 'string' ? data.markdown : typeof data.text === 'string' ? data.text : '')
   let column = $derived(typeof data.column === 'string' ? data.column : '')
@@ -107,6 +108,7 @@
       {editable}
       placeholder="Type text here..."
       onchange={handleRichTextChange}
+      {oneditorready}
     />
   {:else}
     {@html renderedHtml}
