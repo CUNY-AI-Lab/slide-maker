@@ -9,7 +9,7 @@
   import EmbedBlock from './EmbedBlock.svelte'
 
   let { block, editable = false }: {
-    block: { type: string; data: Record<string, unknown> };
+    block: { id: string; type: string; data: Record<string, unknown>; fragmentOrder?: number | null };
     editable: boolean;
   } = $props()
 
@@ -27,7 +27,10 @@
   let Renderer = $derived(rendererMap[block.type] ?? null)
 </script>
 
-<div class="block-wrapper" class:editable>
+<div class="block-wrapper" class:editable class:is-fragment={block.fragmentOrder != null}>
+  {#if block.fragmentOrder != null}
+    <span class="fragment-badge">Step {block.fragmentOrder + 1}</span>
+  {/if}
   {#if Renderer}
     <Renderer data={block.data} {editable} />
   {:else}
@@ -44,6 +47,24 @@
     outline: 2px dashed var(--color-primary);
     outline-offset: 4px;
     border-radius: var(--radius-sm);
+  }
+  .is-fragment {
+    opacity: 0.7;
+    border-left: 3px solid var(--teal, #2FB8D6);
+    padding-left: 8px;
+  }
+  .fragment-badge {
+    position: absolute;
+    top: -10px;
+    right: 4px;
+    background: var(--teal, #2FB8D6);
+    color: white;
+    font-size: 10px;
+    padding: 1px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-family: var(--font-body);
+    z-index: 5;
   }
   .unknown-block {
     padding: 0.5rem;

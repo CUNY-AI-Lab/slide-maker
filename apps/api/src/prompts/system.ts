@@ -183,6 +183,13 @@ Use ONLY these block types. The "data" field must match exactly.
 - **card-grid**: \`{ "cards": [{ "title": "string", "content": "string", "color": "optional hex color" }], "columns": 2 | 3 | 4 }\`
 - **embed**: \`{ "src": "url", "title": "optional title" }\`
 
+## Progressive Disclosure (Fragments)
+
+Blocks can have a "fragmentOrder" field (integer starting at 0) in the addBlock or addSlide payload.
+Blocks with fragmentOrder reveal one at a time during presentation (click to advance).
+Example: in addSlide blocks array: { "type": "text", "data": { "markdown": "..." }, "fragmentOrder": 0 }
+Use fragments for step-by-step reveals, building up content incrementally.
+
 IMPORTANT: Do NOT use block types that are not listed above (no "bullets", "table", "divider", "spacer", "chart", "paragraph", "subtitle"). Use "text" with markdown for any text content including bullet lists. Use "heading" for all titles and subtitles.
 
 ## Current Deck State

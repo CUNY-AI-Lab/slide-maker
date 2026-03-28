@@ -13,6 +13,7 @@ interface Block {
   type: string
   data: Record<string, unknown>
   order: number
+  fragmentOrder?: number | null
 }
 
 interface Slide {
@@ -127,8 +128,12 @@ function renderSlide(slide: Slide, index: number, files?: ExportFile[]): string 
   const blocksHtml = slide.blocks
     .sort((a, b) => a.order - b.order)
     .map((block) => {
+      const inner = renderBlock(block, files)
+      if (block.fragmentOrder != null) {
+        return `      <div class="fragment" style="--fragment-order: ${block.fragmentOrder}">${inner}</div>`
+      }
       const fragmentAttr = slide.fragments ? ' class="fragment"' : ''
-      return `      <div${fragmentAttr}>${renderBlock(block, files)}</div>`
+      return `      <div${fragmentAttr}>${inner}</div>`
     })
     .join('\n')
 

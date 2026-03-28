@@ -64,6 +64,7 @@ export const contentBlocks = sqliteTable('content_blocks', {
   data: text('data', { mode: 'json' }).notNull().default('{}'),
   layout: text('layout', { mode: 'json' }),
   order: integer('order').notNull(),
+  fragmentOrder: integer('fragment_order'),
 })
 
 // ── Resources ──

@@ -278,6 +278,7 @@ decksRouter.post('/:id/slides', async (c) => {
         data: block.data || {},
         layout: block.layout || null,
         order: i,
+        fragmentOrder: block.fragmentOrder ?? null,
       }
       await db.insert(contentBlocks).values(blockRow)
       createdBlocks.push(blockRow)
@@ -409,6 +410,7 @@ decksRouter.post('/:id/slides/:slideId/blocks', async (c) => {
     data: blockData || {},
     layout: null,
     order: (lastBlock?.maxOrder ?? -1) + 1,
+    fragmentOrder: body.fragmentOrder ?? null,
   }
 
   await db.insert(contentBlocks).values(block)
