@@ -66,7 +66,7 @@
     type="button"
     title={confirming ? 'Click again to confirm' : 'Delete deck'}
   >
-    {confirming ? 'Confirm?' : '&#128465;'}
+    {confirming ? 'Confirm?' : '✕'}
   </button>
 </div>
 

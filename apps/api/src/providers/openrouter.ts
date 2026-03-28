@@ -9,7 +9,7 @@ const client = new OpenAI({
 export async function* streamOpenRouter(
   systemPrompt: string,
   messages: { role: 'user' | 'assistant'; content: string }[],
-  model: string = 'meta-llama/llama-3.1-70b-instruct',
+  model: string = 'google/gemini-3.1-flash-lite-preview',
 ): AsyncGenerator<string> {
   const stream = await client.chat.completions.create({
     model,
@@ -27,8 +27,8 @@ export async function* streamOpenRouter(
 }
 
 export const OPENROUTER_MODELS = [
-  { id: 'meta-llama/llama-3.1-70b-instruct', name: 'Llama 3.1 70B', provider: 'openrouter' },
-  { id: 'meta-llama/llama-3.1-8b-instruct', name: 'Llama 3.1 8B', provider: 'openrouter' },
-  { id: 'google/gemini-2.0-flash-001', name: 'Gemini 2.0 Flash', provider: 'openrouter' },
-  { id: 'mistralai/mistral-large-latest', name: 'Mistral Large', provider: 'openrouter' },
+  { id: 'moonshotai/kimi-k2.5', name: 'Kimi K2.5', provider: 'openrouter' },
+  { id: 'z-ai/glm-5', name: 'GLM 5', provider: 'openrouter' },
+  { id: 'google/gemini-3.1-flash-lite-preview', name: 'Gemini 3.1 Flash', provider: 'openrouter' },
+  { id: 'qwen/qwen3.5-flash-02-23', name: 'Qwen 3.5 Flash', provider: 'openrouter' },
 ]

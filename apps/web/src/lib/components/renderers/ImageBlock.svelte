@@ -1,7 +1,7 @@
 <script lang="ts">
   let { data = {} }: { data: Record<string, unknown>; editable: boolean } = $props()
 
-  let src = $derived(typeof data.src === 'string' ? data.src : '')
+  let src = $derived(typeof data.src === 'string' ? data.src : typeof data.url === 'string' ? data.url : '')
   let alt = $derived(typeof data.alt === 'string' ? data.alt : '')
   let caption = $derived(typeof data.caption === 'string' ? data.caption : '')
 </script>
@@ -21,19 +21,23 @@
   .image-block {
     margin: 0;
     text-align: center;
+    width: 100%;
   }
   img {
-    max-width: 100%;
-    height: auto;
+    width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
     border-radius: var(--radius-md);
     display: block;
     margin: 0 auto;
   }
   figcaption {
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
+    font-size: clamp(0.7rem, 1vw, 0.85rem);
+    color: var(--color-text-secondary);
+    text-align: center;
     margin-top: 0.5rem;
     font-style: italic;
+    font-family: var(--font-body);
   }
   .placeholder {
     background: var(--color-bg-tertiary);

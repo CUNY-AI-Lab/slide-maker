@@ -1,19 +1,59 @@
 <script lang="ts">
   let { data = {}, editable = false }: { data: Record<string, unknown>; editable: boolean } = $props()
 
-  let text = $derived(typeof data.text === 'string' ? data.text : '')
+  let text = $derived(typeof data.markdown === 'string' ? data.markdown : typeof data.text === 'string' ? data.text : '')
   let column = $derived(typeof data.column === 'string' ? data.column : '')
 
   function markdownToHtml(md: string): string {
-    let html = md
-    // Bold
+    const lines = md.split('\n')
+    const out: string[] = []
+    let inList = false
+    let listType = ''
+
+    for (const line of lines) {
+      const bulletMatch = line.match(/^[-*]\s+(.+)/)
+      const numberedMatch = line.match(/^\d+\.\s+(.+)/)
+
+      if (bulletMatch) {
+        if (!inList || listType !== 'ul') {
+          if (inList) out.push(listType === 'ol' ? '</ol>' : '</ul>')
+          out.push('<ul>')
+          inList = true
+          listType = 'ul'
+        }
+        out.push(`<li>${inlineMarkdown(bulletMatch[1])}</li>`)
+      } else if (numberedMatch) {
+        if (!inList || listType !== 'ol') {
+          if (inList) out.push(listType === 'ol' ? '</ol>' : '</ul>')
+          out.push('<ol>')
+          inList = true
+          listType = 'ol'
+        }
+        out.push(`<li>${inlineMarkdown(numberedMatch[1])}</li>`)
+      } else {
+        if (inList) {
+          out.push(listType === 'ol' ? '</ol>' : '</ul>')
+          inList = false
+          listType = ''
+        }
+        if (line.trim() === '') {
+          out.push('<br>')
+        } else {
+          out.push(`<p>${inlineMarkdown(line)}</p>`)
+        }
+      }
+    }
+    if (inList) out.push(listType === 'ol' ? '</ol>' : '</ul>')
+
+    return out.join('\n')
+  }
+
+  function inlineMarkdown(text: string): string {
+    let html = text
     html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    // Italic
     html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
-    // Links
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
-    // Newlines
-    html = html.replace(/\n/g, '<br>')
+    html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
     return html
   }
 
@@ -43,17 +83,38 @@
 <style>
   .text-block {
     font-family: var(--font-body);
-    font-size: 0.95rem;
-    line-height: 1.6;
+    font-size: clamp(0.85rem, 1.5vw, 1.1rem);
+    line-height: 1.7;
     color: inherit;
     outline: none;
   }
   .text-block :global(a) {
     color: var(--color-primary);
     text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .text-block :global(a:hover) {
+    color: var(--blue-hover);
   }
   .text-block :global(strong) {
     font-weight: 600;
+  }
+  .text-block :global(ul), .text-block :global(ol) {
+    padding-left: 1.5em;
+    margin: 0.4em 0;
+  }
+  .text-block :global(li) {
+    margin-bottom: 0.5em;
+  }
+  .text-block :global(p) {
+    margin: 0.5em 0;
+  }
+  .text-block :global(code) {
+    background: rgba(0, 0, 0, 0.06);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.88em;
+    font-family: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
   }
   .column-left { text-align: left; }
   .column-right { text-align: right; }

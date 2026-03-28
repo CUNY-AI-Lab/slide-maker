@@ -38,9 +38,10 @@
 <style>
   .block-wrapper {
     position: relative;
+    width: 100%;
   }
   .block-wrapper.editable:hover {
-    outline: 1px dashed var(--color-border);
+    outline: 2px dashed var(--color-primary);
     outline-offset: 4px;
     border-radius: var(--radius-sm);
   }

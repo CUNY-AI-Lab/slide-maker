@@ -9,7 +9,7 @@ export interface ChatMsg {
 
 export const chatMessages = writable<ChatMsg[]>([])
 export const chatStreaming = writable(false)
-export const selectedModelId = writable('claude-sonnet-4-20250514')
+export const selectedModelId = writable('google/gemini-3.1-flash-lite-preview')
 
 let msgCounter = 0
 

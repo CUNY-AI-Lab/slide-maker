@@ -368,6 +368,78 @@ decksRouter.delete('/:id/slides/:slideId', async (c) => {
   return c.json({ message: 'Slide deleted' })
 })
 
+// POST /:id/slides/:slideId/blocks — Add a block to a slide
+decksRouter.post('/:id/slides/:slideId/blocks', async (c) => {
+  const deckId = c.req.param('id')
+  const slideId = c.req.param('slideId')
+
+  const slide = await db
+    .select()
+    .from(slides)
+    .where(and(eq(slides.id, slideId), eq(slides.deckId, deckId)))
+    .get()
+
+  if (!slide) {
+    return c.json({ error: 'Slide not found' }, 404)
+  }
+
+  const body = await c.req.json()
+  const { type, data: blockData } = body
+
+  // Get next order
+  const lastBlock = await db
+    .select({ maxOrder: sql<number>`COALESCE(MAX(${contentBlocks.order}), -1)` })
+    .from(contentBlocks)
+    .where(eq(contentBlocks.slideId, slideId))
+    .get()
+
+  const blockId = createId()
+  const block = {
+    id: blockId,
+    slideId,
+    type,
+    data: blockData || {},
+    layout: null,
+    order: (lastBlock?.maxOrder ?? -1) + 1,
+  }
+
+  await db.insert(contentBlocks).values(block)
+  await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId))
+
+  return c.json({ block }, 201)
+})
+
+// PATCH /:id/slides/:slideId/blocks/:blockId — Update a block
+decksRouter.patch('/:id/slides/:slideId/blocks/:blockId', async (c) => {
+  const blockId = c.req.param('blockId')
+  const deckId = c.req.param('id')
+
+  const body = await c.req.json()
+  const { data: blockData } = body
+
+  const existing = await db.select().from(contentBlocks).where(eq(contentBlocks.id, blockId)).get()
+  if (!existing) {
+    return c.json({ error: 'Block not found' }, 404)
+  }
+
+  const mergedData = { ...(existing.data as Record<string, unknown>), ...blockData }
+  await db.update(contentBlocks).set({ data: mergedData }).where(eq(contentBlocks.id, blockId))
+  await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId))
+
+  return c.json({ block: { ...existing, data: mergedData } })
+})
+
+// DELETE /:id/slides/:slideId/blocks/:blockId — Remove a block
+decksRouter.delete('/:id/slides/:slideId/blocks/:blockId', async (c) => {
+  const blockId = c.req.param('blockId')
+  const deckId = c.req.param('id')
+
+  await db.delete(contentBlocks).where(eq(contentBlocks.id, blockId))
+  await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId))
+
+  return c.json({ message: 'Block deleted' })
+})
+
 // POST /:id/slides/reorder — Reorder slides
 decksRouter.post('/:id/slides/reorder', async (c) => {
   const user = c.get('user')

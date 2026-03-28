@@ -14,23 +14,26 @@
 
 <style>
   .quote-block {
-    border-left: 4px solid var(--color-primary);
-    padding: 0.75rem 1rem;
+    padding: 1.5rem 2rem;
     margin: 0;
-    background: var(--color-bg-secondary);
-    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    border-left: 5px solid var(--teal);
+    background: rgba(47, 184, 214, 0.08);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
   }
   .quote-text {
+    font-size: clamp(1.1rem, 2.5vw, 1.6rem);
     font-style: italic;
-    font-size: 0.95rem;
     line-height: 1.6;
+    font-family: var(--font-display);
+    color: var(--stone);
     margin: 0;
   }
   .quote-attribution {
     display: block;
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
+    font-size: clamp(0.8rem, 1.2vw, 1rem);
     color: var(--color-text-secondary);
+    margin-top: 0.75rem;
     font-style: normal;
+    font-weight: 500;
   }
 </style>

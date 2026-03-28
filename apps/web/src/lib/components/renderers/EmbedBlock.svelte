@@ -3,7 +3,6 @@
 
   let src = $derived(typeof data.src === 'string' ? data.src : '')
   let title = $derived(typeof data.title === 'string' ? data.title : '')
-  let height = $derived(typeof data.height === 'number' ? data.height : 300)
 </script>
 
 <div class="embed-block">
@@ -11,7 +10,7 @@
     <div class="embed-title">{title}</div>
   {/if}
   {#if src}
-    <div class="embed-frame" style="height: {height}px;">
+    <div class="embed-container">
       <iframe
         {src}
         {title}
@@ -30,13 +29,15 @@
     width: 100%;
   }
   .embed-title {
-    font-size: 0.8rem;
+    font-size: clamp(0.75rem, 1.1vw, 0.9rem);
     font-weight: 600;
     color: var(--color-text-secondary);
     margin-bottom: 0.5rem;
+    font-family: var(--font-display);
   }
-  .embed-frame {
+  .embed-container {
     width: 100%;
+    aspect-ratio: 16 / 9;
     border-radius: var(--radius-md);
     overflow: hidden;
     border: 1px solid var(--color-border);
@@ -54,5 +55,9 @@
     text-align: center;
     color: var(--color-text-muted);
     font-size: 0.85rem;
+    aspect-ratio: 16 / 9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 </style>

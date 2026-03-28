@@ -11,8 +11,14 @@
 
   /** Minimal markdown-like rendering: code blocks, inline code, bold, newlines */
   function renderContent(text: string): string {
+    // Strip mutation blocks — these are applied to the canvas, not shown in chat
+    let cleaned = text.replace(/```mutation\s*\n[\s\S]*?```/g, '').trim()
+
+    // Collapse multiple blank lines left by stripped mutations
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n')
+
     // Escape HTML
-    let html = text
+    let html = cleaned
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')

@@ -67,7 +67,7 @@ Example:
     "type": "body",
     "blocks": [
       { "type": "heading", "data": { "text": "New Slide Title", "level": 1 } },
-      { "type": "text", "data": { "text": "Slide body content here." } }
+      { "type": "text", "data": { "markdown": "Slide body content here." } }
     ],
     "insertAfter": null
   }
@@ -158,16 +158,18 @@ Apply a template to a slide.
 
 ## Block Types
 
-- **heading**: \`{ text: string, level: 1 | 2 | 3 }\`
-- **text**: \`{ text: string }\` (supports markdown)
-- **bullets**: \`{ items: string[] }\`
-- **code**: \`{ code: string, language: string }\`
-- **image**: \`{ url: string, alt: string, fit: "cover" | "contain" }\`
-- **chart**: \`{ chartType: "bar" | "line" | "pie" | "scatter", data: object, options: object }\`
-- **table**: \`{ headers: string[], rows: string[][] }\`
-- **embed**: \`{ url: string, type: "iframe" | "video" }\`
-- **divider**: \`{}\`
-- **spacer**: \`{ height: number }\`
+Use ONLY these block types. The "data" field must match exactly.
+
+- **heading**: \`{ "text": "string", "level": 1 | 2 | 3 | 4 }\`
+- **text**: \`{ "markdown": "string (supports **bold**, *italic*, [links](url), newlines)" }\` — Use this for all body text, bullet lists, paragraphs. Put markdown list syntax (- item) inside the markdown string for bullet lists.
+- **image**: \`{ "src": "url string", "alt": "description", "caption": "optional caption" }\`
+- **code**: \`{ "language": "python|javascript|html|etc", "content": "the code string", "caption": "optional", "showLineNumbers": true|false }\`
+- **quote**: \`{ "text": "the quote text", "attribution": "optional source" }\`
+- **steps**: \`{ "steps": [{ "label": "Step 1", "content": "description" }, ...] }\`
+- **card-grid**: \`{ "cards": [{ "title": "string", "content": "string", "color": "optional hex color" }], "columns": 2 | 3 | 4 }\`
+- **embed**: \`{ "src": "url", "title": "optional title" }\`
+
+IMPORTANT: Do NOT use block types that are not listed above (no "bullets", "table", "divider", "spacer", "chart", "paragraph", "subtitle"). Use "text" with markdown for any text content including bullet lists. Use "heading" for all titles and subtitles.
 
 ## Current Deck State
 

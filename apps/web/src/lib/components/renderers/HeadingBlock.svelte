@@ -47,10 +47,26 @@
     margin: 0;
     outline: none;
   }
-  .heading-1 { font-size: 2rem; font-weight: 800; }
-  .heading-2 { font-size: 1.5rem; font-weight: 700; }
-  .heading-3 { font-size: 1.25rem; font-weight: 600; }
-  .heading-4 { font-size: 1.1rem; font-weight: 600; }
+  .heading-1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .heading-2 {
+    font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+    font-weight: 700;
+  }
+  .heading-3 {
+    font-size: clamp(1.1rem, 2.5vw, 1.75rem);
+    font-weight: 600;
+  }
+  .heading-4 {
+    font-size: clamp(0.95rem, 2vw, 1.25rem);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-primary);
+  }
   .heading[contenteditable="true"]:focus {
     outline: 1px dashed var(--color-primary);
     outline-offset: 2px;

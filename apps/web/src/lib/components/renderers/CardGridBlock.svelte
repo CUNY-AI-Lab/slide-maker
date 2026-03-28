@@ -37,23 +37,27 @@
 <style>
   .card-grid {
     display: grid;
-    gap: 0.75rem;
+    gap: clamp(0.5rem, 1.2vw, 1rem);
+    width: 100%;
   }
   .card {
-    background: white;
+    background: rgba(0, 0, 0, 0.03);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
-    padding: 0.75rem;
+    padding: clamp(0.75rem, 1.5vw, 1.25rem);
   }
   .card-title {
-    font-size: 0.85rem;
+    font-family: var(--font-display);
+    font-size: clamp(0.85rem, 1.3vw, 1.05rem);
+    font-weight: 600;
     display: block;
     margin-bottom: 0.35rem;
   }
   .card-content {
     margin: 0;
-    font-size: 0.8rem;
+    font-size: clamp(0.75rem, 1.1vw, 0.9rem);
     line-height: 1.5;
     color: var(--color-text-secondary);
+    font-family: var(--font-body);
   }
 </style>

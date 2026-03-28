@@ -75,19 +75,20 @@
         fullText += chunk
         appendToAssistant(assistantId, chunk)
       },
-      () => {
+      async () => {
         finishAssistant(assistantId)
-        chatStreaming.set(false)
 
         // Extract and apply mutations from the full response
         const mutations = extractMutations(fullText)
         for (const mutation of mutations) {
           try {
-            applyMutation(mutation)
+            await applyMutation(mutation)
           } catch (err) {
             console.error('Failed to apply mutation:', err, mutation)
           }
         }
+
+        chatStreaming.set(false)
       },
       (error) => {
         appendToAssistant(assistantId, `\n\n[Error: ${error}]`)
