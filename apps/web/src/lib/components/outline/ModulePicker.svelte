@@ -56,7 +56,7 @@
       case 'stream-list':
         return { items: [] }
       case 'viz':
-        return { viz: 'lorenz' }
+        return { viz: 'boids' }
       default:
         return {}
     }

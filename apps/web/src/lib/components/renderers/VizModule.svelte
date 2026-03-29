@@ -12,20 +12,17 @@
   } = $props()
 
   // VizData shape: { viz: string, options?: Record<string,unknown> }
-  let viz = $derived((module.data.viz as string) ?? 'lorenz')
+  let viz = $derived((module.data.viz as string) ?? 'boids')
   let canvasEl: HTMLCanvasElement | undefined = $state()
   let animId = 0
   let cleanup: (() => void) | null = null
 
   const VIZ_CATALOG = [
-    { id: 'lorenz',     label: 'Lorenz Attractor',  icon: '∿' },
     { id: 'boids',      label: 'Boids Flocking',    icon: '⟶' },
     { id: 'life',       label: "Conway's Life",     icon: '⬡' },
     { id: 'fourier',    label: 'Fourier Epicycles', icon: '◎' },
     { id: 'nbody',      label: 'N-Body Gravity',    icon: '⊕' },
     { id: 'percolation',label: 'Percolation',       icon: '⠿' },
-    { id: 'logistic',   label: 'Logistic Map',      icon: '⤳' },
-    { id: 'voronoi',    label: 'Voronoi',           icon: '⬡' },
   ]
 
   function mountViz(c: HTMLCanvasElement, name: string) {
@@ -39,29 +36,6 @@
     ctx.scale(dpr, dpr)
 
     const runners: Record<string, () => (() => void)> = {
-      lorenz: () => {
-        let x=0.1,y=0,z=0; const pts: [number,number][] = []
-        const s=10,r=28,b=8/3,dt=0.005
-        let mx=Infinity,my=Infinity,Mx=-Infinity,My=-Infinity
-        for(let i=0;i<6000;i++){
-          const dx=s*(y-x),dy=x*(r-z)-y,dz=x*y-b*z
-          x+=dx*dt;y+=dy*dt;z+=dz*dt
-          pts.push([x,z])
-          if(x<mx)mx=x;if(z<my)my=z;if(x>Mx)Mx=x;if(z>My)My=z
-        }
-        const pad=8,rw=Mx-mx,rh=My-my
-        ctx.fillStyle='#0a0a10';ctx.fillRect(0,0,W,H)
-        ctx.lineWidth=0.7
-        for(let i=1;i<pts.length;i++){
-          const t=i/pts.length
-          ctx.strokeStyle=`hsla(${200+t*60},80%,${40+t*30}%,${0.3+t*0.6})`
-          ctx.beginPath()
-          ctx.moveTo(pad+(pts[i-1][0]-mx)/rw*(W-pad*2), H-pad-(pts[i-1][1]-my)/rh*(H-pad*2))
-          ctx.lineTo(pad+(pts[i][0]-mx)/rw*(W-pad*2), H-pad-(pts[i][1]-my)/rh*(H-pad*2))
-          ctx.stroke()
-        }
-        return () => {}
-      },
 
       boids: () => {
         const N=50
@@ -215,37 +189,7 @@
         return () => clearInterval(iv)
       },
 
-      logistic: () => {
-        ctx.fillStyle='#07070e';ctx.fillRect(0,0,W,H)
-        const r0=2.6,r1=4.0,steps=300,skip=200
-        ctx.fillStyle='rgba(255,180,80,0.5)'
-        for(let px=0;px<W;px++){
-          const r=r0+(r1-r0)*px/W;let x=0.5
-          for(let i=0;i<skip;i++) x=r*x*(1-x)
-          for(let i=0;i<steps;i++){x=r*x*(1-x);ctx.fillRect(px,(1-x)*H,1,1)}
-        }
-        return () => {}
-      },
 
-      voronoi: () => {
-        const N2=16
-        const pts=Array.from({length:N2},()=>({x:Math.random()*W,y:Math.random()*H,hue:Math.random()*360}))
-        const id=ctx.createImageData(W,H)
-        for(let py=0;py<H;py++)for(let px=0;px<W;px++){
-          let best=Infinity,bh=0
-          for(const p of pts){const d=(px-p.x)**2+(py-p.y)**2;if(d<best){best=d;bh=p.hue}}
-          const h2=bh/360,q2=0.36,p2=0.04
-          function hue2rgb(t:number){t=(t%1+1)%1;if(t<1/6)return p2+(q2-p2)*6*t;if(t<1/2)return q2;if(t<2/3)return p2+(q2-p2)*(2/3-t)*6;return p2}
-          const i=(py*W+px)*4
-          id.data[i]=Math.floor(hue2rgb(h2+1/3)*255)
-          id.data[i+1]=Math.floor(hue2rgb(h2)*255)
-          id.data[i+2]=Math.floor(hue2rgb(h2-1/3)*255)
-          id.data[i+3]=255
-        }
-        ctx.putImageData(id,0,0)
-        for(const p of pts){ctx.fillStyle='rgba(255,255,255,0.7)';ctx.beginPath();ctx.arc(p.x,p.y,2,0,Math.PI*2);ctx.fill()}
-        return () => {}
-      },
     }
 
     const runner = runners[name]
