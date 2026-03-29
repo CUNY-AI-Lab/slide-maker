@@ -232,9 +232,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     text-align: center;
     gap: clamp(1rem, 2.5vw, 2rem);
+    /* Use auto margins to center when content fits, but align top when it overflows (scrollable) */
+    justify-content: flex-start;
+    padding-top: clamp(1rem, 3vw, 3rem);
   }
 
   .zone-split {
@@ -271,8 +273,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     gap: clamp(1rem, 2vw, 24px);
+    padding-top: clamp(0.5rem, 2vw, 2rem);
   }
 
   /* ── Branding logo ── */
