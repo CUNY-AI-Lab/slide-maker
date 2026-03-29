@@ -6,8 +6,8 @@
   interface Template {
     id: string
     name: string
-    slideType: string
-    blocks: unknown[]
+    layout: string
+    modules: { type: string; zone: string; data: Record<string, unknown>; stepOrder?: number }[]
     thumbnail: string | null
     builtIn: boolean
   }
@@ -17,19 +17,22 @@
   let error = $state<string | null>(null)
 
   const groupLabels: Record<string, string> = {
-    title: 'Title Slides',
-    body: 'Body Slides',
-    'section-divider': 'Section Dividers',
-    resources: 'Resources',
+    'title-slide': 'Title Slides',
+    'layout-split': 'Split Layouts',
+    'layout-content': 'Full Content',
+    'layout-grid': 'Grid Layouts',
+    'layout-full-dark': 'Dark Sections',
+    'layout-divider': 'Section Dividers',
+    'closing-slide': 'Closing Slides',
   }
 
-  const groupOrder = ['title', 'section-divider', 'body', 'resources']
+  const groupOrder = ['title-slide', 'layout-split', 'layout-content', 'layout-grid', 'layout-full-dark', 'layout-divider', 'closing-slide']
 
   let grouped = $derived.by(() => {
     const groups: Record<string, Template[]> = {}
     for (const t of templates) {
-      if (!groups[t.slideType]) groups[t.slideType] = []
-      groups[t.slideType].push(t)
+      if (!groups[t.layout]) groups[t.layout] = []
+      groups[t.layout].push(t)
     }
     return groupOrder
       .filter((key) => groups[key]?.length > 0)
@@ -37,10 +40,13 @@
   })
 
   const thumbnailColors: Record<string, string> = {
-    title: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-    'section-divider': 'linear-gradient(135deg, #f59e0b, #ef4444)',
-    body: '#f3f4f6',
-    resources: 'linear-gradient(135deg, #10b981, #3b82f6)',
+    'title-slide': 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+    'layout-split': '#f3f4f6',
+    'layout-content': '#f3f4f6',
+    'layout-grid': 'linear-gradient(135deg, #10b981, #3b82f6)',
+    'layout-full-dark': 'linear-gradient(135deg, #1e293b, #334155)',
+    'layout-divider': 'linear-gradient(135deg, #f59e0b, #ef4444)',
+    'closing-slide': 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
   }
 
   $effect(() => {
@@ -70,8 +76,8 @@
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          type: template.slideType,
-          blocks: template.blocks,
+          layout: template.layout,
+          modules: template.modules,
         }),
       })
 
@@ -102,7 +108,7 @@
             <button class="template-card" onclick={() => applyTemplate(tmpl)}>
               <div
                 class="thumbnail"
-                style:background={thumbnailColors[tmpl.slideType] ?? '#e5e7eb'}
+                style:background={thumbnailColors[tmpl.layout] ?? '#e5e7eb'}
               ></div>
               <div class="template-info">
                 <span class="template-name">{tmpl.name}</span>

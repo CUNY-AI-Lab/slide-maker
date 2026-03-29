@@ -211,13 +211,13 @@ decksRouter.post('/:id/slides', async (c) => {
   const { layout, splitRatio, modules: moduleDefs, insertAfter } = body
 
   const validLayouts = [
+    'title-slide',
     'layout-split',
-    'layout-full',
-    'layout-grid-2x2',
-    'layout-grid-1x3',
-    'layout-sidebar-left',
-    'layout-sidebar-right',
-    'layout-blank',
+    'layout-content',
+    'layout-grid',
+    'layout-full-dark',
+    'layout-divider',
+    'closing-slide',
   ]
   const slideLayout = validLayouts.includes(layout) ? layout : 'layout-split'
 
@@ -328,13 +328,13 @@ decksRouter.patch('/:id/slides/:slideId', async (c) => {
   if (body.splitRatio !== undefined) updates.splitRatio = body.splitRatio
   if (body.layout !== undefined) {
     const validLayouts = [
+      'title-slide',
       'layout-split',
-      'layout-full',
-      'layout-grid-2x2',
-      'layout-grid-1x3',
-      'layout-sidebar-left',
-      'layout-sidebar-right',
-      'layout-blank',
+      'layout-content',
+      'layout-grid',
+      'layout-full-dark',
+      'layout-divider',
+      'closing-slide',
     ]
     if (validLayouts.includes(body.layout)) updates.layout = body.layout
   }

@@ -10,7 +10,7 @@
     data: Record<string, unknown>
     zone: string
     order: number
-    stepOrder?: number
+    stepOrder?: number | null
   }
 
   let {
@@ -22,17 +22,17 @@
       id: string
       deckId: string
       layout: string
-      splitRatio?: number
+      splitRatio?: string
       blocks: Module[]
     }
     editable?: boolean
-    onEditorReady?: (editor: Editor) => void
+    onEditorReady?: (editor: unknown) => void
   } = $props()
 
-  let splitRatio = $state(slide.splitRatio ?? 0.5)
+  let splitRatio = $state(parseFloat(String(slide.splitRatio ?? '0.5')))
 
   $effect(() => {
-    splitRatio = slide.splitRatio ?? 0.5
+    splitRatio = parseFloat(String(slide.splitRatio ?? '0.5'))
   })
 
   let sorted = $derived([...slide.blocks].sort((a, b) => a.order - b.order))
@@ -50,9 +50,9 @@
     updateSlideInDeck(slide.id, (s) => ({
       ...s,
       blocks: [
-        ...s.blocks.filter((b: Module) => b.zone !== zone),
+        ...s.blocks.filter((b) => b.zone !== zone),
         ...reordered,
-      ],
+      ] as typeof s.blocks,
     }))
     // Persist order to API
     for (const item of reordered) {
@@ -68,7 +68,7 @@
   function handleModuleDataChange(moduleId: string, newData: Record<string, unknown>) {
     updateSlideInDeck(slide.id, (s) => ({
       ...s,
-      blocks: s.blocks.map((b: Module) =>
+      blocks: s.blocks.map((b) =>
         b.id === moduleId ? { ...b, data: newData } : b
       ),
     }))
@@ -82,12 +82,12 @@
 
   function handleRatioChange(newRatio: number) {
     splitRatio = newRatio
-    updateSlideInDeck(slide.id, (s) => ({ ...s, splitRatio: newRatio }))
+    updateSlideInDeck(slide.id, (s) => ({ ...s, splitRatio: String(newRatio) }))
     fetch(`${API_URL}/api/decks/${slide.deckId}/slides/${slide.id}`, {
       method: 'PATCH',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ splitRatio: newRatio }),
+      body: JSON.stringify({ splitRatio: String(newRatio) }),
     }).catch(console.error)
   }
 </script>
@@ -110,7 +110,7 @@
   {:else if layoutType === 'layout-split'}
     <!-- Flex row: content (left) + divider + stage (right) -->
     <div class="zone-split" style:--split-ratio={splitRatio}>
-      <div class="zone-left" style:flex="{splitRatio}">
+      <div class="zone-left" style:flex="{String(splitRatio)}">
         <ZoneDrop
           modules={contentModules}
           zone="content"
@@ -123,7 +123,7 @@
         />
       </div>
       <SplitHandle ratio={splitRatio} onRatioChange={handleRatioChange} />
-      <div class="zone-right" style:flex="{1 - splitRatio}">
+      <div class="zone-right" style:flex="{String(1 - splitRatio)}">
         <ZoneDrop
           modules={stageModules}
           zone="stage"

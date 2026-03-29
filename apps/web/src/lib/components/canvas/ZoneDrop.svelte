@@ -9,7 +9,8 @@
     data: Record<string, unknown>
     zone: string
     order: number
-    stepOrder?: number
+    stepOrder?: number | null
+    [key: string]: unknown
   }
 
   let {

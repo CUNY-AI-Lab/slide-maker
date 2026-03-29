@@ -15,8 +15,8 @@
   // Track the active TipTap editor for the format toolbar
   let activeEditor: Editor | null = $state(null)
 
-  function handleEditorReady(editor: Editor) {
-    activeEditor = editor
+  function handleEditorReady(editor: unknown) {
+    activeEditor = editor as Editor
   }
 
   function handleEditorBlur() {

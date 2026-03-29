@@ -16,7 +16,7 @@ templates/    — Seeded slide template JSON files
 ```
 
 **Stack:**
-- **Frontend:** SvelteKit 2, Svelte 5 (runes: `$state`, `$derived`, `$effect`, `$props`), TipTap rich text editor, moveable.js for block resize/drag, svelte-dnd-action for reordering, @chenglou/pretext for text measurement
+- **Frontend:** SvelteKit 2, Svelte 5 (runes: `$state`, `$derived`, `$effect`, `$props`), TipTap rich text editor, svelte-dnd-action for reordering, @chenglou/pretext for text measurement
 - **Backend:** Hono on Node (@hono/node-server), SQLite via better-sqlite3 + Drizzle ORM, Lucia v3 for auth
 - **AI:** Anthropic SDK + OpenAI SDK (for OpenRouter). SSE streaming for chat responses.
 
@@ -43,22 +43,45 @@ This is a Svelte 5 app. Always use runes, never Svelte 4 patterns:
 - `{@render children()}` not `<slot />`
 - `onconsider` not `on:consider` (for svelte-dnd-action)
 
-### Block Types
-The system supports exactly these block types. Do NOT invent new ones:
-`heading`, `text`, `image`, `code`, `quote`, `steps`, `card-grid`, `embed`
+### Module Types (v3)
+The system supports exactly these 12 module types. Do NOT invent new ones:
+`heading`, `text`, `card`, `label`, `tip-box`, `prompt-block`, `image`, `carousel`, `comparison`, `card-grid`, `flow`, `stream-list`
 
-Block data shapes are defined in `packages/shared/src/block-types.ts`.
+Module data shapes are defined in `packages/shared/src/block-types.ts`.
 
-### Slide Types
-`title`, `section-divider`, `body`, `resources`
+Each module renderer lives in `apps/web/src/lib/components/renderers/` (e.g., `HeadingModule.svelte`, `TextModule.svelte`). The top-level `ModuleRenderer.svelte` dispatches to the correct renderer by module type.
 
-### Slide Layouts
-`single`, `two-column`, `two-column-wide-left`, `two-column-wide-right`
+### Slide Layouts (v3)
+7 layout types matching the CUNY AI Lab deck framework:
+`title-slide`, `layout-split`, `layout-content`, `layout-grid`, `layout-full-dark`, `layout-divider`, `closing-slide`
+
+### Zones
+Each layout defines named zones where modules are placed. Zones replace the old free-position x/y/width/height system.
+
+Zone types: `content`, `stage`, `main`, `hero`
+
+Layout-to-zone mapping:
+- `title-slide` → `hero`
+- `layout-split` → `content`, `stage`
+- `layout-content` → `main`
+- `layout-grid` → `main`
+- `layout-full-dark` → `main`
+- `layout-divider` → `hero`
+- `closing-slide` → `hero`
+
+Defined in `packages/shared/src/block-types.ts` as `LAYOUT_ZONES`.
 
 ### AI Chat Mutations
 The AI emits structured mutations in ` ```mutation ` fenced blocks. The frontend parses these and applies them to the deck store + persists to the API. Mutation types: `addSlide`, `removeSlide`, `updateSlide`, `addBlock`, `removeBlock`, `updateBlock`, `reorderSlides`, `reorderBlocks`, `setTheme`, `updateMetadata`, `applyTemplate`.
 
-System prompt is at `apps/api/src/prompts/system.ts`. It defines the mutation format and block types the AI should use.
+When adding slides, mutations use `layout` (a SlideLayout) and `modules` (array of `{ type: ModuleType, zone: Zone, data }`) instead of the old `type`/`blocks` format.
+
+When adding blocks, mutations include `zone` to place the module in the correct layout zone.
+
+System prompt is at `apps/api/src/prompts/system.ts`. It defines the mutation format, module types, layouts, and zones the AI should use.
+
+### ModulePicker and /add Command
+The `ModulePicker` component (`apps/web/src/lib/components/outline/ModulePicker.svelte`) provides a UI for adding modules to slides. Users can also type `/add` in chat to trigger module addition via AI.
 
 ### Persistence
 All mutations must persist to the API, not just the local Svelte store. The pattern:
@@ -67,9 +90,10 @@ All mutations must persist to the API, not just the local Svelte store. The patt
 3. Canvas re-renders reactively
 
 ### Canvas Editing
-- **Double-click** a block to enter edit mode (text editing with TipTap)
-- **Single-click/drag** for move/resize (via moveable.js)
-- BlockWrapper handles the click vs drag conflict via `pointer-events` toggling
+- **Zone-based composition:** Slides use layout-defined zones instead of free-position blocks. Each zone contains an ordered list of modules that render vertically within that zone.
+- **Double-click** a module to enter edit mode (text editing with TipTap)
+- **Single-click** to select a module
+- moveable.js is no longer used (removed BlockWrapper). Modules are positioned by their zone, not by absolute x/y coordinates.
 - Format toolbar (B/I/Link/List) is fixed above the slide frame, connected to the active TipTap editor
 
 ### File Uploads
@@ -107,7 +131,6 @@ CUNY AI Lab palette — defined as CSS custom properties in `apps/web/src/app.cs
 ## Known Issues / Tech Debt
 
 - PreTeXtBook/pretext is a server-side Python toolchain, NOT a browser JS library. Only chenglou/pretext (npm: `@chenglou/pretext`) is integrated for text measurement.
-- `svelte-moveable` npm package is Svelte 3/4 only — we use vanilla `moveable` directly via onMount/onDestroy instead.
 - Fragment/progressive disclosure is implemented in schema + export but canvas editing UX is minimal (just a badge).
 - Export zip doesn't include speaker notes panel yet.
 - No real-time collaborative editing — uses pessimistic locking (5-min TTL with heartbeat).

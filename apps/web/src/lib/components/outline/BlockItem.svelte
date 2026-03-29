@@ -5,11 +5,15 @@
     heading: 'Heading',
     text: 'Text',
     image: 'Image',
-    code: 'Code',
-    quote: 'Quote',
-    steps: 'Steps',
+    card: 'Card',
+    label: 'Label',
+    'tip-box': 'Tip Box',
+    'prompt-block': 'Prompt Block',
+    carousel: 'Carousel',
+    comparison: 'Comparison',
     'card-grid': 'Card Grid',
-    embed: 'Embed',
+    flow: 'Flow',
+    'stream-list': 'Stream List',
   }
 
   let label = $derived(typeLabels[block.type] ?? block.type)

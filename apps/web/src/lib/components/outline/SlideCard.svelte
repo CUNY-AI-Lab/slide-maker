@@ -19,16 +19,15 @@
     slide: {
       id: string
       deckId: string
-      type: string
-      layout?: string
+      layout: string
       order: number
-      blocks: { id: string; type: string; data: Record<string, unknown> }[]
+      blocks: { id: string; slideId: string; type: string; zone: string; data: Record<string, unknown>; order: number; stepOrder: number | null }[]
     }
     active: boolean
     index: number
   } = $props()
 
-  let layoutLabel = $derived(layoutLabels[slide.layout ?? slide.type] ?? slide.layout ?? slide.type)
+  let layoutLabel = $derived(layoutLabels[slide.layout] ?? slide.layout)
 
   let deleting = $state(false)
   let blockItems = $state(slide.blocks)
