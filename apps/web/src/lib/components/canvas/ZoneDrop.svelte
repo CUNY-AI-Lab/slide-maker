@@ -21,6 +21,7 @@
     slideId = '',
     onReorder,
     onModuleDataChange,
+    onModuleDelete,
     onEditorReady,
   }: {
     modules: Module[]
@@ -30,6 +31,7 @@
     slideId?: string
     onReorder?: (zone: string, items: Module[]) => void
     onModuleDataChange?: (moduleId: string, data: Record<string, unknown>) => void
+    onModuleDelete?: (moduleId: string) => void
     onEditorReady?: (editor: unknown) => void
   } = $props()
 
@@ -114,6 +116,7 @@
           module={mod}
           {editable}
           onchange={(newData) => onModuleDataChange?.(mod.id, newData)}
+          ondelete={() => onModuleDelete?.(mod.id)}
           oneditorready={onEditorReady}
         />
       </div>

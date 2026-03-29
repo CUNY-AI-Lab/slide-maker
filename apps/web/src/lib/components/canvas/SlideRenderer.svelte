@@ -80,6 +80,17 @@
     }).catch(console.error)
   }
 
+  function handleModuleDelete(moduleId: string) {
+    updateSlideInDeck(slide.id, (s) => ({
+      ...s,
+      blocks: s.blocks.filter((b) => b.id !== moduleId),
+    }))
+    fetch(`${API_URL}/api/decks/${slide.deckId}/slides/${slide.id}/blocks/${moduleId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    }).catch(console.error)
+  }
+
   function handleRatioChange(newRatio: number) {
     splitRatio = newRatio
     updateSlideInDeck(slide.id, (s) => ({ ...s, splitRatio: String(newRatio) }))
@@ -104,6 +115,7 @@
         slideId={slide.id}
         onReorder={handleReorder}
         onModuleDataChange={handleModuleDataChange}
+          onModuleDelete={handleModuleDelete}
         {onEditorReady}
       />
     </div>
@@ -119,6 +131,7 @@
           slideId={slide.id}
           onReorder={handleReorder}
           onModuleDataChange={handleModuleDataChange}
+          onModuleDelete={handleModuleDelete}
           {onEditorReady}
         />
       </div>
@@ -132,6 +145,7 @@
           slideId={slide.id}
           onReorder={handleReorder}
           onModuleDataChange={handleModuleDataChange}
+          onModuleDelete={handleModuleDelete}
           {onEditorReady}
         />
       </div>
@@ -147,6 +161,7 @@
         slideId={slide.id}
         onReorder={handleReorder}
         onModuleDataChange={handleModuleDataChange}
+          onModuleDelete={handleModuleDelete}
         {onEditorReady}
       />
     </div>
