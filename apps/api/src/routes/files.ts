@@ -173,11 +173,14 @@ filesRouter.get('/:deckId/files/:fileId', async (c) => {
     return c.json({ error: 'File not found' }, 404)
   }
 
-  if (!fs.existsSync(file.path)) {
+  // Resolve path — may be absolute or relative to UPLOADS_DIR
+  const resolvedPath = path.isAbsolute(file.path) ? file.path : path.join(UPLOADS_DIR, file.path)
+
+  if (!fs.existsSync(resolvedPath)) {
     return c.json({ error: 'File not found on disk' }, 404)
   }
 
-  const data = fs.readFileSync(file.path)
+  const data = fs.readFileSync(resolvedPath)
   c.header('Content-Type', file.mimeType)
   // Force download for SVG to prevent script execution
   if (file.mimeType === 'image/svg+xml') {
@@ -216,8 +219,9 @@ filesRouter.delete('/:deckId/files/:fileId', authMiddleware, async (c) => {
   }
 
   // Delete from disk
-  if (fs.existsSync(file.path)) {
-    fs.unlinkSync(file.path)
+  const deletePath = path.isAbsolute(file.path) ? file.path : path.join(UPLOADS_DIR, file.path)
+  if (fs.existsSync(deletePath)) {
+    fs.unlinkSync(deletePath)
   }
 
   // Delete from DB
