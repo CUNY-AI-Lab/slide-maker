@@ -51,28 +51,15 @@
     }
   }
 
-  // Corner resize (height only — width is zone-controlled)
-  let customHeight = $state<number | null>(null)
-  let resizing = $state(false)
+  // Size control (S/M/L)
+  type ModuleSize = 'auto' | 'sm' | 'md' | 'lg'
+  let moduleSize = $state<ModuleSize>('auto')
 
-  function startCornerResize(e: MouseEvent) {
-    e.preventDefault()
-    e.stopPropagation() // Don't trigger dnd
-    resizing = true
-    const startY = e.clientY
-    const wrapper = (e.currentTarget as HTMLElement).parentElement
-    const startH = wrapper?.offsetHeight ?? 80
-
-    function onMove(ev: MouseEvent) {
-      customHeight = Math.max(24, startH + (ev.clientY - startY))
-    }
-    function onUp() {
-      resizing = false
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
-    }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
+  const sizeMap: Record<ModuleSize, string | undefined> = {
+    auto: undefined,
+    sm: '60px',
+    md: '120px',
+    lg: '240px',
   }
 </script>
 
@@ -80,19 +67,31 @@
   class="module-wrapper"
   class:editable
   class:is-step={module.stepOrder != null}
-  class:resizing
-  style:height={customHeight ? `${customHeight}px` : undefined}
-  style:overflow={customHeight ? 'auto' : undefined}
+  style:max-height={sizeMap[moduleSize]}
+  style:overflow={moduleSize !== 'auto' ? 'hidden' : undefined}
 >
   {#if editable}
-    <button
-      class="delete-btn"
-      class:confirming={confirmDelete}
-      onclick={handleDelete}
-      title={confirmDelete ? 'Click again to confirm' : 'Delete module'}
-    >
-      {confirmDelete ? 'Delete?' : '✕'}
-    </button>
+    <div class="module-controls">
+      <select
+        class="size-select"
+        bind:value={moduleSize}
+        title="Module size"
+        onclick={(e) => e.stopPropagation()}
+      >
+        <option value="auto">Auto</option>
+        <option value="sm">S</option>
+        <option value="md">M</option>
+        <option value="lg">L</option>
+      </select>
+      <button
+        class="delete-btn"
+        class:confirming={confirmDelete}
+        onclick={handleDelete}
+        title={confirmDelete ? 'Click again to confirm' : 'Delete module'}
+      >
+        {confirmDelete ? 'Delete?' : '✕'}
+      </button>
+    </div>
   {/if}
 
   {#if module.stepOrder != null}
@@ -103,11 +102,6 @@
     <Renderer data={module.data} {editable} {onchange} oneditorready={module.type === 'text' ? oneditorready : undefined} />
   {:else}
     <div class="unknown-module">Unknown module type: {module.type}</div>
-  {/if}
-
-  {#if editable}
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="corner-resize corner-br" onmousedown={startCornerResize}></div>
   {/if}
 </div>
 
@@ -120,10 +114,6 @@
     outline: 1px dashed rgba(59, 115, 230, 0.4);
     outline-offset: 2px;
     border-radius: var(--radius-sm);
-  }
-  .module-wrapper.resizing {
-    user-select: none;
-    outline: 2px solid var(--color-primary) !important;
   }
   .is-step {
     opacity: 0.7;
@@ -144,15 +134,41 @@
     z-index: 5;
   }
 
-  /* Delete button */
-  .delete-btn {
+  /* Controls row (size + delete) */
+  .module-controls {
     position: absolute;
-    top: -6px;
+    top: -8px;
     right: 2px;
+    display: none;
+    align-items: center;
+    gap: 3px;
+    z-index: 10;
+  }
+  .module-wrapper.editable:hover .module-controls {
+    display: flex;
+  }
+
+  .size-select {
+    height: 18px;
+    padding: 0 2px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--color-text-muted);
+    font-size: 9px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    outline: none;
+  }
+  .size-select:hover {
+    border-color: var(--color-primary);
+  }
+
+  .delete-btn {
     width: auto;
     min-width: 18px;
     height: 18px;
-    display: none;
+    display: flex;
     align-items: center;
     justify-content: center;
     font-size: 10px;
@@ -161,13 +177,9 @@
     border-radius: 9px;
     cursor: pointer;
     color: var(--color-text-muted);
-    z-index: 10;
     padding: 0 4px;
     font-family: var(--font-body);
     line-height: 1;
-  }
-  .module-wrapper.editable:hover .delete-btn {
-    display: flex;
   }
   .delete-btn:hover {
     color: #dc2626;
@@ -175,36 +187,11 @@
     background: #fef2f2;
   }
   .delete-btn.confirming {
-    display: flex;
     color: white;
     background: #dc2626;
     border-color: #dc2626;
     padding: 0 6px;
     font-weight: 600;
-  }
-
-  /* Corner resize handle */
-  .corner-resize {
-    position: absolute;
-    width: 12px;
-    height: 12px;
-    z-index: 10;
-    display: none;
-  }
-  .module-wrapper.editable:hover .corner-resize {
-    display: block;
-  }
-  .corner-br {
-    bottom: -2px;
-    right: -2px;
-    cursor: nwse-resize;
-    border-right: 3px solid var(--color-primary);
-    border-bottom: 3px solid var(--color-primary);
-    border-radius: 0 0 3px 0;
-    opacity: 0.5;
-  }
-  .corner-br:hover {
-    opacity: 1;
   }
 
   .unknown-module {
