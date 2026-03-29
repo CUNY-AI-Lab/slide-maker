@@ -87,12 +87,19 @@ Modules flow vertically within zones. No absolute x/y positioning.
 - Modules reorder via ▲/▼ buttons on hover
 - Modules resize via corner drag (bottom-right) — content scales down via CSS `transform: scale()`
 
-### Canvas Editing
-- **Double-click** a text/card/tip-box module → TipTap rich text editor activates
-- **Format toolbar** (fixed above slide): font size, bold, italic, link, bullet list, ordered list, align left/center/right
-- **Corner resize** (bottom-right handle): drag to shrink module, content scales proportionally
+### Canvas Rendering (Dual Mode)
+The canvas has two modes:
+- **Preview mode** (default) — iframe with `srcdoc` renders the slide using the exact same HTML/CSS as the export. Guaranteed WYSIWYG. Theme-driven via CSS variables. Client-side HTML renderer at `apps/web/src/lib/utils/slide-html.ts` mirrors the API export renderer.
+- **Edit mode** — double-click or click "Edit" button to switch. Uses SlideRenderer with Svelte components (TipTap, module picker, ▲/▼ controls). Press Escape or "Preview" to switch back.
+
+The iframe srcdoc rebuilds reactively when slide data or theme changes (uses `{#key slideHtml}` for re-render).
+
+### Canvas Editing (Edit Mode)
+- **Format toolbar** (fixed above slide): heading levels (Normal/H1-H4), font size, bold, italic, link, bullet list, ordered list, align left/center/right
+- **Corner resize** (bottom-right handle): drag to resize module, content scales proportionally (both up and down via CSS `transform: scale()`)
 - **▲/▼ buttons**: move module up/down within its zone
 - **✕ button**: delete module (double-click to confirm)
+- **Step order dropdown**: set progressive reveal order (1-5) per module
 - **+ Module button**: opens module picker overlay per zone (fixed position, not constrained by slide frame)
 - **Split handle**: drag to resize left/right zone proportions in `layout-split`
 
@@ -104,7 +111,13 @@ Key mutations:
 - `addBlock { slideId, block: { type, zone, data } }` — adds module to existing slide
 - `updateBlock`, `removeBlock`, `removeSlide`, `updateSlide`, `setTheme`
 
-System prompt at `apps/api/src/prompts/system.ts` — includes deck state, templates, theme, and **uploaded file URLs** so AI can reference them in image modules.
+System prompt at `apps/api/src/prompts/system.ts` — includes deck state, templates, theme, and **uploaded file URLs** so AI can reference them in image modules. The AI does NOT have web access — it directs users to `/search` command for web images.
+
+### Web Search (Tavily)
+- `POST /api/search` — searches the web via Tavily API, returns results + image URLs
+- `POST /api/search/download-image` — downloads an image from a URL and saves it as an uploaded file
+- Content filtered: inappropriate domains blocked from search and download
+- Tavily API key in `.env` as `TAVILY_API_KEY`
 
 ### File Uploads
 - Upload via Files tab or drag into chat input (chat drag only uploads, doesn't auto-insert)
@@ -180,12 +193,35 @@ Push schema changes: `pnpm db:push` (runs `drizzle-kit push` from `apps/api/`).
 - Specs: `docs/superpowers/specs/2026-03-28-slide-maker-v{1,2,3}-design.md`
 - Plans: `docs/superpowers/plans/2026-03-28-slide-maker-v{1,2,3}.md`
 
+### Themes
+- 7 built-in themes (CUNY AI Lab, CUNY Dark, CUNY Light, Warm Academic, Slate Minimal, Midnight, Forest)
+- Theme-driven rendering: both preview iframe and export apply theme colors/fonts via CSS variables
+- Auto-detects dark/light themes for text contrast (uses luminance calculation)
+- Theme store at `apps/web/src/lib/stores/themes.ts`
+- Users can create custom themes and fork existing ones via the Themes tab
+
+### Undo/Redo
+- `Ctrl+Z` / `Ctrl+Shift+Z` in the editor
+- History store at `apps/web/src/lib/stores/history.ts`
+- Tracks addSlide, addBlock, updateBlock mutations with reverse operations
+
+### Security
+- CSP + security headers via `apps/web/src/hooks.server.ts`
+- DOMPurify on all user HTML content in renderers
+- sanitize-html on API export renderer
+- CSRF middleware on API
+- Server-side admin guard (`apps/web/src/routes/(app)/admin/+page.server.ts`)
+- Link URL validation (https only)
+- Content filtering on web search (blocked domains)
+- Security audit: `docs/security-audit-2026-03-28.md`
+
 ## Known Issues / Tech Debt
 
 - PreTeXtBook/pretext is a server-side Python toolchain, NOT a browser JS library. Only chenglou/pretext (`@chenglou/pretext`) is integrated for text measurement.
 - svelte-dnd-action used for slide reordering in outline only. Zone module reordering uses ▲/▼ buttons (drag conflicts with resize).
-- Fragment/progressive disclosure: schema + export support exists, canvas editing UX is minimal (step badge only).
+- Fragment/progressive disclosure: schema + export support exists, step order dropdown in edit mode, but no step preview in editor (only in export/preview).
 - Export doesn't include speaker notes panel yet.
 - No real-time collaborative editing — uses pessimistic locking (5-min TTL with heartbeat).
 - Font size in format toolbar applies to entire editor DOM, not per-selection (needs TipTap TextStyle extension).
 - `adapter-auto` warning on build — could switch to `adapter-node` for production.
+- `/search` command not yet wired into chat UI (API works, needs frontend `/search` trigger like `/add`).
