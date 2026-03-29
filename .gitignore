@@ -29,3 +29,6 @@ data/
 # Uploads
 apps/api/uploads/
 .env_server
+
+# Local planning
+TODO.md
