@@ -4,13 +4,8 @@
   import { applyMutation } from '$lib/utils/mutations'
   import { get } from 'svelte/store'
   import { API_URL } from '$lib/api'
-
-  interface ArtifactConfigField {
-    type: string
-    label: string
-    default: unknown
-    itemShape?: Record<string, string>
-  }
+  import { chatDraft } from '$lib/stores/chat'
+  import { getResolvedConfig, buildAtRef, type ArtifactConfigField } from '$lib/utils/artifact-config'
 
   interface Artifact {
     id: string
@@ -22,6 +17,13 @@
     builtIn: boolean
   }
 
+  interface ArtifactGroup {
+    key: string
+    label: string
+    badge: string
+    items: Artifact[]
+  }
+
   let artifacts = $state<Artifact[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
@@ -31,6 +33,9 @@
   let editingArtifactId = $state<string | null>(null)
   let configJson = $state('')
   let configError = $state<string | null>(null)
+
+  // Collapse state — tracks which groups are expanded
+  let expandedGroups = $state<Set<string>>(new Set())
 
   $effect(() => {
     fetch(`${API_URL}/api/artifacts`, { credentials: 'include' })
@@ -50,6 +55,55 @@
     return str.startsWith('http://') || str.startsWith('https://')
   }
 
+  // Group artifacts: URL-based (visualizations) vs inline by type
+  let groups = $derived.by(() => {
+    const result: ArtifactGroup[] = []
+    const urlArtifacts: Artifact[] = []
+    const byType: Record<string, Artifact[]> = {}
+
+    for (const a of artifacts) {
+      if (isUrl(a.source)) {
+        urlArtifacts.push(a)
+      } else {
+        ;(byType[a.type] ??= []).push(a)
+      }
+    }
+
+    // URL-based visualizations first
+    if (urlArtifacts.length > 0) {
+      result.push({
+        key: 'visualizations',
+        label: 'Visualizations',
+        badge: 'JS',
+        items: urlArtifacts,
+      })
+    }
+
+    const typeLabels: Record<string, { label: string; badge: string }> = {
+      chart: { label: 'Charts', badge: 'C' },
+      diagram: { label: 'Diagrams', badge: 'D' },
+      map: { label: 'Maps', badge: 'M' },
+      widget: { label: 'Widgets', badge: 'W' },
+    }
+
+    for (const [type, items] of Object.entries(byType)) {
+      const meta = typeLabels[type] ?? { label: type, badge: '?' }
+      result.push({ key: type, label: meta.label, badge: meta.badge, items })
+    }
+
+    return result
+  })
+
+  function toggleGroup(key: string) {
+    const next = new Set(expandedGroups)
+    if (next.has(key)) {
+      next.delete(key)
+    } else {
+      next.add(key)
+    }
+    expandedGroups = next
+  }
+
   function openConfigEditor(artifact: Artifact) {
     if (editingArtifactId === artifact.id) {
       editingArtifactId = null
@@ -57,7 +111,6 @@
     }
     editingArtifactId = artifact.id
     configError = null
-    // Build default config from the artifact's config schema
     const cfg = artifact.config as Record<string, ArtifactConfigField> | null
     if (cfg && typeof cfg === 'object') {
       const defaults: Record<string, unknown> = {}
@@ -73,9 +126,7 @@
   }
 
   function buildSourceWithConfig(artifact: Artifact, configData: Record<string, unknown>): string {
-    // Inject data-config as a JSON attribute on the body element
     const configStr = JSON.stringify(configData).replace(/"/g, '&quot;')
-    // Replace <body> with <body data-config="...">
     let source = artifact.source
     if (source.includes('<body>')) {
       source = source.replace('<body>', `<body data-config="${configStr}">`)
@@ -105,8 +156,8 @@
         }
       }
 
-      // Use URL directly if source is a URL, otherwise create a blob from inline HTML
-      const src = isUrl(finalSource)
+      const sourceIsUrl = isUrl(finalSource)
+      const src = sourceIsUrl
         ? finalSource
         : URL.createObjectURL(new Blob([finalSource], { type: 'text/html' }))
 
@@ -119,10 +170,10 @@
             zone: 'stage',
             data: {
               src,
-              rawSource: finalSource,
+              ...(sourceIsUrl ? {} : { rawSource: finalSource }),
               alt: artifact.name,
               width: '100%',
-              height: '300px',
+              height: '400px',
             },
           },
         },
@@ -136,11 +187,17 @@
     }
   }
 
-  const typeIcons: Record<string, string> = {
-    chart: 'C',
-    diagram: 'D',
-    widget: 'JS',
-    map: 'M',
+  let copied = $state<string | null>(null)
+
+  async function copyConfig(artifact: Artifact) {
+    const config = getResolvedConfig(artifact)
+    await navigator.clipboard.writeText(JSON.stringify(config, null, 2))
+    copied = artifact.id
+    setTimeout(() => { if (copied === artifact.id) copied = null }, 1500)
+  }
+
+  function injectAtRef(artifact: Artifact) {
+    chatDraft.set(buildAtRef(artifact))
   }
 
   function hasConfig(artifact: Artifact): boolean {
@@ -157,55 +214,84 @@
   {:else if artifacts.length === 0}
     <div class="center-msg">No artifacts available yet. Run the seed script to add starter artifacts.</div>
   {:else}
-    <div class="artifact-list">
-      {#each artifacts as artifact (artifact.id)}
-        <div class="artifact-card" class:editing={editingArtifactId === artifact.id}>
-          <div class="artifact-main">
-            <div class="artifact-header">
-              <span class="type-badge">{typeIcons[artifact.type] ?? '?'}</span>
-              <span class="artifact-name">{artifact.name}</span>
-            </div>
-            <p class="artifact-desc">{artifact.description}</p>
-            <div class="artifact-actions">
-              <button
-                class="insert-btn"
-                onclick={() => insertArtifact(artifact, false)}
-                disabled={inserting !== null || !$activeSlideId}
-                title={$activeSlideId ? 'Insert with defaults' : 'Select a slide first'}
-              >
-                {inserting === artifact.id ? 'Inserting...' : 'Insert'}
-              </button>
-              {#if hasConfig(artifact)}
-                <button
-                  class="config-btn"
-                  onclick={() => openConfigEditor(artifact)}
-                  title="Configure data before inserting"
-                >
-                  {editingArtifactId === artifact.id ? 'Close' : 'Configure'}
-                </button>
-              {/if}
-            </div>
-          </div>
+    <div class="group-list">
+      {#each groups as group (group.key)}
+        <div class="group">
+          <button class="group-header" onclick={() => toggleGroup(group.key)}>
+            <span class="group-badge">{group.badge}</span>
+            <span class="group-label">{group.label}</span>
+            <span class="group-count">{group.items.length}</span>
+            <span class="group-chevron" class:open={expandedGroups.has(group.key)}>
+              &#9206;
+            </span>
+          </button>
 
-          {#if editingArtifactId === artifact.id}
-            <div class="config-editor">
-              <label class="config-label">Edit data (JSON):</label>
-              <textarea
-                class="config-textarea"
-                bind:value={configJson}
-                rows="8"
-                spellcheck="false"
-              ></textarea>
-              {#if configError}
-                <p class="config-error">{configError}</p>
-              {/if}
-              <button
-                class="insert-configured-btn"
-                onclick={() => insertArtifact(artifact, true)}
-                disabled={inserting !== null || !$activeSlideId}
-              >
-                Insert with Config
-              </button>
+          {#if expandedGroups.has(group.key)}
+            <div class="group-items">
+              {#each group.items as artifact (artifact.id)}
+                <div class="artifact-row" class:editing={editingArtifactId === artifact.id}>
+                  <div class="artifact-main">
+                    <div class="artifact-top">
+                      <span class="artifact-name">{artifact.name}</span>
+                      <div class="artifact-actions">
+                        <button
+                          class="insert-btn"
+                          onclick={() => insertArtifact(artifact, false)}
+                          disabled={inserting !== null || !$activeSlideId}
+                          title={$activeSlideId ? 'Insert with defaults' : 'Select a slide first'}
+                        >
+                          {inserting === artifact.id ? '...' : '+'}
+                        </button>
+                        {#if hasConfig(artifact)}
+                          <button
+                            class="config-btn"
+                            onclick={() => openConfigEditor(artifact)}
+                            title="Configure data before inserting"
+                          >
+                            {editingArtifactId === artifact.id ? '\u00d7' : '\u2699'}
+                          </button>
+                        {/if}
+                        <button
+                          class="icon-btn"
+                          onclick={() => copyConfig(artifact)}
+                          title="Copy config to clipboard"
+                        >
+                          {copied === artifact.id ? '\u2713' : '\u2398'}
+                        </button>
+                        <button
+                          class="icon-btn"
+                          onclick={() => injectAtRef(artifact)}
+                          title="Send @reference to chat"
+                        >
+                          @
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {#if editingArtifactId === artifact.id}
+                    <div class="config-editor">
+                      <label class="config-label">Edit data (JSON):</label>
+                      <textarea
+                        class="config-textarea"
+                        bind:value={configJson}
+                        rows="8"
+                        spellcheck="false"
+                      ></textarea>
+                      {#if configError}
+                        <p class="config-error">{configError}</p>
+                      {/if}
+                      <button
+                        class="insert-configured-btn"
+                        onclick={() => insertArtifact(artifact, true)}
+                        disabled={inserting !== null || !$activeSlideId}
+                      >
+                        Insert with Config
+                      </button>
+                    </div>
+                  {/if}
+                </div>
+              {/each}
             </div>
           {/if}
         </div>
@@ -216,7 +302,7 @@
 
 <style>
   .artifacts-tab {
-    padding: 8px;
+    padding: 6px;
   }
 
   .center-msg {
@@ -234,105 +320,184 @@
     color: #ef4444;
   }
 
-  .artifact-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  .artifact-card {
-    display: flex;
-    flex-direction: column;
-    background: white;
-    border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: 6px;
-    transition: border-color 0.15s, box-shadow 0.15s;
-    overflow: hidden;
-  }
-
-  .artifact-card:hover {
-    border-color: #93c5fd;
-    box-shadow: 0 1px 4px rgba(59, 130, 246, 0.1);
-  }
-
-  .artifact-card.editing {
-    border-color: #3b82f6;
-  }
-
-  .artifact-main {
+  .group-list {
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding: 10px 12px;
   }
 
-  .artifact-header {
+  /* ── Group header (collapsed row) ── */
+  .group-header {
     display: flex;
     align-items: center;
     gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: var(--radius-sm, 6px);
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .group-header:hover {
+    background: var(--color-ghost-bg-hover, rgba(59, 115, 230, 0.12));
+    border-color: #93c5fd;
   }
 
-  .type-badge {
+  .group-badge {
     width: 22px;
     height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #eff6ff;
-    color: #3b82f6;
-    border-radius: 4px;
-    font-size: 11px;
+    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
+    color: var(--color-primary, #3B73E6);
+    border-radius: var(--radius-sm, 6px);
+    font-size: 10px;
     font-weight: 700;
     flex-shrink: 0;
   }
 
-  .artifact-name {
+  .group-label {
     font-size: 12px;
     font-weight: 600;
     color: var(--color-text, #1f2937);
+    flex: 1;
+    text-align: left;
   }
 
-  .artifact-desc {
+  .group-count {
+    font-size: 10px;
+    color: var(--color-text-muted, #94a3b8);
+    background: rgba(0, 0, 0, 0.04);
+    padding: 1px 6px;
+    border-radius: 9px;
+    font-weight: 500;
+  }
+
+  .group-chevron {
     font-size: 11px;
-    color: var(--color-text-muted, #6b7280);
-    margin: 0;
-    line-height: 1.4;
+    color: var(--color-text-muted, #94a3b8);
+    transition: transform 0.2s;
+    transform: rotate(0deg);
+    flex-shrink: 0;
+  }
+  .group-chevron.open {
+    transform: rotate(180deg);
+  }
+
+  /* ── Expanded item list ── */
+  .group-items {
+    display: flex;
+    flex-direction: column;
+    margin-left: 12px;
+    padding-left: 10px;
+    border-left: 2px solid var(--color-border, #e5e7eb);
+  }
+
+  .artifact-row {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--color-border, #e5e7eb);
+    transition: background 0.1s;
+  }
+  .artifact-row:last-child {
+    border-bottom: none;
+  }
+  .artifact-row:hover {
+    background: rgba(59, 130, 246, 0.03);
+  }
+  .artifact-row.editing {
+    background: rgba(59, 130, 246, 0.05);
+  }
+
+  .artifact-main {
+    padding: 6px 8px;
+  }
+
+  .artifact-top {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .artifact-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text, #1f2937);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .artifact-actions {
     display: flex;
-    gap: 6px;
-    margin-top: 6px;
-  }
-
-  .insert-btn,
-  .config-btn {
-    padding: 4px 10px;
-    font-size: 10px;
-    font-weight: 600;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.15s, opacity 0.15s;
+    gap: 3px;
+    flex-shrink: 0;
   }
 
   .insert-btn {
-    background: #3b82f6;
-    color: white;
-    border: none;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 14px;
+    font-weight: 700;
+    background: transparent;
+    color: var(--color-primary, #3B73E6);
+    border: 1px solid var(--color-primary, #3B73E6);
+    border-radius: var(--radius-sm, 6px);
+    cursor: pointer;
+    transition: background 0.15s;
+    line-height: 1;
   }
-  .insert-btn:hover:not(:disabled) { opacity: 0.9; }
-  .insert-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .insert-btn:hover:not(:disabled) { background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08)); }
+  .insert-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
   .config-btn {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 13px;
     background: #f1f5f9;
     color: #475569;
     border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    line-height: 1;
   }
   .config-btn:hover { background: #e2e8f0; color: #334155; }
 
+  .icon-btn {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 11px;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    line-height: 1;
+  }
+  .icon-btn:hover { background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08)); color: var(--color-primary, #3B73E6); }
+
   /* ── Config editor ── */
   .config-editor {
-    padding: 8px 12px 12px;
+    padding: 8px 8px 10px;
     border-top: 1px solid var(--color-border, #e5e7eb);
     background: #f9fafb;
     display: flex;
@@ -363,7 +528,7 @@
   }
   .config-textarea:focus {
     outline: none;
-    border-color: #3b82f6;
+    border-color: var(--color-primary, #3B73E6);
   }
 
   .config-error {
@@ -376,14 +541,14 @@
     padding: 5px 12px;
     font-size: 11px;
     font-weight: 600;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 4px;
+    background: transparent;
+    color: var(--color-primary, #3B73E6);
+    border: 1px solid var(--color-primary, #3B73E6);
+    border-radius: var(--radius-sm, 6px);
     cursor: pointer;
     align-self: flex-start;
-    transition: opacity 0.15s;
+    transition: background 0.15s;
   }
-  .insert-configured-btn:hover:not(:disabled) { opacity: 0.9; }
+  .insert-configured-btn:hover:not(:disabled) { background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08)); }
   .insert-configured-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

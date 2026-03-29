@@ -40,15 +40,50 @@
       .map((key) => ({ key, label: groupLabels[key] ?? key, templates: groups[key] }))
   })
 
-  const thumbnailColors: Record<string, string> = {
-    'title-slide': 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-    'layout-split': '#f3f4f6',
-    'layout-content': '#f3f4f6',
-    'layout-grid': 'linear-gradient(135deg, #10b981, #3b82f6)',
-    'layout-full-dark': 'linear-gradient(135deg, #1e293b, #334155)',
-    'layout-divider': 'linear-gradient(135deg, #f59e0b, #ef4444)',
-    'closing-slide': 'linear-gradient(135deg, #8b5cf6, #3b82f6)',
+  const layoutMeta: Record<string, { bg: string; fg: string; accent: string }> = {
+    // Keep title/closing close to the existing deep navy
+    'title-slide':      { bg: '#1D3A83', fg: 'rgba(255,255,255,0.25)', accent: 'rgba(255,255,255,0.15)' },
+    // Give split layouts a slightly different navy with cool complement accents
+    'layout-split':     { bg: '#172a45', fg: 'rgba(255,255,255,0.22)',  accent: 'rgba(255,255,255,0.12)' },
+    // Leave full-content neutral to imply text-first slides
+    'layout-content':   { bg: '#f1f5f9', fg: 'rgba(59,115,230,0.12)',  accent: 'rgba(59,115,230,0.06)' },
+    // Grid layouts get a teal-leaning complement to the title navy
+    'layout-grid':      { bg: '#0f3444', fg: 'rgba(255,255,255,0.22)',  accent: 'rgba(255,255,255,0.12)' },
+    'layout-full-dark': { bg: '#333333', fg: 'rgba(255,255,255,0.15)', accent: 'rgba(255,255,255,0.08)' },
+    'layout-divider':   { bg: '#3B73E6', fg: 'rgba(255,255,255,0.25)', accent: 'rgba(255,255,255,0.12)' },
+    'closing-slide':    { bg: '#1D3A83', fg: 'rgba(255,255,255,0.25)', accent: 'rgba(255,255,255,0.12)' },
   }
+
+  // Variants to introduce subtle per-card variety within groups
+  const splitVariants: { bg: string; fg: string; accent: string }[] = [
+    { bg: '#172a45', fg: 'rgba(255,255,255,0.22)', accent: 'rgba(255,255,255,0.12)' },
+    { bg: '#102338', fg: 'rgba(255,255,255,0.22)', accent: 'rgba(255,255,255,0.12)' },
+    { bg: '#1b2f4b', fg: 'rgba(255,255,255,0.22)', accent: 'rgba(255,255,255,0.12)' },
+    { bg: '#13283e', fg: 'rgba(255,255,255,0.22)', accent: 'rgba(255,255,255,0.12)' },
+  ]
+  const gridVariants: { bg: string; fg: string; accent: string }[] = [
+    { bg: '#0f3444', fg: 'rgba(255,255,255,0.22)', accent: 'rgba(255,255,255,0.12)' },
+    { bg: '#0b2e3a', fg: 'rgba(255,255,255,0.22)', accent: 'rgba(255,255,255,0.12)' },
+    { bg: '#123a4e', fg: 'rgba(255,255,255,0.22)', accent: 'rgba(255,255,255,0.12)' },
+  ]
+
+  const splitVariantsLight = [
+    { bg: '#e8eef6', fg: 'rgba(59,115,230,0.25)', accent: 'rgba(59,115,230,0.14)' },
+    { bg: '#e9f0fb', fg: 'rgba(59,115,230,0.25)', accent: 'rgba(59,115,230,0.14)' },
+    { bg: '#e7f0f8', fg: 'rgba(59,115,230,0.25)', accent: 'rgba(59,115,230,0.14)' },
+  ]
+  const gridVariantsLight = [
+    { bg: '#e9f5f7', fg: 'rgba(47,184,214,0.28)', accent: 'rgba(47,184,214,0.16)' },
+    { bg: '#e6f1f4', fg: 'rgba(47,184,214,0.28)', accent: 'rgba(47,184,214,0.16)' },
+  ]
+
+  // Preview mode (Dark/Light) for thumbnails only
+  let previewMode = $state<'dark' | 'light'>(
+    (typeof localStorage !== 'undefined' && (localStorage.getItem('templatesPreviewMode') as 'dark' | 'light')) || 'dark'
+  )
+  $effect(() => {
+    try { localStorage.setItem('templatesPreviewMode', previewMode) } catch {}
+  })
 
   $effect(() => {
     fetch(`${API_URL}/api/templates`, { credentials: 'include' })
@@ -92,6 +127,10 @@
 </script>
 
 <div class="templates-tab">
+  <div class="mode-toggle">
+    <button class:active={previewMode==='dark'} onclick={() => previewMode='dark'}>Dark</button>
+    <button class:active={previewMode==='light'} onclick={() => previewMode='light'}>Light</button>
+  </div>
   {#if loading}
     <div class="center-msg">Loading templates...</div>
   {:else if error}
@@ -103,12 +142,57 @@
       <div class="group">
         <h3 class="group-header">{group.label}</h3>
         <div class="template-grid">
-          {#each group.templates as tmpl (tmpl.id)}
+          {#each group.templates as tmpl, i (tmpl.id)}
+            {@const base = layoutMeta[tmpl.layout] ?? { bg: '#e5e7eb', fg: 'rgba(0,0,0,0.1)', accent: 'rgba(0,0,0,0.05)' }}
+            {@const dark = previewMode === 'dark'}
+            {@const meta = tmpl.layout === 'layout-split' ? (dark ? splitVariants[i % splitVariants.length] : splitVariantsLight[i % splitVariantsLight.length])
+                            : tmpl.layout === 'layout-grid' ? (dark ? gridVariants[i % gridVariants.length] : gridVariantsLight[i % gridVariantsLight.length])
+                            : base}
             <button class="template-card" onclick={() => applyTemplate(tmpl)}>
-              <div
-                class="thumbnail"
-                style:background={thumbnailColors[tmpl.layout] ?? '#e5e7eb'}
-              ></div>
+              <div class="thumbnail" style:background={meta.bg}>
+                {#if tmpl.layout === 'title-slide' || tmpl.layout === 'closing-slide'}
+                  <div class="thumb-zones thumb-center">
+                    <div class="z-bar z-wide" style:background={meta.fg}></div>
+                    <div class="z-bar z-narrow" style:background={meta.accent}></div>
+                  </div>
+                {:else if tmpl.layout === 'layout-split'}
+                  <div class="thumb-zones thumb-split">
+                    <div class="z-col z-left">
+                      <div class="z-bar" style:background={meta.fg}></div>
+                      <div class="z-bar z-wide" style:background={meta.accent}></div>
+                      <div class="z-bar z-wide" style:background={meta.accent}></div>
+                    </div>
+                    <div class="z-col z-right">
+                      <div class="z-block" style:background={meta.fg}></div>
+                    </div>
+                  </div>
+                {:else if tmpl.layout === 'layout-content'}
+                  <div class="thumb-zones thumb-full">
+                    <div class="z-bar z-wide" style:background={meta.fg}></div>
+                    <div class="z-bar" style:background={meta.accent}></div>
+                    <div class="z-bar" style:background={meta.accent}></div>
+                  </div>
+                {:else if tmpl.layout === 'layout-grid'}
+                  <div class="thumb-zones thumb-grid">
+                    <div class="z-card" style:background={meta.fg}></div>
+                    <div class="z-card" style:background={meta.fg}></div>
+                    <div class="z-card" style:background={meta.fg}></div>
+                  </div>
+                {:else if tmpl.layout === 'layout-full-dark'}
+                  <div class="thumb-zones thumb-full">
+                    <div class="z-bar z-wide" style:background={meta.fg}></div>
+                    <div class="z-bar" style:background={meta.accent}></div>
+                  </div>
+                {:else if tmpl.layout === 'layout-divider'}
+                  <div class="thumb-zones thumb-center">
+                    <div class="z-bar z-narrow" style:background={meta.fg}></div>
+                  </div>
+                {:else}
+                  <div class="thumb-zones thumb-center">
+                    <div class="z-bar" style:background={meta.fg}></div>
+                  </div>
+                {/if}
+              </div>
               <div class="template-info">
                 <span class="template-name">{tmpl.name}</span>
               </div>
@@ -123,6 +207,28 @@
 <style>
   .templates-tab {
     padding: 8px;
+  }
+
+  .mode-toggle {
+    display: inline-flex;
+    gap: 2px;
+    margin: 2px 4px 8px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .mode-toggle button {
+    border: none;
+    background: transparent;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--color-text-muted, #6b7280);
+    cursor: pointer;
+  }
+  .mode-toggle button.active {
+    color: var(--color-primary, #3B73E6);
+    background: var(--color-ghost-bg, rgba(59,115,230,0.08));
   }
 
   .center-msg {
@@ -163,24 +269,102 @@
   .template-card {
     display: flex;
     flex-direction: column;
-    background: white;
-    border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: 6px;
+    background: var(--color-bg);
+    border: none;
+    border-radius: var(--radius-sm);
     overflow: hidden;
     cursor: pointer;
     text-align: left;
     padding: 0;
-    transition: border-color 0.15s, box-shadow 0.15s;
+    transition: box-shadow 0.15s;
   }
 
   .template-card:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 1px 4px rgba(59, 130, 246, 0.15);
+    box-shadow: 0 1px 6px rgba(59, 115, 230, 0.12);
   }
 
   .thumbnail {
-    height: 48px;
+    height: 56px;
     width: 100%;
+    position: relative;
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  }
+
+  /* Structural miniature zones */
+  .thumb-zones {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    padding: 8px 10px;
+    gap: 4px;
+  }
+
+  .thumb-center {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .thumb-split {
+    flex-direction: row;
+    align-items: stretch;
+  }
+
+  .thumb-full {
+    flex-direction: column;
+    justify-content: center;
+    padding: 8px 12px;
+  }
+
+  .thumb-grid {
+    flex-direction: row;
+    align-items: stretch;
+    justify-content: center;
+    padding: 10px;
+    gap: 3px;
+  }
+
+  .z-col {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    justify-content: center;
+  }
+
+  .z-left {
+    flex: 3;
+    padding-right: 4px;
+  }
+
+  .z-right {
+    flex: 2;
+    display: flex;
+    align-items: stretch;
+  }
+
+  .z-bar {
+    height: 4px;
+    border-radius: 2px;
+    width: 60%;
+  }
+
+  .z-bar.z-wide {
+    width: 80%;
+  }
+
+  .z-bar.z-narrow {
+    width: 40%;
+  }
+
+  .z-block {
+    flex: 1;
+    border-radius: 3px;
+  }
+
+  .z-card {
+    flex: 1;
+    border-radius: 3px;
+    min-height: 100%;
   }
 
   .template-info {
@@ -191,5 +375,14 @@
     font-size: 11px;
     font-weight: 500;
     color: var(--color-text, #1f2937);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .group-header {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 </style>

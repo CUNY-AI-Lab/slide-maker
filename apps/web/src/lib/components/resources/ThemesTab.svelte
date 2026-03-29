@@ -1,7 +1,7 @@
 <script lang="ts">
   import { get } from 'svelte/store'
   import { currentDeck } from '$lib/stores/deck'
-  import { themesStore, themesLoaded, ensureThemesLoaded, type ThemeData } from '$lib/stores/themes'
+  import { themesStore, themesLoaded, ensureThemesLoaded, type ThemeData, isDark } from '$lib/stores/themes'
   import { API_URL } from '$lib/api'
 
   type Theme = ThemeData
@@ -18,6 +18,7 @@
   let error = $state<string | null>(null)
   let applying = $state<string | null>(null)
   let deckThemeId = $state<string | null>(null)
+  let deckHasTheme = $derived(!!deckThemeId)
 
   // Create theme form
   let showCreateForm = $state(false)
@@ -60,6 +61,40 @@
     } finally {
       applying = null
     }
+  }
+
+  function findPairedTheme(current: Theme, list: Theme[]): Theme | null {
+    if (!current) return null
+    const byName = (name: string) => list.find(t => t.name.toLowerCase() === name.toLowerCase()) || null
+    const byId = (id: string) => list.find(t => t.id.toLowerCase() === id.toLowerCase()) || null
+
+    const name = current.name
+    const id = current.id
+    const candidates: (Theme | null)[] = []
+    if (/dark/i.test(name)) candidates.push(byName(name.replace(/dark/i, 'Light')))
+    if (/light/i.test(name)) candidates.push(byName(name.replace(/light/i, 'Dark')))
+    if (/-dark$/i.test(id)) candidates.push(byId(id.replace(/-dark$/i, '-light')))
+    if (/-light$/i.test(id)) candidates.push(byId(id.replace(/-light$/i, '-dark')))
+
+    const found = candidates.find(Boolean)
+    if (found) return found as Theme
+
+    // Fallback: flip by brightness to nearest opposite
+    const curIsDark = isDark((current.colors as any)?.bg ?? '#111827')
+    const pool = list.filter(t => !!t.colors)
+    const opposites = pool.filter(t => isDark((t.colors as any).bg ?? '#111827') !== curIsDark)
+    return opposites[0] ?? null
+  }
+
+  async function toggleDeckLightDark() {
+    const deck = get(currentDeck)
+    if (!deck) return
+    const themes = get(themesStore)
+    const cur = themes.find(t => t.id === deck.themeId)
+    if (!cur) return
+    const paired = findPairedTheme(cur, themes)
+    if (!paired) return
+    await applyTheme(paired.id)
   }
 
   async function handleCreateTheme() {
@@ -125,9 +160,14 @@
 
 <div class="themes-tab">
   <div class="tab-header">
-    <button class="create-btn" onclick={() => { showCreateForm = !showCreateForm }}>
-      {showCreateForm ? 'Cancel' : '+ Create Theme'}
-    </button>
+    <div class="header-actions">
+      <button class="toggle-btn" onclick={toggleDeckLightDark} disabled={!deckHasTheme || applying !== null} title="Toggle between dark/light theme">
+        Toggle Dark/Light
+      </button>
+      <button class="create-btn" onclick={() => { showCreateForm = !showCreateForm }}>
+        {showCreateForm ? 'Cancel' : '+ Create Theme'}
+      </button>
+    </div>
   </div>
 
   {#if showCreateForm}
@@ -223,20 +263,36 @@
     margin-bottom: 8px;
   }
 
+  .header-actions { display: flex; gap: 6px; }
+
+  .toggle-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    background: transparent;
+    color: var(--color-text, #1f2937);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: var(--radius-sm, 6px);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .toggle-btn:hover:not(:disabled) { background: #f3f4f6; }
+  .toggle-btn:disabled { opacity: 0.6; cursor: default; }
+
   .create-btn {
     width: 100%;
     padding: 6px 12px;
     font-size: 11px;
     font-weight: 600;
-    background: #eff6ff;
-    color: #3b82f6;
-    border: 1px dashed #93c5fd;
-    border-radius: 6px;
+    background: transparent;
+    color: var(--color-primary, #3B73E6);
+    border: 1px dashed var(--color-primary, #3B73E6);
+    border-radius: var(--radius-sm, 6px);
     cursor: pointer;
     transition: background 0.15s;
   }
   .create-btn:hover {
-    background: #dbeafe;
+    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
   }
 
   .create-form {
@@ -260,7 +316,7 @@
     box-sizing: border-box;
   }
   .form-input:focus {
-    border-color: #3b82f6;
+    border-color: var(--color-primary, #3B73E6);
   }
 
   .color-row {
@@ -317,14 +373,14 @@
     padding: 6px 12px;
     font-size: 11px;
     font-weight: 600;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 4px;
+    background: transparent;
+    color: var(--color-primary, #3B73E6);
+    border: 1px solid var(--color-primary, #3B73E6);
+    border-radius: var(--radius-sm, 6px);
     cursor: pointer;
-    transition: opacity 0.15s;
+    transition: background 0.15s;
   }
-  .save-btn:hover:not(:disabled) { opacity: 0.9; }
+  .save-btn:hover:not(:disabled) { background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08)); }
   .save-btn:disabled { opacity: 0.5; cursor: default; }
 
   .center-msg {
@@ -352,19 +408,19 @@
     display: flex;
     align-items: stretch;
     border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: 6px;
-    background: white;
+    border-radius: var(--radius-sm, 6px);
+    background: var(--color-bg);
     transition: border-color 0.15s, box-shadow 0.15s;
     overflow: hidden;
   }
 
   .theme-card:hover {
-    border-color: #93c5fd;
+    border-color: var(--color-text-muted);
   }
 
   .theme-card.active {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 1px #3b82f6;
+    border-color: var(--color-primary, #3B73E6);
+    box-shadow: 0 0 0 1px var(--color-primary, #3B73E6);
   }
 
   .theme-apply {
@@ -396,8 +452,8 @@
     transition: background 0.15s, color 0.15s;
   }
   .fork-btn:hover {
-    background: #eff6ff;
-    color: #3b82f6;
+    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
+    color: var(--color-primary, #3B73E6);
   }
 
   .theme-header {
@@ -413,7 +469,7 @@
   }
 
   .check {
-    color: #3b82f6;
+    color: var(--color-primary, #3B73E6);
     font-size: 14px;
     font-weight: 700;
   }
