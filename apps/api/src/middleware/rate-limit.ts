@@ -23,11 +23,20 @@ const chatLimiter = new RateLimiterMemory({
 })
 
 function getClientIp(c: Context): string {
-  return (
-    c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
-    c.req.header('x-real-ip') ||
-    'unknown'
-  )
+  // Only trust proxy headers when request comes from localhost (Nginx)
+  const raw = c.req.raw
+  const connectingIp = (raw as any).socket?.remoteAddress ?? 'unknown'
+  const isFromProxy = connectingIp === '127.0.0.1' || connectingIp === '::1' || connectingIp === '::ffff:127.0.0.1'
+
+  if (isFromProxy) {
+    return (
+      c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ||
+      c.req.header('x-real-ip') ||
+      connectingIp
+    )
+  }
+
+  return connectingIp
 }
 
 function createRateLimitMiddleware(limiter: RateLimiterMemory) {

@@ -1,7 +1,10 @@
 import { Hono } from 'hono'
+import { eq, and } from 'drizzle-orm'
 import type { Session, User } from 'lucia'
 import { authMiddleware } from '../middleware/auth.js'
 import { env } from '../env.js'
+import { db } from '../db/index.js'
+import { deckAccess } from '../db/schema.js'
 
 type AuthEnv = {
   Variables: {
@@ -73,6 +76,18 @@ search.post('/download-image', async (c) => {
 
   if (!url || !deckId) {
     return c.json({ error: 'url and deckId required' }, 400)
+  }
+
+  // Check deck access
+  const user = c.get('user')
+  const access = await db
+    .select()
+    .from(deckAccess)
+    .where(and(eq(deckAccess.deckId, deckId), eq(deckAccess.userId, user.id)))
+    .get()
+
+  if (!access || access.role === 'viewer') {
+    return c.json({ error: 'Forbidden' }, 403)
   }
 
   // Validate URL

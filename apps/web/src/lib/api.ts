@@ -64,6 +64,9 @@ export const api = {
     request<{ users: any[] }>(`/api/admin/users${status ? `?status=${status}` : ''}`),
   approveUser: (id: string) => request(`/api/admin/users/${id}/approve`, { method: 'POST' }),
   rejectUser: (id: string) => request(`/api/admin/users/${id}/reject`, { method: 'POST' }),
+  listAllUsers: () => request<{ users: any[]; stats: any }>('/api/admin/users/all'),
+  updateUser: (id: string, data: any) => request(`/api/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  getUserUsage: (id: string) => request<any>(`/api/admin/users/${id}/usage`),
 
   // Chat
   getChatHistory: (deckId: string) =>

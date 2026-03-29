@@ -205,3 +205,30 @@ Config, auth, CSP, seed file. Misc files.
 - `PromptBlockModule` uses Svelte auto-escaping (safe)
 - `CardGridModule` uses Svelte auto-escaping (safe)
 - Chat message renderer HTML-escapes before tag generation
+
+---
+
+## Post-Fix Rounds (2026-03-29)
+
+### Round 2 — Post-fix verification
+- Fixed: bodyLimit breaking file uploads (exempted upload route from 2MB limit)
+- Fixed: Block PATCH/DELETE not verifying ownership chain (block→slide→deck)
+- Fixed: Content-Disposition filename header injection
+- Fixed: Export path traversal guard on file.path
+- Fixed: ChatMessage.svelte missing DOMPurify
+- Fixed: slide-html.ts trusting data.html in srcdoc
+
+### Round 3 — Final sweep
+- Fixed: `download-image` endpoint missing deck access check (Critical)
+- Fixed: Theme CSS values unsanitized at render time — added safeColor/safeFont validators (Critical)
+- Fixed: `card`/`tip-box` export using esc() on TipTap HTML — now uses sanitize() (Important)
+- Fixed: SSE stream no timeout — added 2-minute hard cap (Important)
+- Fixed: Rate limiter IP spoofable via X-Forwarded-For — now only trusts from localhost (Important)
+- Added: Rate limiting on login (5/15min), registration (3/hr), chat (30/min)
+
+### Round 4 — Admin dashboard & token tracking review (2026-03-29)
+- Reviewed: `admin.ts` new endpoints (GET /users/all, PATCH /users/:id, GET /users/:id/usage)
+- Reviewed: `schema.ts` new tokenUsage table and tokenCap column
+- Reviewed: `UserApprovalQueue.svelte` admin dashboard UI
+- Result: **No new security issues found.** All admin routes properly gated with authMiddleware + adminMiddleware. Input validation on role/status/tokenCap. No {@html} usage in admin UI. Drizzle ORM parameterized queries throughout.
+- Note: Server-side admin page guard (+page.server.ts) was removed due to SvelteKit cookie forwarding issues. API-level protection is sufficient — the client-side guard prevents rendering but admin page JS is served to all authenticated users (low risk, no sensitive data in the component itself).

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
   import { base } from '$app/paths';
   import { currentUser } from '$lib/stores/auth';
   import UserApprovalQueue from '$lib/components/admin/UserApprovalQueue.svelte';
@@ -23,7 +22,7 @@
 </script>
 
 <svelte:head>
-  <title>Admin - User Approval Queue</title>
+  <title>Admin Dashboard</title>
 </svelte:head>
 
 {#if accessDenied}
@@ -39,7 +38,7 @@
     <header class="admin-header">
       <div class="header-left">
         <a href="{base}/" class="back-link">&larr; Back to Decks</a>
-        <h1>User Approval Queue</h1>
+        <h1>Admin Dashboard</h1>
       </div>
     </header>
 
@@ -119,7 +118,7 @@
   }
 
   .admin-main {
-    max-width: 800px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 2rem;
   }

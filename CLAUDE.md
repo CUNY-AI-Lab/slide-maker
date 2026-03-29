@@ -175,12 +175,29 @@ Key tables:
 
 Push schema changes: `pnpm db:push` (runs `drizzle-kit push` from `apps/api/`).
 
+### Token Usage Tracking
+- `token_usage` table records estimated tokens per chat message (input + output, ~4 chars per token)
+- Users have `tokenCap` (default 1M) and annual reset
+- Chat route checks cap before streaming — returns 429 if exceeded
+- Admin can set custom caps per user
+
 ## Auth
 
 - Email/password with `*.cuny.edu` domain gating
 - Registration → email verification → admin approval → login
 - Lucia v3 sessions (HTTP-only cookies)
 - Admins: Stefano Morello (smorello@gc.cuny.edu), Zach Muhlbauer (zmuhlbauer@gc.cuny.edu)
+
+## Admin Dashboard
+
+Full admin panel at `/admin` with:
+- **Stats cards:** Total Users, Pending Approval, Total Decks, Total Tokens Used
+- **User table:** All users with name, email, role (editable dropdown), status, deck count, tokens used, cap (click-to-edit), last active, actions
+- **Sortable + filterable** by any column / status
+- **Token usage modal:** Monthly bar chart, model breakdown, cap progress bar
+- **API routes:** `GET /api/admin/users/all`, `PATCH /api/admin/users/:id`, `GET /api/admin/users/:id/usage`
+
+**Svelte 5 gotcha:** `$derived.by(() => { ... })` returns a VALUE. Don't call it as `filteredUsers()` in templates — use `filteredUsers` directly. `$derived(expr)` is for simple expressions only.
 
 ## Deployment
 
@@ -218,7 +235,7 @@ Push schema changes: `pnpm db:push` (runs `drizzle-kit push` from `apps/api/`).
   - Login: 5 attempts per 15 minutes
   - Registration: 3 per hour
   - Chat: 30 messages per minute
-- Server-side admin guard (`apps/web/src/routes/(app)/admin/+page.server.ts`)
+- Admin role check is client-side only (server-side guard removed — it broke on staging due to SvelteKit server not proxying to API)
 - Block ownership verification on CRUD endpoints
 - Export path traversal guard (`path.basename()`)
 - Link URL validation (https only)

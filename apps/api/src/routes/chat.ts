@@ -1,10 +1,10 @@
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
-import { eq, and, inArray } from 'drizzle-orm'
+import { eq, and, inArray, gte, sql } from 'drizzle-orm'
 import { createId } from '@paralleldrive/cuid2'
 import type { Session, User } from 'lucia'
 import { db } from '../db/index.js'
-import { decks, deckAccess, slides, contentBlocks, chatMessages, templates, themes, uploadedFiles } from '../db/schema.js'
+import { decks, deckAccess, slides, contentBlocks, chatMessages, templates, themes, uploadedFiles, users, tokenUsage } from '../db/schema.js'
 import { authMiddleware } from '../middleware/auth.js'
 import { chatRateLimit } from '../middleware/rate-limit.js'
 import { getModelStream } from '../providers/index.js'
@@ -148,6 +148,19 @@ chat.post('/', chatRateLimit, async (c) => {
   // Determine provider from model
   const model = modelId.includes('/') ? 'openrouter' : 'anthropic'
 
+  // Check token cap
+  const yearStart = new Date(new Date().getFullYear(), 0, 1)
+  const usage = await db.select({ total: sql<number>`SUM(input_tokens + output_tokens)` })
+    .from(tokenUsage)
+    .where(and(eq(tokenUsage.userId, user.id), gte(tokenUsage.createdAt, yearStart)))
+    .get()
+
+  const userRow = await db.select().from(users).where(eq(users.id, user.id)).get()
+  const cap = userRow?.tokenCap ?? 1000000
+  if ((usage?.total ?? 0) >= cap) {
+    return c.json({ error: 'Token limit reached. Contact an admin.' }, 429)
+  }
+
   // Save user message to DB
   const userMsgId = createId()
   const now = new Date()
@@ -163,6 +176,7 @@ chat.post('/', chatRateLimit, async (c) => {
   // Stream response
   return streamSSE(c, async (stream) => {
     let fullResponse = ''
+    const streamTimeout = setTimeout(() => { stream.close() }, 120_000) // 2 min hard cap
 
     try {
       const gen = getModelStream(modelId, systemPrompt, chatHistory)
@@ -188,12 +202,28 @@ chat.post('/', chatRateLimit, async (c) => {
         provider: model,
         createdAt: new Date(),
       })
+
+      // Estimate and record token usage
+      const inputTokens = Math.ceil((systemPrompt.length + message.length) / 4)
+      const outputTokens = Math.ceil(fullResponse.length / 4)
+      await db.insert(tokenUsage).values({
+        id: createId(),
+        userId: user.id,
+        deckId,
+        provider: model,
+        model: modelId,
+        inputTokens,
+        outputTokens,
+        createdAt: new Date(),
+      })
     } catch (err: unknown) {
       console.error('AI streaming error:', err)
       const errorMessage = 'An error occurred while generating the response'
       await stream.writeSSE({
         data: JSON.stringify({ type: 'error', message: errorMessage }),
       })
+    } finally {
+      clearTimeout(streamTimeout)
     }
   })
 })

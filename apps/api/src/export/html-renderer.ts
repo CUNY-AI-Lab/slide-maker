@@ -93,8 +93,9 @@ function renderModule(mod: Module, files?: ExportFile[]): string {
     case 'card': {
       const variant = d.variant ? ` card-${esc(String(d.variant))}` : ''
       const title = d.title ? `<h3>${esc(String(d.title))}</h3>` : ''
-      const body = d.body || d.content || ''
-      return `<div class="card${variant}"${step}>${title}<p>${esc(String(body))}</p></div>`
+      const raw = String(d.body || d.content || '')
+      const body = (d.content && typeof d.content === 'string' && d.content.includes('<')) ? sanitize(raw) : esc(raw)
+      return `<div class="card${variant}"${step}>${title}<p>${body}</p></div>`
     }
 
     case 'label': {
@@ -104,7 +105,9 @@ function renderModule(mod: Module, files?: ExportFile[]): string {
 
     case 'tip-box': {
       const title = d.title ? `<strong>${esc(String(d.title))}</strong>` : ''
-      return `<div class="tip-box"${step}>${title}${esc(String(d.content || d.text || ''))}</div>`
+      const raw = String(d.content || d.text || '')
+      const body = (d.content && typeof d.content === 'string' && d.content.includes('<')) ? sanitize(raw) : esc(raw)
+      return `<div class="tip-box"${step}>${title}${body}</div>`
     }
 
     case 'prompt-block': {
@@ -269,15 +272,24 @@ export function renderDeckHtml(
   const slideCount = sorted.length
   const title = esc(deckName)
 
-  // Generate theme CSS overrides
+  // Generate theme CSS overrides — re-validate at render time (defense-in-depth)
+  const hexColorRegex = /^#[0-9a-fA-F]{3,8}$/
+  const fontNameRegex = /^[a-zA-Z0-9 \-]+$/
+  function safeColor(val: unknown, fallback: string): string {
+    return typeof val === 'string' && hexColorRegex.test(val) ? val : fallback
+  }
+  function safeFont(val: unknown, fallback: string): string {
+    return typeof val === 'string' && fontNameRegex.test(val) ? val : fallback
+  }
+
   const colors = theme?.colors ?? {}
   const fonts = theme?.fonts ?? {}
-  const bg = colors.bg ?? '#111827'
-  const primary = colors.primary ?? '#1e3a5f'
-  const secondary = colors.secondary ?? '#3b82f6'
-  const accent = colors.accent ?? '#64b5f6'
-  const headingFont = fonts.heading ?? 'Outfit'
-  const bodyFont = fonts.body ?? 'Inter'
+  const bg = safeColor(colors.bg, '#111827')
+  const primary = safeColor(colors.primary, '#1e3a5f')
+  const secondary = safeColor(colors.secondary, '#3b82f6')
+  const accent = safeColor(colors.accent, '#64b5f6')
+  const headingFont = safeFont(fonts.heading, 'Outfit')
+  const bodyFont = safeFont(fonts.body, 'Inter')
 
   // Detect dark/light
   function lum(hex: string): number {
