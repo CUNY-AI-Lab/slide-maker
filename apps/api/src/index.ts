@@ -31,6 +31,24 @@ app.use('/*', bodyLimit({ maxSize: 2 * 1024 * 1024 }))
 app.get('/', (c) => c.json({ name: 'slide-wiz-dev', status: 'ok' }))
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
 
+// Serve static files (Leaflet, etc.) for artifact iframes
+app.get('/api/static/:file', async (c) => {
+  const file = c.req.param('file')
+  const fs = await import('node:fs')
+  const path = await import('node:path')
+  const { fileURLToPath } = await import('node:url')
+  const __dirname = path.dirname(fileURLToPath(import.meta.url))
+  const filePath = path.join(__dirname, '..', 'static', path.basename(file))
+  if (!fs.existsSync(filePath)) return c.text('Not found', 404)
+  const content = fs.readFileSync(filePath, 'utf-8')
+  const ext = path.extname(file)
+  const type = ext === '.js' ? 'application/javascript' : ext === '.css' ? 'text/css' : 'text/plain'
+  c.header('Content-Type', type)
+  c.header('Cache-Control', 'public, max-age=86400')
+  c.header('Access-Control-Allow-Origin', '*')
+  return c.body(content)
+})
+
 app.route('/api/auth', auth)
 app.route('/api/admin', admin)
 app.route('/api/decks', filesRouter)

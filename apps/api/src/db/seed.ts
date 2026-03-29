@@ -258,8 +258,8 @@ events.forEach((ev,i)=>{
 
   // ── Leaflet Map — interactive, pannable, zoomable ────────
   const choroplethSource = `<!DOCTYPE html><html><head>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"><\/script>
+<link rel="stylesheet" href="/api/static/leaflet.css"/>
+<script src="/api/static/leaflet.js"><\/script>
 <style>
 body{margin:0;height:100vh;overflow:hidden}
 #map{width:100%;height:100%}
