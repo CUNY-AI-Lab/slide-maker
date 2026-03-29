@@ -74,7 +74,15 @@ async function seedThemes() {
   await db.delete(themes).where(eq(themes.builtIn, true))
   console.log('Cleared existing built-in themes.')
 
-  const themeList = [
+  // Prefer external data/themes.json if present for easier integration/testing
+  let themeList: { id: string; name: string; colors: any; fonts: any }[] = []
+  const themesJson = path.join(projectRoot, 'data', 'themes.json')
+  if (fs.existsSync(themesJson)) {
+    const raw = fs.readFileSync(themesJson, 'utf-8')
+    try { themeList = JSON.parse(raw) } catch (e) { console.warn('Failed to parse data/themes.json; falling back to inline list') }
+  }
+
+  if (themeList.length === 0) themeList = [
     {
       id: 'studio-dark',
       name: 'Studio Dark',

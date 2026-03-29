@@ -269,7 +269,7 @@ blockquote cite { display: block; margin-top: 8px; font-size: 0.85rem; color: va
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
-`
 /* ── Links (accessible) ─────────────────────────────────────────── */
 a { color: var(--accent-cyan); text-decoration: underline; text-underline-offset: 2px; }
 a:hover { text-decoration-thickness: 2px; }
+`

@@ -201,7 +201,7 @@ function renderModule(mod: Module, files?: ExportFile[]): string {
       const src = /^https?:\/\//i.test(rawSrc) ? rawSrc : ''
       const width = String(d.width || '100%')
       const height = String(d.height || '400px')
-      const alt = esc(String(d.alt || 'Interactive visualization'))
+      const alt = esc(String(d.alt || 'Interactive widget'))
       return `<div class="artifact-wrapper"${step}><iframe src="${esc(src)}" width="${esc(width)}" height="${esc(height)}" style="border:none;border-radius:8px;" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe></div>`
     }
 

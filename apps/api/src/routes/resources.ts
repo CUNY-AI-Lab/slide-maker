@@ -72,6 +72,20 @@ resourcesRouter.post('/themes', authMiddleware, async (c) => {
   return c.json({ theme: created }, 201)
 })
 
+// DELETE /api/themes/:id — delete a custom theme (owner only)
+resourcesRouter.delete('/themes/:id', authMiddleware, async (c) => {
+  const user = c.get('user' as never) as { id: string }
+  const themeId = c.req.param('id')
+
+  const theme = await db.select().from(themes).where(eq(themes.id, themeId)).get()
+  if (!theme) return c.json({ error: 'Theme not found' }, 404)
+  if (theme.builtIn) return c.json({ error: 'Cannot delete built-in themes' }, 403)
+  if (theme.createdBy !== user.id) return c.json({ error: 'Not authorized' }, 403)
+
+  await db.delete(themes).where(eq(themes.id, themeId))
+  return c.json({ ok: true })
+})
+
 // GET /api/artifacts — list all artifacts
 resourcesRouter.get('/artifacts', async (c) => {
   const allArtifacts = await db.select().from(artifacts)

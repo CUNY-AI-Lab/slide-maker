@@ -3,6 +3,7 @@
   import SlideOutline from '$lib/components/outline/SlideOutline.svelte'
   import SlideCanvas from '$lib/components/canvas/SlideCanvas.svelte'
   import ResourcePanel from '$lib/components/resources/ResourcePanel.svelte'
+  import { base } from '$app/paths'
 
   let { editable = true }: { editable?: boolean } = $props()
 
@@ -63,6 +64,14 @@
       </div>
       <div class="outline-section">
         <SlideOutline />
+      </div>
+      <div class="panel-footer">
+        <div class="footer-divider"></div>
+        <div class="footer-content">
+          <a href="https://tools.ailab.gc.cuny.edu" target="_blank" rel="noopener" class="footer-link">tools.ailab.gc.cuny.edu</a>
+          <img src="{base}/cuny-ai-lab-logo.png" alt="CUNY AI Lab" class="footer-logo" />
+          <a href="https://ailab.gc.cuny.edu" target="_blank" rel="noopener" class="footer-link">ailab.gc.cuny.edu</a>
+        </div>
       </div>
     </div>
     <div class="resize-handle left-handle" onmousedown={startLeftResize}>
@@ -216,6 +225,43 @@
     right: 0;
     border-radius: var(--radius-sm) 0 0 var(--radius-sm);
     border-right: none;
+  }
+
+  /* Panel footer */
+  .panel-footer {
+    flex-shrink: 0;
+    padding: 0 12px 12px;
+  }
+
+  .footer-divider {
+    height: 1px;
+    background: var(--color-border, #e5e7eb);
+    opacity: 0.4;
+    margin-bottom: 12px;
+  }
+
+  .footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .footer-logo {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+
+  .footer-link {
+    font-size: 9px;
+    color: var(--color-text-muted, #9ca3af);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .footer-link:hover {
+    color: var(--color-primary, #3B73E6);
   }
 
   /* Responsive: auto-collapse panels on narrow viewports */

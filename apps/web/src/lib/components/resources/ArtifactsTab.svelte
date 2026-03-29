@@ -167,7 +167,7 @@
             data: {
               src,
               ...(sourceIsUrl ? {} : { rawSource: finalSource }),
-              alt: artifact.name,
+              alt: displayName(artifact.name),
               width: '100%',
               height: '400px',
             },
@@ -200,6 +200,23 @@
     const cfg = artifact.config as Record<string, unknown> | null
     return cfg != null && typeof cfg === 'object' && Object.keys(cfg).length > 0
   }
+
+  // Clean artifact display text — strip noise, keep just the core name
+  function cleanText(str: string): string {
+    return str
+      .replace(/\binteractive\b/gi, '')
+      .replace(/\bvisuali[sz]ation\b/gi, '')
+      .replace(/\bdemo(nstration)?\b/gi, '')
+      .replace(/\bfrom\s+creative[\s-]*clawing[\s-]*(gallery)?\b/gi, '')
+      .replace(/\bcreative[\s-]*clawing\b/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+  }
+  function displayName(name: string): string {
+    const clean = cleanText(name)
+    // Capitalize first letter
+    return clean ? clean.charAt(0).toUpperCase() + clean.slice(1) : name
+  }
 </script>
 
 <div class="artifacts-tab">
@@ -229,7 +246,7 @@
                   <div class="artifact-main">
                     <div class="artifact-top">
                       <div class="artifact-info">
-                        <span class="artifact-name">{artifact.name}</span>
+                        <span class="artifact-name">{displayName(artifact.name)}</span>
                         {#if artifact.description}
                           <span class="artifact-desc">{artifact.description}</span>
                         {/if}

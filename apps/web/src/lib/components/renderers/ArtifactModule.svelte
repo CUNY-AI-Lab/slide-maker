@@ -14,7 +14,7 @@
 
   const width = $derived(data.width || '100%')
   const height = $derived(data.height || '400px')
-  const alt = $derived(data.alt || 'Interactive visualization')
+  const alt = $derived(data.alt || 'Interactive widget')
 
   // Build iframe src: prefer rawSource with config injected, fallback to src/url
   let iframeSrc = $derived.by(() => {

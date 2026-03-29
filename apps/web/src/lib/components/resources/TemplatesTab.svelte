@@ -127,9 +127,25 @@
 </script>
 
 <div class="templates-tab">
-  <div class="mode-toggle">
-    <button class:active={previewMode==='dark'} onclick={() => previewMode='dark'}>Dark</button>
-    <button class:active={previewMode==='light'} onclick={() => previewMode='light'}>Light</button>
+  <div class="mode-toggle" role="group" aria-label="Preview mode">
+    <button
+      class:active={previewMode==='dark'}
+      aria-pressed={previewMode==='dark'}
+      title="Dark previews"
+      aria-label="Dark previews"
+      onclick={() => previewMode='dark'}>
+      <span aria-hidden="true">☾</span>
+      <span class="sr-only">Dark</span>
+    </button>
+    <button
+      class:active={previewMode==='light'}
+      aria-pressed={previewMode==='light'}
+      title="Light previews"
+      aria-label="Light previews"
+      onclick={() => previewMode='light'}>
+      <span aria-hidden="true">☀</span>
+      <span class="sr-only">Light</span>
+    </button>
   </div>
   {#if loading}
     <div class="center-msg">Loading templates...</div>
@@ -209,27 +225,11 @@
     padding: 8px;
   }
 
-  .mode-toggle {
-    display: inline-flex;
-    gap: 2px;
-    margin: 2px 4px 8px;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: 999px;
-    overflow: hidden;
-  }
-  .mode-toggle button {
-    border: none;
-    background: transparent;
-    padding: 4px 10px;
-    font-size: 11px;
-    color: var(--color-text-muted, #6b7280);
-    cursor: pointer;
-  }
-  .mode-toggle button.active {
-    color: var(--color-primary, #3B73E6);
-    background: var(--color-ghost-bg, rgba(59,115,230,0.08));
-  }
+  .mode-toggle { display: inline-flex; gap: 2px; margin: 2px 4px 8px; border: 1px solid var(--color-border, #e5e7eb); border-radius: 999px; padding: 2px; }
+  .mode-toggle button { width: 24px; height: 24px; display: grid; place-items: center; border: none; background: transparent; color: var(--color-text-muted, #6b7280); border-radius: 999px; cursor: pointer; font-size: 12px; }
+  .mode-toggle button.active { background: var(--color-ghost-bg, rgba(59,115,230,0.12)); color: var(--color-primary, #3B73E6); }
+  .mode-toggle button:focus-visible { outline: 2px solid var(--color-primary, #3B73E6); outline-offset: 1px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 
   .center-msg {
     display: flex;

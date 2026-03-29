@@ -19,6 +19,8 @@
   let applying = $state<string | null>(null)
   let deckThemeId = $state<string | null>(null)
   let deckHasTheme = $derived(!!deckThemeId)
+  let currentTheme = $derived(themes.find((t) => t.id === deckThemeId) ?? null)
+  let currentIsDark = $derived(currentTheme ? isDark((currentTheme.colors as any)?.bg ?? '#111827') : true)
 
   // Create theme form
   let showCreateForm = $state(false)
@@ -30,6 +32,8 @@
   let formHeadingFont = $state('Outfit')
   let formBodyFont = $state('Inter')
   let saving = $state(false)
+  let deleting = $state<string | null>(null)
+  let confirmDelete = $state<string | null>(null)
 
   $effect(() => {
     const unsub = currentDeck.subscribe((d) => {
@@ -142,6 +146,31 @@
     showCreateForm = true
   }
 
+  async function deleteTheme(themeId: string) {
+    if (deleting) return
+    deleting = themeId
+
+    try {
+      const res = await fetch(`${API_URL}/api/themes/${themeId}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+
+      if (res.ok) {
+        themesStore.update((t) => t.filter((th) => th.id !== themeId))
+        // If deleted theme was active, fall back to default
+        if (deckThemeId === themeId) {
+          await applyTheme('cuny-ai-lab-default')
+        }
+      }
+    } catch (err) {
+      console.error('Failed to delete theme:', err)
+    } finally {
+      deleting = null
+      confirmDelete = null
+    }
+  }
+
   function getColors(theme: Theme): string[] {
     const c = theme.colors as Record<string, string> | null
     if (!c) return ['#6b7280', '#9ca3af', '#d1d5db', '#f3f4f6']
@@ -161,8 +190,19 @@
 <div class="themes-tab">
   <div class="tab-header">
     <div class="header-actions">
-      <button class="toggle-btn" onclick={toggleDeckLightDark} disabled={!deckHasTheme || applying !== null} title="Toggle between dark/light theme">
-        Toggle Dark/Light
+      <button
+        class="toggle-btn"
+        class:toggled-on={currentIsDark}
+        onclick={toggleDeckLightDark}
+        disabled={!deckHasTheme || applying !== null}
+        title={currentIsDark ? 'Switch to light theme' : 'Switch to dark theme'}
+        aria-label={currentIsDark ? 'Switch to light theme' : 'Switch to dark theme'}
+        role="switch"
+        aria-checked={currentIsDark}>
+        <span class="toggle-track">
+          <span class="toggle-thumb"></span>
+        </span>
+        <span class="toggle-label">{currentIsDark ? 'Dark' : 'Light'}</span>
       </button>
       <button class="create-btn" onclick={() => { showCreateForm = !showCreateForm }}>
         {showCreateForm ? 'Cancel' : '+ Create Theme'}
@@ -248,6 +288,22 @@
             <div class="theme-fonts">{getFonts(theme)}</div>
           </button>
           <button class="fork-btn" onclick={() => forkTheme(theme)} title="Fork this theme">Fork</button>
+          {#if !theme.builtIn}
+            <button
+              class="delete-btn"
+              onclick={() => {
+                if (confirmDelete === theme.id) {
+                  deleteTheme(theme.id)
+                } else {
+                  confirmDelete = theme.id
+                }
+              }}
+              disabled={deleting === theme.id}
+              title={confirmDelete === theme.id ? 'Click again to confirm' : 'Delete this theme'}
+            >
+              {deleting === theme.id ? '...' : confirmDelete === theme.id ? 'Sure?' : '✕'}
+            </button>
+          {/if}
         </div>
       {/each}
     </div>
@@ -266,18 +322,51 @@
   .header-actions { display: flex; gap: 6px; }
 
   .toggle-btn {
-    padding: 6px 12px;
-    font-size: 11px;
-    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
     background: transparent;
-    color: var(--color-text, #1f2937);
     border: 1px solid var(--color-border, #e5e7eb);
     border-radius: var(--radius-sm, 6px);
     cursor: pointer;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-muted, #6b7280);
+    transition: background 0.15s, border-color 0.15s;
   }
   .toggle-btn:hover:not(:disabled) { background: #f3f4f6; }
-  .toggle-btn:disabled { opacity: 0.6; cursor: default; }
+  .toggle-btn:disabled { opacity: 0.5; cursor: default; }
+
+  .toggle-track {
+    position: relative;
+    width: 24px;
+    height: 14px;
+    background: var(--color-border, #d1d5db);
+    border-radius: 7px;
+    transition: background 0.2s;
+  }
+  .toggled-on .toggle-track {
+    background: var(--color-primary, #3B73E6);
+  }
+  .toggle-thumb {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    transition: transform 0.2s;
+  }
+  .toggled-on .toggle-thumb {
+    transform: translateX(10px);
+  }
+  .toggle-label {
+    min-width: 24px;
+  }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 
   .create-btn {
     width: 100%;
@@ -441,7 +530,23 @@
   }
 
   .fork-btn {
-    padding: 0 10px;
+    padding: 0 12px;
+    background: #f9fafb;
+    border: none;
+    border-left: 1px solid var(--color-border, #e5e7eb);
+    cursor: pointer;
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--color-text-muted, #6b7280);
+    transition: background 0.15s, color 0.15s;
+  }
+  .fork-btn:hover {
+    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
+    color: var(--color-primary, #3B73E6);
+  }
+
+  .delete-btn {
+    padding: 0 8px;
     background: #f9fafb;
     border: none;
     border-left: 1px solid var(--color-border, #e5e7eb);
@@ -451,9 +556,13 @@
     color: var(--color-text-muted, #6b7280);
     transition: background 0.15s, color 0.15s;
   }
-  .fork-btn:hover {
-    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
-    color: var(--color-primary, #3B73E6);
+  .delete-btn:hover {
+    background: rgba(239, 68, 68, 0.08);
+    color: #ef4444;
+  }
+  .delete-btn:disabled {
+    opacity: 0.5;
+    cursor: wait;
   }
 
   .theme-header {
