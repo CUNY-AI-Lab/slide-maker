@@ -68,8 +68,10 @@ exportRouter.post('/:id/export', async (c) => {
     ...slide,
     blocks: (blocksBySlide.get(slide.id) || []).map((b) => ({
       type: b.type,
+      zone: b.zone || 'content',
       data: (typeof b.data === 'string' ? JSON.parse(b.data) : b.data) as Record<string, unknown>,
       order: b.order,
+      stepOrder: b.stepOrder ?? null,
     })),
   }))
 
