@@ -127,7 +127,10 @@ Every module MUST specify a \`zone\` field that matches one of the layout's zone
 - **card-grid**: \`{ "cards": [{"title": "string", "content": "string", "color": "optional string"}], "columns": 2|3|4 }\` — Multi-card grid
 - **flow**: \`{ "nodes": [{"label": "string", "description": "optional string"}, ...] }\` — Vertical process flow with arrows
 
-IMPORTANT: Use ONLY the 12 module types listed above. Do not invent other types.
+### Embeds
+- **artifact**: \`{ "src": "url string", "width": "optional (default 100%)", "height": "optional (default 400px)", "alt": "description" }\` — Interactive JS visualization in sandboxed iframe. Use for live demos, simulations, or interactive widgets.
+
+IMPORTANT: Use ONLY the 13 module types listed above. Do not invent other types.
 
 ## Zone Rules
 

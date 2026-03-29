@@ -35,7 +35,7 @@ done
 
 echo ""
 echo "── Module Documentation ──"
-for mod in heading text card label tip-box prompt-block image carousel comparison card-grid flow stream-list; do
+for mod in heading text card label tip-box prompt-block image carousel comparison card-grid flow stream-list artifact; do
   check "documents module: $mod" "grep -q '$mod' '$SYS'"
 done
 
@@ -53,7 +53,7 @@ done
 
 echo ""
 echo "── Key Guidelines ──"
-check "warns against inventing module types" "grep -qi 'do not invent\|ONLY.*12 module\|only the.*module' '$SYS'"
+check "warns against inventing module types" "grep -qi 'do not invent\|ONLY.*1[23] module\|only the.*module' '$SYS'"
 check "zone field required" "grep -qi 'zone.*field\|MUST.*zone\|every module.*zone' '$SYS'"
 check "layout-split zone rules" "grep -q 'content.*left\|stage.*right' '$SYS'"
 check "step reveal documented" "grep -q 'stepOrder\|step_order\|progressive' '$SYS'"
