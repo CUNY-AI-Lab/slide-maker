@@ -256,51 +256,61 @@ events.forEach((ev,i)=>{
 });
 <\/script></body></html>`
 
-  // ── Choropleth Map (US states) — D3 + TopoJSON ───────────────────
-  const choroplethSource = `<!DOCTYPE html><html><head>
-<script src="https://unpkg.com/d3@7/dist/d3.min.js"><\/script>
-<script src="https://unpkg.com/topojson-client@3/dist/topojson-client.min.js"><\/script>
-<style>
-body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0d1117;color:#e2e8f0;display:flex;align-items:center;justify-content:center;height:100vh;overflow:hidden}
-.container{position:relative;width:96%;max-width:960px}
-.tooltip{position:absolute;background:#1e293b;color:#e2e8f0;padding:6px 12px;border-radius:6px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .15s;white-space:nowrap;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-.legend{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:8px}
-.legend-gradient{width:200px;height:10px;border-radius:5px}
+  // ── Choropleth Map (US states) — self-contained cartogram ────────
+  const choroplethSource = `<!DOCTYPE html><html><head><style>
+body{margin:0;font-family:Inter,system-ui,sans-serif;background:#0d1117;color:#e2e8f0;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;overflow:hidden}
+.grid{display:inline-grid;grid-template-columns:repeat(12,1fr);gap:3px;padding:16px}
+.cell{width:48px;height:48px;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:transform .15s,opacity .15s;position:relative;font-size:11px;font-weight:600;line-height:1.1}
+.cell:hover{transform:scale(1.12);z-index:2}
+.cell .val{font-size:9px;font-weight:400;opacity:.8;margin-top:1px}
+.empty{pointer-events:none}
+.tooltip{position:fixed;background:#1e293b;color:#e2e8f0;padding:6px 12px;border-radius:6px;font-size:12px;pointer-events:none;opacity:0;transition:opacity .15s;white-space:nowrap;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.legend{display:flex;align-items:center;gap:8px;margin-top:8px}
+.legend-bar{width:200px;height:10px;border-radius:5px}
 .legend-label{font-size:11px;color:#94a3b8}
-path.state{stroke:#1e293b;stroke-width:.5;cursor:pointer;transition:opacity .15s}
-path.state:hover{opacity:.8;stroke:#f0f0f0;stroke-width:1.5}
 </style></head><body>
-<div class="container" id="root">
-<svg id="map"></svg>
+<div class="grid" id="grid"></div>
 <div id="tip" class="tooltip"></div>
-<div class="legend"><span class="legend-label">Low</span><div class="legend-gradient" id="lg"></div><span class="legend-label">High</span></div>
-</div>
+<div class="legend"><span class="legend-label">Low</span><div class="legend-bar" id="lb"></div><span class="legend-label">High</span></div>
 <script>
-const el=document.getElementById('root');
-const cfgStr=el.getAttribute('data-config');
-let cfg={states:{California:80,Texas:72,New_York:90,Florida:68,Illinois:55,Pennsylvania:60,Ohio:45,Georgia:62,North_Carolina:58,Michigan:40},colorScale:'blues'};
-try{if(cfgStr){const c=JSON.parse(cfgStr);Object.assign(cfg,c);}}catch(e){}
+const cfg=JSON.parse(document.body.dataset.config||'{}');
+const states=cfg.states||{CA:80,NY:65,TX:45,FL:60,IL:50,PA:55,OH:40,GA:58,NC:52,MI:38};
+const cs=cfg.colorScale||'blues';
+const names={AL:"Alabama",AK:"Alaska",AZ:"Arizona",AR:"Arkansas",CA:"California",CO:"Colorado",CT:"Connecticut",DE:"Delaware",DC:"District of Columbia",FL:"Florida",GA:"Georgia",HI:"Hawaii",ID:"Idaho",IL:"Illinois",IN:"Indiana",IA:"Iowa",KS:"Kansas",KY:"Kentucky",LA:"Louisiana",ME:"Maine",MD:"Maryland",MA:"Massachusetts",MI:"Michigan",MN:"Minnesota",MS:"Mississippi",MO:"Missouri",MT:"Montana",NE:"Nebraska",NV:"Nevada",NH:"New Hampshire",NJ:"New Jersey",NM:"New Mexico",NY:"New York",NC:"North Carolina",ND:"North Dakota",OH:"Ohio",OK:"Oklahoma",OR:"Oregon",PA:"Pennsylvania",RI:"Rhode Island",SC:"South Carolina",SD:"South Dakota",TN:"Tennessee",TX:"Texas",UT:"Utah",VT:"Vermont",VA:"Virginia",WA:"Washington",WV:"West Virginia",WI:"Wisconsin",WY:"Wyoming"};
+const layout=[
+[0,0,0,0,0,0,0,0,0,0,0,"ME"],
+[0,0,0,0,0,0,0,0,0,0,"VT","NH"],
+[0,"WA","MT","ND","MN","WI",0,"MI","NY","MA","RI",0],
+[0,"OR","ID","SD",0,"IA","IL","IN","OH","PA","CT","NJ"],
+[0,"NV","WY","NE","MO","KY","WV","VA","MD","DE",0,0],
+["CA","UT","CO","KS",0,"TN","NC","SC","DC",0,0,0],
+[0,"AZ","NM","OK","AR",0,"MS","AL","GA",0,0,0],
+[0,0,0,"TX","LA",0,0,0,"FL",0,0,0],
+["HI",0,0,0,"AK",0,0,0,0,0,0,0]
+];
 const scales={blues:['#eff6ff','#3b82f6','#1e3a8a'],greens:['#f0fdf4','#22c55e','#14532d'],reds:['#fef2f2','#ef4444','#7f1d1d'],purples:['#faf5ff','#a855f7','#581c87']};
-const pal=scales[cfg.colorScale]||scales.blues;
-const nameMap=new Map();
-Object.entries(cfg.states).forEach(([k,v])=>{nameMap.set(k.replace(/_/g,' '),v);});
-const vals=Object.values(cfg.states);
-const mn=Math.min(...vals),mx=Math.max(...vals);
-const color=d3.scaleLinear().domain([mn,(mn+mx)/2,mx]).range(pal).clamp(true);
-document.getElementById('lg').style.background='linear-gradient(to right,'+pal.join(',')+')';
-const w=960,h=600;
-const svg=d3.select('#map').attr('viewBox','0 0 '+w+' '+h).attr('width','100%');
-const tip=document.getElementById('tip');
-const proj=d3.geoAlbersUsa().scale(1280).translate([w/2,h/2]);
-const path=d3.geoPath().projection(proj);
-d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(us=>{
-  const states=topojson.feature(us,us.objects.states).features;
-  svg.selectAll('path.state').data(states).join('path').attr('class','state').attr('d',path)
-    .attr('fill',d=>{const v=nameMap.get(d.properties.name);return v!=null?color(v):'#1e293b';})
-    .on('mouseenter',function(ev,d){const v=nameMap.get(d.properties.name);tip.textContent=d.properties.name+': '+(v!=null?v:'N/A');tip.style.opacity='1';})
-    .on('mousemove',function(ev){const r=el.getBoundingClientRect();tip.style.left=(ev.clientX-r.left+12)+'px';tip.style.top=(ev.clientY-r.top-28)+'px';})
-    .on('mouseleave',function(){tip.style.opacity='0';});
-}).catch(e=>console.error('Map load error:',e));
+const pal=scales[cs]||scales.blues;
+const vals=Object.values(states);
+const mn=vals.length?Math.min(...vals):0,mx=vals.length?Math.max(...vals):100;
+function lerp(a,b,t){return Math.round(a+(b-a)*t)}
+function colorAt(t){const p=s=>parseInt(s.slice(1),16);const c0=p(pal[0]),c1=p(pal[1]),c2=p(pal[2]);
+const lo=t<.5?0:1,hi=t<.5?1:2,lt=t<.5?t*2:(t-.5)*2;
+const a=t<.5?c0:c1,b2=t<.5?c1:c2;
+const r=lerp((a>>16)&255,(b2>>16)&255,lt),g=lerp((a>>8)&255,(b2>>8)&255,lt),bl=lerp(a&255,b2&255,lt);
+return 'rgb('+r+','+g+','+bl+')';}
+document.getElementById('lb').style.background='linear-gradient(to right,'+pal.join(',')+')';
+const grid=document.getElementById('grid'),tip=document.getElementById('tip');
+layout.forEach(row=>{row.forEach(c=>{
+const d=document.createElement('div');
+if(!c||c===0){d.className='cell empty';grid.appendChild(d);return;}
+const v=states[c];const t=mx>mn?(v!=null?(v-mn)/(mx-mn):null):0.5;
+d.className='cell';d.style.background=t!=null?colorAt(t):'#1e293b';
+d.style.color=t!=null&&t>0.45?'#fff':'#e2e8f0';
+d.innerHTML=c+(v!=null?'<span class="val">'+v+'</span>':'');
+d.addEventListener('mouseenter',e=>{tip.textContent=(names[c]||c)+': '+(v!=null?v:'N/A');tip.style.opacity='1';});
+d.addEventListener('mousemove',e=>{tip.style.left=(e.clientX+12)+'px';tip.style.top=(e.clientY-32)+'px';});
+d.addEventListener('mouseleave',()=>{tip.style.opacity='0';});
+grid.appendChild(d);});});
 <\/script></body></html>`
 
   const starterArtifacts = [
@@ -383,10 +393,10 @@ d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(us=>{
       config: {
         states: {
           type: 'object',
-          label: 'State Values (full names, underscores for spaces)',
+          label: 'State Values (2-letter abbreviations)',
           default: {
-            California: 80, Texas: 72, New_York: 90, Florida: 68, Illinois: 55,
-            Pennsylvania: 60, Ohio: 45, Georgia: 62, North_Carolina: 58, Michigan: 40,
+            CA: 80, TX: 72, NY: 90, FL: 68, IL: 55,
+            PA: 60, OH: 45, GA: 62, NC: 58, MI: 40,
           },
         },
         colorScale: {
