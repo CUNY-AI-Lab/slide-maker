@@ -207,7 +207,7 @@
 <style>
   .slide {
     width: 100%;
-    min-height: 400px;
+    min-height: 100%;
     display: flex;
     flex-direction: column;
     font-family: var(--font-body);
@@ -232,10 +232,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     text-align: center;
     gap: clamp(1rem, 2.5vw, 2rem);
-    padding-top: 2rem;
   }
 
   .zone-split {
@@ -272,7 +271,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
+    justify-content: center;
     gap: clamp(1rem, 2vw, 24px);
   }
 
