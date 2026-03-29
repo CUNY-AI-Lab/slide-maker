@@ -132,6 +132,18 @@
     return source
   }
 
+  function getZoneForActiveSlide(): string {
+    const deck = get(currentDeck)
+    const slideId = get(activeSlideId)
+    if (!deck || !slideId) return 'stage'
+    const slide = deck.slides.find((s: any) => s.id === slideId)
+    if (!slide) return 'stage'
+    const layout = slide.layout
+    if (layout === 'title-slide' || layout === 'layout-divider' || layout === 'closing-slide') return 'hero'
+    if (layout === 'layout-split') return 'stage'
+    return 'main'
+  }
+
   async function insertArtifact(artifact: Artifact, useConfig: boolean = false) {
     const slideId = get(activeSlideId)
     if (!slideId || inserting) return
@@ -163,7 +175,7 @@
           slideId,
           block: {
             type: 'artifact',
-            zone: 'stage',
+            zone: getZoneForActiveSlide(),
             data: {
               src,
               ...(sourceIsUrl ? {} : { rawSource: finalSource }),
