@@ -221,7 +221,8 @@
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
     backdrop-filter: blur(4px);
   }
-  .module-wrapper.editable:hover .module-controls {
+  .module-wrapper.editable:hover .module-controls,
+  .module-wrapper.editable:focus-within .module-controls {
     display: flex;
   }
 
