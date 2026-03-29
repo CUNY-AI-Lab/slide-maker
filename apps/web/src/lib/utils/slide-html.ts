@@ -123,6 +123,15 @@ interface Theme {
   fonts?: ThemeFonts
 }
 
+// ── Step Reveal ─────────────────────────────────────────────────────
+
+function wrapStep(html: string, mod: Module): string {
+  if (mod.stepOrder != null) {
+    return `<div class="step-hidden" data-step="${mod.stepOrder}">${html}</div>`
+  }
+  return html
+}
+
 // ── Module Rendering ─────────────────────────────────────────────────
 
 function renderModule(mod: Module): string {
@@ -351,8 +360,8 @@ export function renderSlideHtml(slide: Slide, theme: Theme | null | undefined): 
   if (layout === 'layout-split') {
     const contentMods = modules.filter((m) => m.zone === 'content')
     const stageMods = modules.filter((m) => m.zone === 'stage')
-    const contentHtml = contentMods.map((m) => renderModule(m)).join('\n      ')
-    const stageHtml = stageMods.map((m) => renderModule(m)).join('\n      ')
+    const contentHtml = contentMods.map((m) => wrapStep(renderModule(m), m)).join('\n      ')
+    const stageHtml = stageMods.map((m) => wrapStep(renderModule(m), m)).join('\n      ')
     const ratio = parseFloat(slide.splitRatio || '0.45')
     const contentFlex = ratio
     const stageFlex = 1 - ratio
@@ -370,7 +379,7 @@ export function renderSlideHtml(slide: Slide, theme: Theme | null | undefined): 
     // Hero/centered layouts — modules go in hero zone or fallback to all
     const heroMods = modules.filter((m) => m.zone === 'hero')
     const modsToRender = heroMods.length > 0 ? heroMods : modules
-    const innerHtml = modsToRender.map((m) => renderModule(m)).join('\n    ')
+    const innerHtml = modsToRender.map((m) => wrapStep(renderModule(m), m)).join('\n    ')
     bodyHtml = `
     <div class="slide ${esc(layout)}">
       ${innerHtml}
@@ -379,7 +388,7 @@ export function renderSlideHtml(slide: Slide, theme: Theme | null | undefined): 
     // layout-content, layout-grid, layout-full-dark, etc.
     const mainMods = modules.filter((m) => m.zone === 'main')
     const modsToRender = mainMods.length > 0 ? mainMods : modules
-    const innerHtml = modsToRender.map((m) => renderModule(m)).join('\n    ')
+    const innerHtml = modsToRender.map((m) => wrapStep(renderModule(m), m)).join('\n    ')
     bodyHtml = `
     <div class="slide ${esc(layout)}">
       ${innerHtml}
