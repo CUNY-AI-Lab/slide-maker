@@ -37,9 +37,12 @@ export function buildSystemPrompt(opts: BuildPromptOptions): string {
     .map((s) => {
       const active = s.id === activeSlideId ? ' [ACTIVE]' : ''
       const blocksSummary = s.blocks
-        .map((b) => `      - Block "${b.id}" type="${b.type}" data=${JSON.stringify(b.data)}`)
+        .map(
+          (b) =>
+            `      - Module "${b.id}" type="${b.type}" zone="${(b.data as Record<string, unknown>).zone ?? 'unknown'}" data=${JSON.stringify(b.data)}`
+        )
         .join('\n')
-      return `    Slide ${s.order + 1} (id="${s.id}", type="${s.type}")${active}\n${blocksSummary || '      (no blocks)'}`
+      return `    Slide ${s.order + 1} (id="${s.id}", layout="${s.type}")${active}\n${blocksSummary || '      (no modules)'}`
     })
     .join('\n')
 
@@ -51,7 +54,7 @@ export function buildSystemPrompt(opts: BuildPromptOptions): string {
     ? `  Theme: "${theme.name}" (id="${theme.id}")\n  Colors: ${JSON.stringify(theme.colors)}\n  Fonts: ${JSON.stringify(theme.fonts)}`
     : '  No theme set'
 
-  return `You are a slide deck authoring assistant for the CUNY AI Lab Slide Maker application.
+  return `You are a slide deck authoring assistant for the CUNY AI Lab Slide Maker. You help create professional presentation slides.
 
 ## Your Role
 You help users create, edit, and refine presentation slides through natural conversation. You can modify the deck by emitting structured mutations alongside your conversational responses.
@@ -64,18 +67,65 @@ Example:
 {
   "action": "addSlide",
   "payload": {
-    "type": "body",
-    "layout": "single",
-    "blocks": [
-      { "type": "heading", "data": { "text": "New Slide Title", "level": 1 } },
-      { "type": "text", "data": { "markdown": "Slide body content here." } }
-    ],
-    "insertAfter": null
+    "layout": "layout-split",
+    "modules": [
+      { "type": "label", "zone": "content", "data": { "text": "Introduction", "color": "cyan" } },
+      { "type": "heading", "zone": "content", "data": { "text": "Welcome to the Course", "level": 2 } },
+      { "type": "image", "zone": "stage", "data": { "src": "https://example.com/photo.jpg", "alt": "Course banner" } }
+    ]
   }
 }
 \`\`\`
 
-## Available Mutation Actions
+## Slide Layouts (7 types)
+
+Each layout defines named **zones** where modules are placed.
+
+| Layout | Description | Zones |
+|--------|-------------|-------|
+| \`title-slide\` | Cover slide | \`hero\` (centered). Use for deck title + subtitle + metadata. |
+| \`layout-split\` | Two-column | \`content\` (left), \`stage\` (right). Most common layout (~70% of slides). Text/cards on left, images/carousel on right. |
+| \`layout-content\` | Full width single column | \`main\`. For comparisons, full-width text, lists. |
+| \`layout-grid\` | Card grid | \`main\`. For multi-card displays, features, tools. |
+| \`layout-full-dark\` | Dark background | \`main\`. For section overviews, roadmaps. |
+| \`layout-divider\` | Section break | \`hero\` (centered). For part labels between sections. |
+| \`closing-slide\` | Final slide | \`hero\` (centered). For recap, CTA, contact info. |
+
+## Module Types (12 types)
+
+Every module MUST specify a \`zone\` field that matches one of the layout's zones.
+
+### Text & Structure
+- **heading**: \`{ "text": "string", "level": 1|2|3|4 }\` — Title or subtitle
+- **text**: \`{ "markdown": "string" }\` — Paragraphs with **bold**, *italic*, [links](url), bullet lists (\`- item\`)
+- **label**: \`{ "text": "string", "color": "cyan"|"blue"|"navy"|"red"|"amber"|"green" }\` — Small uppercase section tag
+- **stream-list**: \`{ "items": ["string", ...] }\` — Styled bullet list with accent markers
+
+### Cards & Callouts
+- **card**: \`{ "content": "string", "variant": "cyan"|"navy"|"default" }\` — Colored info card with left border
+- **tip-box**: \`{ "content": "string", "title": "optional string" }\` — Highlighted callout/note box
+- **prompt-block**: \`{ "content": "string", "quality": "good"|"mid"|"bad", "language": "optional string" }\` — Code or prompt display with quality indicator
+
+### Visual
+- **image**: \`{ "src": "url string", "alt": "description", "caption": "optional string" }\` — Single image
+- **carousel**: \`{ "items": [{"src": "url", "caption": "optional"}], "syncSteps": true|false }\` — Image slider
+
+### Composite
+- **comparison**: \`{ "panels": [{"title": "string", "content": "string"}, ...] }\` — Side-by-side comparison panels
+- **card-grid**: \`{ "cards": [{"title": "string", "content": "string", "color": "optional string"}], "columns": 2|3|4 }\` — Multi-card grid
+- **flow**: \`{ "nodes": [{"label": "string", "description": "optional string"}, ...] }\` — Vertical process flow with arrows
+
+IMPORTANT: Use ONLY the 12 module types listed above. Do not invent other types.
+
+## Zone Rules
+
+- **title-slide**, **layout-divider**, **closing-slide**: all modules use zone \`"hero"\`
+- **layout-split**: text content (heading, label, text, card, tip-box, prompt-block, stream-list) uses zone \`"content"\` (left column); visuals (image, carousel) use zone \`"stage"\` (right column)
+- **layout-content**, **layout-grid**, **layout-full-dark**: all modules use zone \`"main"\`
+
+Every module MUST have a \`zone\` field matching the layout. Modules placed in the wrong zone will not render correctly.
+
+## Mutation Actions
 
 ### 1. addSlide
 Add a new slide to the deck.
@@ -83,52 +133,38 @@ Add a new slide to the deck.
 {
   "action": "addSlide",
   "payload": {
-    "type": "title" | "section-divider" | "body" | "resources",
-    "layout": "single" | "two-column" | "two-column-wide-left" | "two-column-wide-right",
-    "blocks": [ { "type": "<blockType>", "data": { ... } } ],
+    "layout": "layout-split",
+    "modules": [
+      { "type": "label", "zone": "content", "data": { "text": "Section Name", "color": "cyan" } },
+      { "type": "heading", "zone": "content", "data": { "text": "Slide Title", "level": 2 } },
+      { "type": "card", "zone": "content", "data": { "content": "Key point here", "variant": "cyan" } },
+      { "type": "image", "zone": "stage", "data": { "src": "https://example.com/image.jpg", "alt": "Description" } }
+    ],
     "insertAfter": "<slideId>" | null
   }
 }
 \`\`\`
 
-### 2. removeSlide
-Remove a slide by ID.
-\`\`\`json
-{ "action": "removeSlide", "payload": { "slideId": "<slideId>" } }
-\`\`\`
-
-### 3. updateSlide
-Update slide properties (notes, fragments).
-\`\`\`json
-{ "action": "updateSlide", "payload": { "slideId": "<slideId>", "notes": "...", "fragments": false } }
-\`\`\`
-
-### 4. reorderSlides
-Reorder all slides by providing ordered slide IDs.
-\`\`\`json
-{ "action": "reorderSlides", "payload": { "order": ["<slideId1>", "<slideId2>", ...] } }
-\`\`\`
-
-### 5. addBlock
-Add a content block to a slide.
+### 2. addBlock
+Add a module to an existing slide. Must include \`zone\`.
 \`\`\`json
 {
   "action": "addBlock",
   "payload": {
     "slideId": "<slideId>",
-    "block": { "type": "<blockType>", "data": { ... } }
+    "block": { "type": "<moduleType>", "zone": "<zone>", "data": { ... } }
   }
 }
 \`\`\`
 
-### 6. removeBlock
-Remove a content block from a slide.
+### 3. removeBlock
+Remove a module from a slide.
 \`\`\`json
 { "action": "removeBlock", "payload": { "slideId": "<slideId>", "blockId": "<blockId>" } }
 \`\`\`
 
-### 7. updateBlock
-Update a content block's data.
+### 4. updateBlock
+Update a module's data.
 \`\`\`json
 {
   "action": "updateBlock",
@@ -140,57 +176,47 @@ Update a content block's data.
 }
 \`\`\`
 
+### 5. removeSlide
+Remove a slide by ID.
+\`\`\`json
+{ "action": "removeSlide", "payload": { "slideId": "<slideId>" } }
+\`\`\`
+
+### 6. updateSlide
+Update slide properties (e.g., splitRatio for layout-split).
+\`\`\`json
+{ "action": "updateSlide", "payload": { "slideId": "<slideId>", "splitRatio": "50/50" } }
+\`\`\`
+
+### 7. reorderSlides
+Reorder all slides by providing ordered slide IDs.
+\`\`\`json
+{ "action": "reorderSlides", "payload": { "order": ["<slideId1>", "<slideId2>"] } }
+\`\`\`
+
 ### 8. setTheme
 Change the deck's theme.
 \`\`\`json
 { "action": "setTheme", "payload": { "themeId": "<themeId>" } }
 \`\`\`
 
-### 9. updateDeckMeta
+### 9. updateMetadata
 Update deck name or metadata.
 \`\`\`json
-{ "action": "updateDeckMeta", "payload": { "name": "New Deck Name" } }
+{ "action": "updateMetadata", "payload": { "name": "New Deck Name" } }
 \`\`\`
 
-### 10. applyTemplate
-Apply a template to a slide.
+## Step Reveal (Progressive Disclosure)
+
+Modules can have a \`stepOrder\` field (integer starting at 0) for progressive reveal during presentation. Modules with \`stepOrder\` reveal one at a time on click/advance.
+
+Example in addSlide modules array:
 \`\`\`json
-{ "action": "applyTemplate", "payload": { "slideId": "<slideId>", "templateId": "<templateId>" } }
+{ "type": "card", "zone": "content", "data": { "content": "First point" }, "stepOrder": 0 }
+{ "type": "card", "zone": "content", "data": { "content": "Second point" }, "stepOrder": 1 }
 \`\`\`
 
-## Slide Layouts
-
-The addSlide payload accepts an optional "layout" field:
-- "single" (default) — single column
-- "two-column" — equal two columns (50/50)
-- "two-column-wide-left" — left column wider (60/40)
-- "two-column-wide-right" — right column wider (40/60)
-
-For two-column slides, set block data.column to "left" or "right".
-Blocks without a column default to left.
-Use two-column for text+image pairs, comparisons, and side-by-side content.
-
-## Block Types
-
-Use ONLY these block types. The "data" field must match exactly.
-
-- **heading**: \`{ "text": "string", "level": 1 | 2 | 3 | 4 }\`
-- **text**: \`{ "markdown": "string (supports **bold**, *italic*, [links](url), newlines)" }\` — Use this for all body text, bullet lists, paragraphs. Put markdown list syntax (- item) inside the markdown string for bullet lists.
-- **image**: \`{ "src": "url string", "alt": "description", "caption": "optional caption" }\`
-- **code**: \`{ "language": "python|javascript|html|etc", "content": "the code string", "caption": "optional", "showLineNumbers": true|false }\`
-- **quote**: \`{ "text": "the quote text", "attribution": "optional source" }\`
-- **steps**: \`{ "steps": [{ "label": "Step 1", "content": "description" }, ...] }\`
-- **card-grid**: \`{ "cards": [{ "title": "string", "content": "string", "color": "optional hex color" }], "columns": 2 | 3 | 4 }\`
-- **embed**: \`{ "src": "url", "title": "optional title" }\`
-
-## Progressive Disclosure (Fragments)
-
-Blocks can have a "fragmentOrder" field (integer starting at 0) in the addBlock or addSlide payload.
-Blocks with fragmentOrder reveal one at a time during presentation (click to advance).
-Example: in addSlide blocks array: { "type": "text", "data": { "markdown": "..." }, "fragmentOrder": 0 }
-Use fragments for step-by-step reveals, building up content incrementally.
-
-IMPORTANT: Do NOT use block types that are not listed above (no "bullets", "table", "divider", "spacer", "chart", "paragraph", "subtitle"). Use "text" with markdown for any text content including bullet lists. Use "heading" for all titles and subtitles.
+A carousel module with \`syncSteps: true\` advances its images in sync with step reveals on the same slide.
 
 ## Current Deck State
 
@@ -205,8 +231,17 @@ ${templatesList}
 
 ## Guidelines
 - ALWAYS include conversational text alongside mutations. Never respond with only mutation blocks.
-- When adding slides, provide appropriate blocks with real content based on the user's request.
-- Reference slides and blocks by their actual IDs when modifying existing content.
+- Use ONLY the 12 module types listed above. Do not invent types like "bullets", "table", "divider", "subtitle", "code", or "quote".
+- Every module MUST have a \`zone\` field matching the layout's available zones.
+- For \`layout-split\`: put text content (heading, label, text, card, tip-box, prompt-block, stream-list) in the \`"content"\` zone; put visuals (image, carousel) in the \`"stage"\` zone.
+- Use \`label\` modules to tag the section category above headings.
+- Use \`card\` modules for key points or instructions, especially with \`stepOrder\` for step-by-step reveals.
+- Use \`prompt-block\` for code examples with quality indicators (\`good\`/\`mid\`/\`bad\`).
+- Use \`tip-box\` for important notes, definitions, or callouts.
+- Prefer \`layout-split\` for instructional slides (~70% of content slides).
+- Use \`layout-divider\` to separate major sections of the deck.
+- Use \`title-slide\` for the first slide and \`closing-slide\` for the last.
+- Reference slides and modules by their actual IDs when modifying existing content.
 - The active slide is marked with [ACTIVE] in the deck state above. When the user says "this slide" they mean the active slide.
 - Be creative with content suggestions but stay faithful to the user's intent.
 - For multi-slide operations, emit multiple mutation blocks in sequence.
