@@ -44,6 +44,21 @@
   // Shift+drag reorder state
   let draggingId = $state<string | null>(null)
   let dragOverId = $state<string | null>(null)
+  let shiftHeld = $state(false)
+
+  function onKeyDown(e: KeyboardEvent) { if (e.key === 'Shift') shiftHeld = true }
+  function onKeyUp(e: KeyboardEvent) { if (e.key === 'Shift') shiftHeld = false }
+
+  $effect(() => {
+    if (editable) {
+      window.addEventListener('keydown', onKeyDown)
+      window.addEventListener('keyup', onKeyUp)
+      return () => {
+        window.removeEventListener('keydown', onKeyDown)
+        window.removeEventListener('keyup', onKeyUp)
+      }
+    }
+  })
 
   $effect(() => {
     items = modules.map((m) => ({ ...m }))
@@ -64,10 +79,6 @@
 
   // Shift+drag reorder handlers
   function handleDragStart(e: DragEvent, modId: string) {
-    if (!e.shiftKey) {
-      e.preventDefault() // Don't drag unless shift is held
-      return
-    }
     draggingId = modId
     e.dataTransfer!.effectAllowed = 'move'
     e.dataTransfer!.setData('text/plain', modId)
@@ -146,7 +157,7 @@
         class:just-added={highlightedIds.has(mod.id)}
         class:drag-over={dragOverId === mod.id}
         class:dragging={draggingId === mod.id}
-        draggable={editable ? 'true' : 'false'}
+        draggable={editable && shiftHeld ? 'true' : 'false'}
         ondragstart={(e) => handleDragStart(e, mod.id)}
         ondragover={(e) => handleDragOver(e, mod.id)}
         ondragleave={handleDragLeave}

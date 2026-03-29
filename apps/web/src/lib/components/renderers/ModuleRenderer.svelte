@@ -116,7 +116,7 @@
     <span class="step-badge">Step {module.stepOrder + 1}</span>
   {/if}
 
-  <div class="module-content" style:transform={scaleFactor < 1 ? `scale(${scaleFactor})` : undefined} style:transform-origin={scaleFactor < 1 ? 'top left' : undefined}>
+  <div class="module-content" style:transform={scaleFactor < 1 ? `scale(${scaleFactor})` : undefined} style:transform-origin={scaleFactor < 1 ? 'top center' : undefined}>
     {#if Renderer}
       <Renderer data={module.data} {editable} {onchange} oneditorready={module.type === 'text' ? oneditorready : undefined} />
     {:else}
