@@ -11,6 +11,7 @@
   import CardGridModule from './CardGridModule.svelte'
   import FlowModule from './FlowModule.svelte'
   import StreamListModule from './StreamListModule.svelte'
+  import VizModule from './VizModule.svelte'
 
   import type { Editor } from '@tiptap/core'
 
@@ -39,6 +40,7 @@
     'card-grid': CardGridModule,
     flow: FlowModule,
     'stream-list': StreamListModule,
+    viz: VizModule,
   }
 
   let Renderer = $derived(rendererMap[module.type] ?? null)

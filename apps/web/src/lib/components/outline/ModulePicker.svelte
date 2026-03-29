@@ -26,6 +26,7 @@
     { type: 'card-grid', label: 'Card Grid', icon: '▦' },
     { type: 'flow', label: 'Process Flow', icon: '↓' },
     { type: 'stream-list', label: 'List', icon: '☰' },
+    { type: 'viz', label: 'Visualization', icon: '∿' },
   ]
 
   function getDefaultData(type: string): Record<string, unknown> {
@@ -54,6 +55,8 @@
         return { steps: [] }
       case 'stream-list':
         return { items: [] }
+      case 'viz':
+        return { viz: 'lorenz' }
       default:
         return {}
     }
