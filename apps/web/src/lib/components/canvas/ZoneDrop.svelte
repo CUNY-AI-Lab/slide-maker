@@ -87,7 +87,6 @@
 
   function handleModuleAdded() {
     showPicker = false
-    onReorder?.(zone, items)
   }
 </script>
 
