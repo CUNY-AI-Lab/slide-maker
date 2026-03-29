@@ -57,6 +57,12 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
   background: var(--accent-navy);
   text-align: center; align-items: center;
 }
+.title-slide > .hero, .layout-divider > .hero, .closing-slide > .hero {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  max-height: 100%; overflow: hidden; gap: 12px;
+}
+.title-slide h1 { font-size: clamp(1.8rem, 4.5vw, 3.8rem); }
+.title-slide .text-body { font-size: clamp(0.95rem, 1.6vw, 1.3rem); }
 
 /* ── Layout: Split ───────────────────────────────────────────────── */
 .slide.layout-split {
@@ -87,12 +93,14 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 .layout-divider {
   background: var(--accent-navy);
   align-items: center; justify-content: center; text-align: center; gap: 16px;
+  padding: 40px 60px;
 }
 
 /* ── Layout: Closing ─────────────────────────────────────────────── */
 .closing-slide {
   background: var(--accent-navy);
   align-items: center; justify-content: center; text-align: center; gap: 16px;
+  padding: 40px 60px;
 }
 
 /* ── Module: Card ────────────────────────────────────────────────── */
