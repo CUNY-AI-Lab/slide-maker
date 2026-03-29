@@ -453,6 +453,7 @@ async function seedAdminUsers() {
   const admins = [
     { email: 'smorello@gc.cuny.edu', password: adminPassword, name: 'Stefano Morello' },
     { email: 'zmuhlbauer@gc.cuny.edu', password: adminPassword, name: 'Zach Muhlbauer' },
+    { email: 'szweibel@gc.cuny.edu', password: adminPassword, name: 'Stephen Zweibel' },
   ]
 
   for (const admin of admins) {
