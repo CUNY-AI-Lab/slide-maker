@@ -8,7 +8,8 @@
     "db:push": "pnpm --filter api db:push",
     "db:seed": "pnpm --filter api db:seed",
     "seed:admin": "pnpm --filter api seed:admin",
-    "audit:a11y": "node scripts/a11y-theme-audit.mjs"
+    "audit:a11y": "node scripts/a11y-theme-audit.mjs",
+    "start": "node apps/api/dist/index.js"
   },
   "devDependencies": {
     "turbo": "^2.4.0",

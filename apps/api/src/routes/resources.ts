@@ -76,11 +76,12 @@ resourcesRouter.post('/themes', authMiddleware, async (c) => {
 resourcesRouter.delete('/themes/:id', authMiddleware, async (c) => {
   const user = c.get('user' as never) as { id: string }
   const themeId = c.req.param('id')
+  if (!themeId) return c.json({ error: 'Missing theme id' }, 400)
 
   const theme = await db.select().from(themes).where(eq(themes.id, themeId)).get()
   if (!theme) return c.json({ error: 'Theme not found' }, 404)
   if (theme.builtIn) return c.json({ error: 'Cannot delete built-in themes' }, 403)
-  if (theme.createdBy !== user.id) return c.json({ error: 'Not authorized' }, 403)
+  if (!theme.createdBy || theme.createdBy !== user.id) return c.json({ error: 'Not authorized' }, 403)
 
   await db.delete(themes).where(eq(themes.id, themeId))
   return c.json({ ok: true })
