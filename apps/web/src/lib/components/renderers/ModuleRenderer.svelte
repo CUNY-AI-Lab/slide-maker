@@ -85,8 +85,6 @@
   style:overflow={customHeight ? 'auto' : undefined}
 >
   {#if editable}
-    <!-- Drag handle for reorder (this is what dnd looks for) -->
-    <span class="drag-handle" title="Drag to reorder">⠿</span>
     <button
       class="delete-btn"
       class:confirming={confirmDelete}
@@ -144,30 +142,6 @@
     font-weight: 600;
     font-family: var(--font-body);
     z-index: 5;
-  }
-
-  /* Drag handle — only this triggers dnd reorder */
-  .drag-handle {
-    position: absolute;
-    top: -6px;
-    left: 2px;
-    font-size: 12px;
-    color: var(--color-text-muted);
-    cursor: grab;
-    z-index: 10;
-    display: none;
-    user-select: none;
-    line-height: 1;
-    padding: 2px;
-    background: rgba(255,255,255,0.9);
-    border-radius: 3px;
-  }
-  .module-wrapper.editable:hover .drag-handle {
-    display: block;
-  }
-  .drag-handle:active {
-    cursor: grabbing;
-    color: var(--color-primary);
   }
 
   /* Delete button */

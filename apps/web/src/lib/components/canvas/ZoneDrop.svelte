@@ -113,6 +113,9 @@
   {:else}
     {#each items as mod (mod.id)}
       <div class="module-item" class:just-added={highlightedIds.has(mod.id)}>
+        {#if editable}
+          <span class="drag-handle" title="Drag to reorder">⠿</span>
+        {/if}
         <ModuleRenderer
           module={mod}
           {editable}
@@ -179,18 +182,42 @@
   }
 
   .module-item {
+    position: relative;
     padding: 0.5rem 0.75rem;
     background: rgba(255, 255, 255, 0.08);
     border-radius: var(--radius-sm, 4px);
     font-size: 0.75rem;
     color: inherit;
     word-break: break-all;
-    cursor: grab;
+    cursor: default;
     transition: background 0.15s ease;
   }
 
   .module-item:hover {
     background: rgba(255, 255, 255, 0.14);
+  }
+
+  .module-item .drag-handle {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    font-size: 12px;
+    color: var(--color-text-muted);
+    cursor: grab;
+    z-index: 15;
+    display: none;
+    user-select: none;
+    line-height: 1;
+    padding: 2px 3px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 3px;
+  }
+  .module-item:hover .drag-handle {
+    display: block;
+  }
+  .module-item .drag-handle:active {
+    cursor: grabbing;
+    color: var(--color-primary);
   }
 
   .module-item.just-added {
