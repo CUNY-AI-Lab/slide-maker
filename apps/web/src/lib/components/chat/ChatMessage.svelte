@@ -44,7 +44,7 @@
 </script>
 
 <div class="chat-message" class:user={isUser} class:assistant={!isUser}>
-  <div class="message-role">{isUser ? 'You' : 'AI'}</div>
+  <div class="message-role">{isUser ? 'You' : 'Wiz'}</div>
   <div class="message-content">
     {#if message.content}
       {@html DOMPurify.sanitize(renderContent(message.content))}

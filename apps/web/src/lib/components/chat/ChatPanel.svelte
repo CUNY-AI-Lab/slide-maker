@@ -179,7 +179,7 @@
 
 <div class="chat-panel">
   <div class="chat-header">
-    <span class="chat-title">AI Chat</span>
+    <span class="chat-title">Wiz</span>
     <ModelSelector />
   </div>
 
