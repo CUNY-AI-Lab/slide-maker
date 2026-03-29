@@ -4,6 +4,7 @@
   import BlockItem from './BlockItem.svelte'
   import { activeSlideId } from '$lib/stores/ui'
   import { currentDeck, removeSlideFromDeck, updateSlideInDeck } from '$lib/stores/deck'
+  import { API_URL } from '$lib/api'
 
   const layoutLabels: Record<string, string> = {
     'title-slide': 'Title Slide',
@@ -56,8 +57,6 @@
 
     const deck = get(currentDeck)
     if (!deck) return
-
-    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
 
     try {
       const res = await fetch(`${API_URL}/api/decks/${deck.id}/slides/${slide.id}`, {

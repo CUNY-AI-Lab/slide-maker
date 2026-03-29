@@ -8,7 +8,7 @@ export async function streamChat(
   onDone: () => void,
   onError: (error: string) => void,
 ): Promise<void> {
-  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
+  const { API_URL } = await import('$lib/api')
   const response = await fetch(`${API_URL}/api/chat`, {
     method: 'POST',
     credentials: 'include',

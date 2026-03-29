@@ -4,6 +4,7 @@
   import { currentDeck, updateSlideInDeck } from '$lib/stores/deck'
   import { get } from 'svelte/store'
   import type { Editor } from '@tiptap/core'
+  import { API_URL } from '$lib/api'
 
   type Module = {
     id: string
@@ -53,8 +54,6 @@
     if (!b.logo) return null
     return b
   })
-
-  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
 
   function handleReorder(zone: string, items: Module[]) {
     const reordered = items.map((item, i) => ({ ...item, order: i, zone }))

@@ -2,7 +2,7 @@
   import { base } from '$app/paths';
   import { onMount, onDestroy } from 'svelte';
   import { page } from '$app/stores';
-  import { api } from '$lib/api';
+  import { api, API_URL } from '$lib/api';
   import { currentDeck } from '$lib/stores/deck';
   import { activeSlideId } from '$lib/stores/ui';
   import { chatMessages } from '$lib/stores/chat';
@@ -42,7 +42,7 @@
   function handleBeforeUnload() {
     if (!readOnly && deckId) {
       // Use sendBeacon for reliable unload
-      const url = `${import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'}/api/decks/${deckId}/lock`;
+      const url = `${API_URL}/api/decks/${deckId}/lock`;
       navigator.sendBeacon?.(url); // sendBeacon only does POST, so we also try fetch
       fetch(url, { method: 'DELETE', credentials: 'include', keepalive: true }).catch(() => {});
     }

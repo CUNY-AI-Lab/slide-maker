@@ -1,6 +1,7 @@
 <script lang="ts">
   import { addSlideToDeck } from '$lib/stores/deck'
   import { activeSlideId } from '$lib/stores/ui'
+  import { API_URL } from '$lib/api'
 
   let { deckId, onAdd }: { deckId: string; onAdd?: () => void } = $props()
 
@@ -31,8 +32,6 @@
   async function addSlide(layout: string) {
     if (adding) return
     adding = true
-
-    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
 
     try {
       const res = await fetch(`${API_URL}/api/decks/${deckId}/slides`, {

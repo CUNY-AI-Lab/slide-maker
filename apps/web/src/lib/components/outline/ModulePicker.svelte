@@ -60,14 +60,13 @@
   }
 
   import { updateSlideInDeck } from '$lib/stores/deck'
-  import { api } from '$lib/api'
+  import { api, API_URL } from '$lib/api'
 
   async function addModule(type: string) {
     if (adding) return
     adding = true
 
     try {
-      const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
       const res = await fetch(`${API_URL}/api/decks/${deckId}/slides/${slideId}/blocks`, {
         method: 'POST',
         credentials: 'include',

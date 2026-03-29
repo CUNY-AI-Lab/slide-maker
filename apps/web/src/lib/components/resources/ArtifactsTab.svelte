@@ -3,6 +3,7 @@
   import { activeSlideId } from '$lib/stores/ui'
   import { applyMutation } from '$lib/utils/mutations'
   import { get } from 'svelte/store'
+  import { API_URL } from '$lib/api'
 
   interface ArtifactConfigField {
     type: string
@@ -32,7 +33,6 @@
   let configError = $state<string | null>(null)
 
   $effect(() => {
-    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
     fetch(`${API_URL}/api/artifacts`, { credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
@@ -45,6 +45,10 @@
         loading = false
       })
   })
+
+  function isUrl(str: string): boolean {
+    return str.startsWith('http://') || str.startsWith('https://')
+  }
 
   function openConfigEditor(artifact: Artifact) {
     if (editingArtifactId === artifact.id) {
@@ -101,9 +105,10 @@
         }
       }
 
-      // Create a data URI from the source HTML
-      const blob = new Blob([finalSource], { type: 'text/html' })
-      const src = URL.createObjectURL(blob)
+      // Use URL directly if source is a URL, otherwise create a blob from inline HTML
+      const src = isUrl(finalSource)
+        ? finalSource
+        : URL.createObjectURL(new Blob([finalSource], { type: 'text/html' }))
 
       await applyMutation({
         action: 'addBlock',
@@ -134,7 +139,7 @@
   const typeIcons: Record<string, string> = {
     chart: 'C',
     diagram: 'D',
-    widget: 'W',
+    widget: 'JS',
     map: 'M',
   }
 

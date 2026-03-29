@@ -370,7 +370,35 @@ Object.entries(states).forEach(([abbr,d])=>{
     await db.insert(artifacts).values(artifact).onConflictDoNothing()
   }
 
-  console.log(`Seeded ${starterArtifacts.length} starter artifacts.`)
+  // Also load artifacts from templates/artifacts/*.json
+  const artifactsDir = path.join(templatesDir, 'artifacts')
+  let templateCount = 0
+
+  if (fs.existsSync(artifactsDir)) {
+    const files = fs.readdirSync(artifactsDir).filter((f) => f.endsWith('.json'))
+    for (const file of files) {
+      const raw = fs.readFileSync(path.join(artifactsDir, file), 'utf-8')
+      const tmpl = JSON.parse(raw)
+
+      await db
+        .insert(artifacts)
+        .values({
+          id: tmpl.id,
+          name: tmpl.name,
+          description: tmpl.description || '',
+          type: 'widget',
+          source: tmpl.source,
+          config: tmpl.config ?? {},
+          builtIn: true,
+          createdBy: null,
+        })
+        .onConflictDoNothing()
+
+      templateCount++
+    }
+  }
+
+  console.log(`Seeded ${starterArtifacts.length} inline + ${templateCount} template artifacts.`)
 }
 
 async function seedAdminUsers() {

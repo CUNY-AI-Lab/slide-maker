@@ -2,10 +2,9 @@
   import { get } from 'svelte/store'
   import { currentDeck } from '$lib/stores/deck'
   import { themesStore, themesLoaded, ensureThemesLoaded, type ThemeData } from '$lib/stores/themes'
+  import { API_URL } from '$lib/api'
 
   type Theme = ThemeData
-
-  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
 
   const COMMON_FONTS = [
     'Inter', 'Outfit', 'Roboto', 'Open Sans', 'Lato', 'Montserrat',

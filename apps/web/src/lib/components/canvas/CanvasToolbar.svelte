@@ -3,6 +3,7 @@
   import { base } from '$app/paths'
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId } from '$lib/stores/ui'
+  import { API_URL } from '$lib/api'
 
   let {
     editMode = false,
@@ -47,7 +48,6 @@
 
   async function saveBranding() {
     if (!$currentDeck) return
-    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
     const branding = brandingLogo ? { logo: brandingLogo, position: brandingPosition } : null
     const newMetadata = { ...($currentDeck.metadata as Record<string, unknown>), branding }
 
@@ -68,7 +68,6 @@
   async function handleExport() {
     if (!$currentDeck || exporting) return
     exporting = true
-    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
     try {
       const res = await fetch(`${API_URL}/api/decks/${$currentDeck.id}/export`, { method: 'POST', credentials: 'include' })
       if (!res.ok) throw new Error('Export failed')
@@ -138,7 +137,6 @@
       class="preview-btn"
       onclick={() => {
         if (!$currentDeck) return
-        const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
         window.open(`${API_URL}/api/decks/${$currentDeck.id}/preview`, '_blank')
       }}
       disabled={!$currentDeck}

@@ -1,7 +1,7 @@
 <script lang="ts">
-  let { data = {} }: { data: Record<string, unknown>; editable: boolean } = $props()
+  import { API_URL } from '$lib/api'
 
-  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
+  let { data = {} }: { data: Record<string, unknown>; editable: boolean } = $props()
 
   let rawSrc = $derived(typeof data.src === 'string' ? data.src : typeof data.url === 'string' ? data.url : '')
   // Prepend API URL for relative paths (uploaded files served from API server)

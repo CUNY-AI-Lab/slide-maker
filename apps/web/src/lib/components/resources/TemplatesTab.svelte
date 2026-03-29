@@ -2,6 +2,7 @@
   import { get } from 'svelte/store'
   import { currentDeck, addSlideToDeck } from '$lib/stores/deck'
   import { activeSlideId } from '$lib/stores/ui'
+  import { API_URL } from '$lib/api'
 
   interface Template {
     id: string
@@ -50,7 +51,6 @@
   }
 
   $effect(() => {
-    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
     fetch(`${API_URL}/api/templates`, { credentials: 'include' })
       .then((res) => res.json())
       .then((data) => {
@@ -67,8 +67,6 @@
   async function applyTemplate(template: Template) {
     const deck = get(currentDeck)
     if (!deck) return
-
-    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
 
     try {
       const res = await fetch(`${API_URL}/api/decks/${deck.id}/slides`, {

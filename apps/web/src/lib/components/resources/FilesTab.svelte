@@ -1,9 +1,7 @@
 <script lang="ts">
-  import { api } from '$lib/api'
+  import { api, API_URL } from '$lib/api'
   import { applyMutation } from '$lib/utils/mutations'
   import { activeSlideId } from '$lib/stores/ui'
-
-  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
 
   let { deckId }: { deckId: string } = $props()
 

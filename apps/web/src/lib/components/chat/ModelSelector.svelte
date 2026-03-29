@@ -1,5 +1,6 @@
 <script lang="ts">
   import { selectedModelId } from '$lib/stores/chat'
+  import { API_URL } from '$lib/api'
 
   interface Model {
     id: string
@@ -21,7 +22,6 @@
   })
 
   $effect(() => {
-    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
     fetch(`${API_URL}/api/providers`, { credentials: 'include' })
       .then((r) => r.json())
       .then((data) => {

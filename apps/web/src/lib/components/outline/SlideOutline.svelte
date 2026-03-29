@@ -4,8 +4,7 @@
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId } from '$lib/stores/ui'
   import { dndzone } from 'svelte-dnd-action'
-
-  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
+  import { API_URL } from '$lib/api'
 
   let deck = $state<any>(null)
   let activeId = $state<string | null>(null)

@@ -2,8 +2,7 @@ import { currentDeck, addSlideToDeck, removeSlideFromDeck, updateSlideInDeck } f
 import { activeSlideId } from '$lib/stores/ui'
 import { history } from '$lib/stores/history'
 import { get } from 'svelte/store'
-
-const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
+import { API_URL } from '$lib/api'
 
 async function apiCall(path: string, method: string, body?: unknown) {
   try {

@@ -1,6 +1,7 @@
 <script lang="ts">
   import { get } from 'svelte/store'
   import { currentDeck, updateSlideInDeck } from '$lib/stores/deck'
+  import { API_URL } from '$lib/api'
 
   let { block, slideId }: {
     block: { id: string; type: string; data: Record<string, unknown>; slideId?: string }
@@ -25,8 +26,6 @@
 
   let label = $derived(typeLabels[block.type] ?? block.type)
   let expanded = $state(false)
-
-  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
 
   function persistData(newData: Record<string, unknown>) {
     const sid = slideId ?? block.slideId

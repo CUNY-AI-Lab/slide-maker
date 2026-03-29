@@ -20,3 +20,15 @@ export const env = {
 if (process.env.NODE_ENV === 'production' && !process.env.SESSION_SECRET) {
   throw new Error('SESSION_SECRET must be set in production')
 }
+
+// Validate critical env vars on startup
+const warnings: string[] = []
+if (!env.openrouterApiKey && !env.anthropicApiKey) {
+  warnings.push('No AI provider key set (OPENROUTER_API_KEY or ANTHROPIC_API_KEY) — chat will not work')
+}
+if (!env.smtp.host) {
+  warnings.push('SMTP_HOST not set — email verification will not work')
+}
+if (warnings.length > 0) {
+  console.warn(`\n⚠ Environment warnings:\n  ${warnings.join('\n  ')}\n`)
+}
