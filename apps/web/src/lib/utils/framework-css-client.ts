@@ -38,13 +38,13 @@ html, body { height: 100%; width: 100%; overflow: hidden; font-family: 'Inter', 
 
 /* ── Typography ──────────────────────────────────────────────────── */
 h1, h2, h3, h4 { font-family: 'Outfit', sans-serif; line-height: 1.2; margin-bottom: 0.4em; }
-h1 { font-size: clamp(2rem, 4vw, 3.5rem); font-weight: 600; }
-h2 { font-size: clamp(1.6rem, 3vw, 2.5rem); font-weight: 500; }
-h3 { font-size: clamp(1.2rem, 2.2vw, 1.8rem); font-weight: 500; }
-h4 { font-size: clamp(1rem, 1.6vw, 1.3rem); font-weight: 500; }
-.text-body { font-size: clamp(0.95rem, 1.4vw, 1.25rem); line-height: 1.65; color: var(--text-muted); }
+h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); font-weight: 600; }
+h2 { font-size: clamp(2rem, 3.8vw, 3.2rem); font-weight: 500; }
+h3 { font-size: clamp(1.5rem, 2.8vw, 2.2rem); font-weight: 500; }
+h4 { font-size: clamp(1.2rem, 2vw, 1.6rem); font-weight: 500; }
+.text-body { font-size: clamp(1.1rem, 1.8vw, 1.5rem); line-height: 1.65; color: var(--text-muted); }
 code, pre { font-family: 'JetBrains Mono', monospace; }
-pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 20px 24px; overflow-x: auto; font-size: 0.9rem; line-height: 1.5; }
+pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 8px; padding: 20px 24px; overflow-x: auto; font-size: 1.05rem; line-height: 1.5; }
 
 /* ── Slide Base ──────────────────────────────────────────────────── */
 .slide {
@@ -96,13 +96,13 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 }
 .card-cyan { border-left: 3px solid var(--accent-cyan); }
 .card-navy { border-left: 3px solid var(--accent-navy); }
-.card h3 { font-size: 1.1rem; margin-bottom: 8px; }
-.card p { font-size: 0.95rem; color: var(--text-muted); line-height: 1.5; }
+.card h3 { font-size: 1.3rem; margin-bottom: 8px; }
+.card p { font-size: 1.15rem; color: var(--text-muted); line-height: 1.5; }
 
 /* ── Module: Label ───────────────────────────────────────────────── */
 .label {
   display: inline-block; padding: 0; background: none; border-radius: 0;
-  font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
 }
 .label-cyan { color: var(--accent-cyan); }
 .label-blue { color: var(--accent-blue); }
@@ -114,16 +114,16 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 /* ── Module: Tip Box ─────────────────────────────────────────────── */
 .tip-box {
   background: rgba(100,181,246,0.05); border: 1px solid rgba(100,181,246,0.12);
-  border-radius: 8px; padding: 20px 24px; font-size: 0.95rem; line-height: 1.6;
+  border-radius: 8px; padding: 20px 24px; font-size: 1.15rem; line-height: 1.6;
 }
 .tip-box strong { display: block; margin-bottom: 6px; color: var(--accent-cyan); font-weight: 500; }
 
 /* ── Module: Prompt Block ────────────────────────────────────────── */
 .prompt-block {
-  border-radius: 8px; padding: 20px 24px; font-size: 0.9rem;
+  border-radius: 8px; padding: 20px 24px; font-size: 1.05rem;
   border: 1px solid var(--border-subtle);
 }
-.prompt-block pre { background: transparent; padding: 0; margin: 0; white-space: pre-wrap; border: none; }
+.prompt-block pre { background: transparent; padding: 0; margin: 0; white-space: pre-wrap; border: none; font-size: inherit; }
 .prompt-good { border-color: rgba(110,231,183,0.3); background: rgba(110,231,183,0.04); }
 .prompt-mid { border-color: rgba(251,191,36,0.3); background: rgba(251,191,36,0.04); }
 .prompt-bad { border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.04); }
@@ -147,6 +147,8 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
   flex: 1; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle);
   border-radius: 10px; padding: 24px;
 }
+.comparison-panel h3 { font-size: 1.3rem; margin-bottom: 8px; }
+.comparison-panel p { font-size: 1.15rem; color: var(--text-muted); line-height: 1.5; }
 
 /* ── Module: Card Grid ───────────────────────────────────────────── */
 .card-grid { display: grid; gap: 20px; width: 100%; }
@@ -155,7 +157,7 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .flow-node {
   background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle);
-  border-radius: 8px; padding: 14px 22px; font-size: 0.95rem; text-align: center;
+  border-radius: 8px; padding: 14px 22px; font-size: 1.15rem; text-align: center;
 }
 .flow-arrow { font-size: 1.2rem; color: var(--text-muted); }
 
@@ -164,7 +166,7 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 .stream-list li {
   padding: 12px 16px; border-left: 2px solid var(--accent-cyan);
   margin-bottom: 6px; background: rgba(255,255,255,0.02); border-radius: 0 6px 6px 0;
-  font-size: 0.95rem; line-height: 1.5;
+  font-size: 1.15rem; line-height: 1.5;
 }
 
 /* ── Module: Image ───────────────────────────────────────────────── */

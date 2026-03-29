@@ -63,7 +63,7 @@
 <div class="gallery-page">
   <header class="gallery-header">
     <div class="header-left">
-      <h1>My Decks</h1>
+      <h1><span class="brand-slide">Slide</span> <span class="brand-wiz">Wiz</span></h1>
     </div>
     <div class="header-right">
       {#if user}
@@ -120,7 +120,13 @@
     font-family: var(--font-display);
     font-size: 1.375rem;
     font-weight: 700;
-    color: var(--color-primary-dark);
+  }
+
+  .brand-slide {
+    color: #1a1a2e;
+  }
+  .brand-wiz {
+    color: #1D3A83;
   }
 
   .header-right {

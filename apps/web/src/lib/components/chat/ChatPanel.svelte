@@ -179,7 +179,7 @@
 
 <div class="chat-panel">
   <div class="chat-header">
-    <span class="chat-title">Wiz</span>
+    <span class="chat-title"><span class="brand-slide">Slide</span> <span class="brand-wiz">Wiz</span></span>
     <ModelSelector />
   </div>
 
@@ -219,7 +219,13 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--color-text-muted);
+  }
+
+  .brand-slide {
+    color: #1a1a2e;
+  }
+  .brand-wiz {
+    color: #1D3A83;
   }
 
   .messages {

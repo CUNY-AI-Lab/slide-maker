@@ -56,6 +56,7 @@
   }
 </script>
 
+<div class="editor-wrapper">
 <div class="editor-shell" class:resizing={draggingLeft || draggingRight}>
   {#if !leftCollapsed}
     <div class="left-panel" style:width="{leftWidth}px" style:min-width="{leftWidth}px">
@@ -64,14 +65,6 @@
       </div>
       <div class="outline-section">
         <SlideOutline />
-      </div>
-      <div class="panel-footer">
-        <div class="footer-divider"></div>
-        <div class="footer-content">
-          <a href="https://tools.ailab.gc.cuny.edu" target="_blank" rel="noopener" class="footer-link">tools.ailab.gc.cuny.edu</a>
-          <img src="{base}/cuny-ai-lab-logo.png" alt="CUNY AI Lab" class="footer-logo" />
-          <a href="https://ailab.gc.cuny.edu" target="_blank" rel="noopener" class="footer-link">ailab.gc.cuny.edu</a>
-        </div>
       </div>
     </div>
     <div class="resize-handle left-handle" onmousedown={startLeftResize}>
@@ -100,11 +93,28 @@
     </div>
   {/if}
 </div>
+<footer class="app-footer">
+  <div class="footer-divider"></div>
+  <div class="footer-content">
+    <div class="footer-left">
+      <img src="{base}/cuny-ai-lab-logo.png" alt="CUNY AI Lab" class="footer-logo" />
+      <a href="https://tools.ailab.gc.cuny.edu" target="_blank" rel="noopener" class="footer-link">tools.ailab.gc.cuny.edu</a>
+    </div>
+    <a href="https://ailab.gc.cuny.edu" target="_blank" rel="noopener" class="footer-link-main">ailab.gc.cuny.edu</a>
+  </div>
+</footer>
+</div>
 
 <style>
+  .editor-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
   .editor-shell {
     display: flex;
-    height: 100vh;
+    flex: 1;
     overflow: hidden;
     position: relative;
   }
@@ -227,17 +237,18 @@
     border-right: none;
   }
 
-  /* Panel footer */
-  .panel-footer {
+  /* App footer */
+  .app-footer {
     flex-shrink: 0;
-    padding: 0 12px 12px;
+    padding: 0 28px 12px;
+    background: var(--color-bg);
   }
 
   .footer-divider {
     height: 1px;
     background: var(--color-border, #e5e7eb);
-    opacity: 0.4;
-    margin-bottom: 12px;
+    opacity: 0.3;
+    margin-bottom: 10px;
   }
 
   .footer-content {
@@ -246,21 +257,40 @@
     justify-content: space-between;
   }
 
+  .footer-left {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
   .footer-logo {
-    width: 28px;
-    height: 28px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
     flex-shrink: 0;
   }
 
   .footer-link {
-    font-size: 9px;
+    font-size: 12px;
     color: var(--color-text-muted, #9ca3af);
     text-decoration: none;
     transition: color 0.15s;
   }
 
   .footer-link:hover {
+    color: var(--color-primary, #3B73E6);
+  }
+
+  .footer-link-main {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-muted, #6b7280);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: color 0.15s;
+  }
+
+  .footer-link-main:hover {
     color: var(--color-primary, #3B73E6);
   }
 

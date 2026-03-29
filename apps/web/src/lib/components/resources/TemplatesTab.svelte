@@ -54,6 +54,13 @@
     'closing-slide':    { bg: '#1D3A83', fg: 'rgba(255,255,255,0.25)', accent: 'rgba(255,255,255,0.12)' },
   }
 
+  const layoutMetaLight: Record<string, { bg: string; fg: string; accent: string }> = {
+    'title-slide':      { bg: '#e4e9f4', fg: 'rgba(29,58,131,0.25)', accent: 'rgba(29,58,131,0.14)' },
+    'closing-slide':    { bg: '#e4e9f4', fg: 'rgba(29,58,131,0.25)', accent: 'rgba(29,58,131,0.14)' },
+    'layout-divider':   { bg: '#e6edfa', fg: 'rgba(59,115,230,0.28)', accent: 'rgba(59,115,230,0.16)' },
+    'layout-full-dark': { bg: '#e2e4e8', fg: 'rgba(0,0,0,0.12)', accent: 'rgba(0,0,0,0.06)' },
+  }
+
   // Variants to introduce subtle per-card variety within groups
   const splitVariants: { bg: string; fg: string; accent: string }[] = [
     { bg: '#172a45', fg: 'rgba(255,255,255,0.22)', accent: 'rgba(255,255,255,0.12)' },
@@ -67,6 +74,16 @@
     { bg: '#123a4e', fg: 'rgba(255,255,255,0.22)', accent: 'rgba(255,255,255,0.12)' },
   ]
 
+  const contentVariants: { bg: string; fg: string; accent: string }[] = [
+    { bg: '#1e2a3a', fg: 'rgba(100,181,246,0.22)', accent: 'rgba(100,181,246,0.12)' },
+    { bg: '#1a2635', fg: 'rgba(100,181,246,0.22)', accent: 'rgba(100,181,246,0.12)' },
+    { bg: '#212e3f', fg: 'rgba(100,181,246,0.22)', accent: 'rgba(100,181,246,0.12)' },
+  ]
+  const contentVariantsLight = [
+    { bg: '#f0f4fa', fg: 'rgba(29,58,131,0.18)', accent: 'rgba(29,58,131,0.10)' },
+    { bg: '#ecf0f7', fg: 'rgba(29,58,131,0.18)', accent: 'rgba(29,58,131,0.10)' },
+    { bg: '#eef2f9', fg: 'rgba(29,58,131,0.18)', accent: 'rgba(29,58,131,0.10)' },
+  ]
   const splitVariantsLight = [
     { bg: '#e8eef6', fg: 'rgba(59,115,230,0.25)', accent: 'rgba(59,115,230,0.14)' },
     { bg: '#e9f0fb', fg: 'rgba(59,115,230,0.25)', accent: 'rgba(59,115,230,0.14)' },
@@ -162,8 +179,9 @@
             {@const base = layoutMeta[tmpl.layout] ?? { bg: '#e5e7eb', fg: 'rgba(0,0,0,0.1)', accent: 'rgba(0,0,0,0.05)' }}
             {@const dark = previewMode === 'dark'}
             {@const meta = tmpl.layout === 'layout-split' ? (dark ? splitVariants[i % splitVariants.length] : splitVariantsLight[i % splitVariantsLight.length])
+                            : tmpl.layout === 'layout-content' ? (dark ? contentVariants[i % contentVariants.length] : contentVariantsLight[i % contentVariantsLight.length])
                             : tmpl.layout === 'layout-grid' ? (dark ? gridVariants[i % gridVariants.length] : gridVariantsLight[i % gridVariantsLight.length])
-                            : base}
+                            : dark ? base : (layoutMetaLight[tmpl.layout] ?? base)}
             <button class="template-card" onclick={() => applyTemplate(tmpl)}>
               <div class="thumbnail" style:background={meta.bg}>
                 {#if tmpl.layout === 'title-slide' || tmpl.layout === 'closing-slide'}
@@ -182,11 +200,31 @@
                       <div class="z-block" style:background={meta.fg}></div>
                     </div>
                   </div>
+                {:else if tmpl.layout === 'layout-content' && tmpl.modules.some(m => m.type === 'comparison')}
+                  <div class="thumb-zones thumb-comparison">
+                    <div class="z-bar z-wide" style:background={meta.fg}></div>
+                    <div class="z-panels">
+                      <div class="z-panel" style:background={meta.fg}></div>
+                      <div class="z-panel" style:background={meta.fg}></div>
+                    </div>
+                  </div>
+                {:else if tmpl.layout === 'layout-content' && tmpl.modules.some(m => m.type === 'flow')}
+                  <div class="thumb-zones thumb-flow">
+                    <div class="z-bar z-wide" style:background={meta.fg}></div>
+                    <div class="z-flow-row">
+                      <div class="z-flow-node" style:background={meta.fg}></div>
+                      <div class="z-flow-arrow" style:background={meta.fg}></div>
+                      <div class="z-flow-node" style:background={meta.fg}></div>
+                      <div class="z-flow-arrow" style:background={meta.fg}></div>
+                      <div class="z-flow-node" style:background={meta.fg}></div>
+                    </div>
+                  </div>
                 {:else if tmpl.layout === 'layout-content'}
                   <div class="thumb-zones thumb-full">
                     <div class="z-bar z-wide" style:background={meta.fg}></div>
                     <div class="z-bar" style:background={meta.accent}></div>
                     <div class="z-bar" style:background={meta.accent}></div>
+                    <div class="z-bar z-narrow" style:background={meta.accent}></div>
                   </div>
                 {:else if tmpl.layout === 'layout-grid'}
                   <div class="thumb-zones thumb-grid">
@@ -365,6 +403,51 @@
     flex: 1;
     border-radius: 3px;
     min-height: 100%;
+  }
+
+  .thumb-comparison {
+    flex-direction: column;
+    justify-content: center;
+    padding: 8px 12px;
+  }
+
+  .z-panels {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    flex: 1;
+  }
+
+  .z-panel {
+    flex: 1;
+    border-radius: 3px;
+  }
+
+  .thumb-flow {
+    flex-direction: column;
+    justify-content: center;
+    padding: 8px 12px;
+  }
+
+  .z-flow-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 4px;
+  }
+
+  .z-flow-node {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  .z-flow-arrow {
+    width: 8px;
+    height: 2px;
+    border-radius: 1px;
+    flex-shrink: 0;
   }
 
   .template-info {

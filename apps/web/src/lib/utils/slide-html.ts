@@ -268,6 +268,7 @@ function buildThemeCss(theme: Theme | null | undefined): string {
       background: ${cardBg};
       border-color: ${border};
     }
+    .card p { color: ${textMuted}; }
     .card-cyan { border-left-color: ${accent}; }
     .card-navy { border-left-color: ${primary}; }
     .label-cyan { color: ${accent}; }

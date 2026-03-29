@@ -324,6 +324,8 @@ export function renderDeckHtml(
       --theme-border: ${border};
       --layout-split-bg: ${splitBg};
       --layout-grid-bg: ${gridBg};
+      --text-muted: ${textMuted};
+      --text-primary: ${text};
     }
     html, body { background: ${bg}; color: ${text}; font-family: '${bodyFont}', sans-serif; }
     h1, h2, h3, h4 { font-family: '${headingFont}', sans-serif; }
@@ -337,7 +339,13 @@ export function renderDeckHtml(
     .stream-list li { border-left-color: ${accent}; background: ${cardBg}; color: ${textMuted}; }
     .text-body { color: ${textMuted}; }
     .comparison-panel { background: ${cardBg}; border-color: ${border}; }
+    .comparison-panel p { color: ${textMuted}; }
+    .card p { color: ${textMuted}; }
     .flow-node { background: ${cardBg}; border-color: ${border}; }
+    .flow-arrow { color: ${textMuted}; }
+    .prompt-block { color: ${text}; }
+    blockquote { color: ${text}; }
+    figcaption { color: ${textMuted}; }
   `
 
   // Include fonts from theme

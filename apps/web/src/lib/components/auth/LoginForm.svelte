@@ -29,7 +29,7 @@
 <form onsubmit={handleSubmit} class="auth-form">
   <div class="form-header">
     <h1>CUNY AI Lab</h1>
-    <p>Sign in to Slide Wiz</p>
+    <p>Sign in to <span class="brand-slide">Slide</span> <span class="brand-wiz">Wiz</span></p>
   </div>
 
   <div class="form-body">
@@ -94,6 +94,15 @@
   .form-header p {
     font-size: 0.875rem;
     opacity: 0.85;
+  }
+
+  .brand-slide {
+    color: #1a1a2e;
+    font-weight: 700;
+  }
+  .brand-wiz {
+    color: #1D3A83;
+    font-weight: 700;
   }
 
   .form-body {
