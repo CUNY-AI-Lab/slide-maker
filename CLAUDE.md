@@ -212,9 +212,17 @@ Full admin panel at `/admin` with:
 
 - **Dev:** `pnpm dev` (localhost:5173 + localhost:3001)
 - **Staging:** `tools.cuny.qzz.io/slide-maker` — Debian server (Tailscale IP 100.111.252.53), Nginx reverse proxy, PM2 processes (`slide-maker-api` on port 3004, `slide-maker-web` on port 4173)
-- **Deploy:** `./deploy-staging.sh` from a machine on Tailscale/CUNY VPN. GitHub Actions can't reach the server (Tailscale-only IP).
-- **Server deploy script:** `/data/slide-maker/deploy.sh` — git pull, pnpm install, build, db push, seed, pm2 restart
-- **Nginx config:** Added to `/etc/nginx/sites-enabled/alt-text.conf` on the server (slide-maker routes at bottom of server block)
+- **Deploy via SSH:** `sshpass -p '<password>' ssh smorello.adm@gc.cuny.edu@100.111.252.53 "echo '<password>' | sudo -S bash -c 'cd /data/slide-maker && git pull && pnpm install && pnpm build && pm2 restart slide-maker-api slide-maker-web'"`
+- **Deploy script:** `./deploy-staging.sh` (alternative, requires Tailscale/CUNY VPN)
+- **Nginx config:** `/etc/nginx/sites-enabled/alt-text.conf` — slide-maker routes at bottom of server block
+
+### CRITICAL: Staging Build Rules
+
+1. **NEVER set `PUBLIC_URL` to include `/slide-maker`** during build. The `.env` on the server has `PUBLIC_URL=https://tools.cuny.qzz.io` (no path). Nginx strips `/slide-maker/` before proxying to vite preview at `localhost:4173/`, so the build must NOT have a SvelteKit base path. If you set `PUBLIC_URL=.../slide-maker`, vite preview will expect `/slide-maker/` prefix but nginx already stripped it → 404 on all assets.
+2. **NEVER delete `apps/web/.svelte-kit` without also clearing `.turbo`, `apps/web/.turbo`, `apps/api/.turbo`** — Turborepo will replay a cached build that references old file hashes → 404 on JS/CSS chunks.
+3. **To force a clean rebuild:** `rm -rf apps/web/.svelte-kit .turbo apps/web/.turbo apps/api/.turbo && pnpm build`
+4. **`better-sqlite3` Node version mismatch:** If the server's Node version changes, `better-sqlite3` native module must be rebuilt: `rm -rf node_modules/.pnpm/better-sqlite3@* && pnpm install`. Without this, the API crash-loops with `ERR_DLOPEN_FAILED`.
+5. **Admin seeding:** `ADMIN_SEED_PASSWORD="Gremlins2025!" pnpm seed:admin` — seeds all admin accounts listed in `apps/api/src/db/seed.ts`.
 
 ## Docs
 
