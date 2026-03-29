@@ -47,7 +47,7 @@ export interface CardGridData { cards: { title: string; content: string; icon?: 
 export interface FlowData { nodes: { icon?: string; label: string; description?: string }[] }
 export interface StreamListData { items: string[] }
 export interface VizData {
-  viz: 'lorenz' | 'boids' | 'life' | 'fourier' | 'rd' | 'mandelbrot' | 'nbody' | 'percolation' | 'logistic' | 'voronoi'
+  viz: 'lorenz' | 'boids' | 'life' | 'fourier' | 'nbody' | 'percolation' | 'logistic' | 'voronoi'
   options?: Record<string, unknown>
 }
 

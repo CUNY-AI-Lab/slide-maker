@@ -18,16 +18,14 @@
   let cleanup: (() => void) | null = null
 
   const VIZ_CATALOG = [
-    { id: 'lorenz',     label: 'Lorenz Attractor',       icon: '∿' },
-    { id: 'boids',      label: 'Boids Flocking',          icon: '⟶' },
-    { id: 'life',       label: "Conway's Life",           icon: '⬡' },
-    { id: 'fourier',    label: 'Fourier Epicycles',       icon: '◎' },
-    { id: 'rd',         label: 'Reaction-Diffusion',      icon: '≋' },
-    { id: 'mandelbrot', label: 'Mandelbrot Set',          icon: '❋' },
-    { id: 'nbody',      label: 'N-Body Gravity',          icon: '⊕' },
-    { id: 'percolation',label: 'Percolation',             icon: '⠿' },
-    { id: 'logistic',   label: 'Logistic Map',            icon: '⤳' },
-    { id: 'voronoi',    label: 'Voronoi',                 icon: '⬡' },
+    { id: 'lorenz',     label: 'Lorenz Attractor',  icon: '∿' },
+    { id: 'boids',      label: 'Boids Flocking',    icon: '⟶' },
+    { id: 'life',       label: "Conway's Life",     icon: '⬡' },
+    { id: 'fourier',    label: 'Fourier Epicycles', icon: '◎' },
+    { id: 'nbody',      label: 'N-Body Gravity',    icon: '⊕' },
+    { id: 'percolation',label: 'Percolation',       icon: '⠿' },
+    { id: 'logistic',   label: 'Logistic Map',      icon: '⤳' },
+    { id: 'voronoi',    label: 'Voronoi',           icon: '⬡' },
   ]
 
   function mountViz(c: HTMLCanvasElement, name: string) {
@@ -152,59 +150,6 @@
         return () => cancelAnimationFrame(animId)
       },
 
-      rd: () => {
-        const GW=Math.floor(W/2),GH=Math.floor(H/2)
-        const da=1.0,db=0.5,f=0.055,k=0.062
-        let A=new Float32Array(GW*GH).fill(1), B=new Float32Array(GW*GH)
-        for(let i=GW/2-8;i<GW/2+8;i++)for(let j=GH/2-8;j<GH/2+8;j++){B[Math.floor(j)*GW+Math.floor(i)]=1;A[Math.floor(j)*GW+Math.floor(i)]=0}
-        const tmp=document.createElement('canvas');tmp.width=GW;tmp.height=GH
-        const tctx=tmp.getContext('2d')!
-        ctx.fillStyle='#061820';ctx.fillRect(0,0,W,H)
-        const draw=()=>{
-          for(let s=0;s<6;s++){
-            const nA=new Float32Array(GW*GH),nB=new Float32Array(GW*GH)
-            for(let y2=1;y2<GH-1;y2++)for(let x2=1;x2<GW-1;x2++){
-              const i=y2*GW+x2
-              const la=A[(y2-1)*GW+x2]+A[(y2+1)*GW+x2]+A[y2*GW+x2-1]+A[y2*GW+x2+1]-4*A[i]
-              const lb=B[(y2-1)*GW+x2]+B[(y2+1)*GW+x2]+B[y2*GW+x2-1]+B[y2*GW+x2+1]-4*B[i]
-              const abb=A[i]*B[i]*B[i]
-              nA[i]=Math.max(0,Math.min(1,A[i]+da*la-abb+f*(1-A[i])))
-              nB[i]=Math.max(0,Math.min(1,B[i]+db*lb+abb-(k+f)*B[i]))
-            }
-            A=nA;B=nB
-          }
-          const id=tctx.createImageData(GW,GH)
-          for(let i=0;i<GW*GH;i++){
-            const bt=B[i]
-            id.data[i*4]=Math.floor(20+bt*40);id.data[i*4+1]=Math.floor(80+bt*160)
-            id.data[i*4+2]=Math.floor(180+bt*75);id.data[i*4+3]=255
-          }
-          tctx.putImageData(id,0,0);ctx.drawImage(tmp,0,0,W,H)
-          animId=requestAnimationFrame(draw)
-        }
-        draw()
-        return () => cancelAnimationFrame(animId)
-      },
-
-      mandelbrot: () => {
-        const IW=Math.floor(W),IH=Math.floor(H),MAX=80
-        const id=ctx.createImageData(IW,IH)
-        const scale=3.0/IH
-        for(let py=0;py<IH;py++)for(let px=0;px<IW;px++){
-          let zr=0,zi=0,cr=(px-IW/2)*scale-0.7,ci=(py-IH/2)*scale,n=0
-          while(n<MAX&&zr*zr+zi*zi<4){const tmp=zr*zr-zi*zi+cr;zi=2*zr*zi+ci;zr=tmp;n++}
-          const i=(py*IW+px)*4
-          if(n===MAX){id.data[i]=id.data[i+1]=id.data[i+2]=0}
-          else{const t=n/MAX
-            id.data[i]=Math.floor(9*(1-t)*t*t*t*255)
-            id.data[i+1]=Math.floor(15*(1-t)**2*t*t*255)
-            id.data[i+2]=Math.floor(8.5*(1-t)**3*t*255)
-          }
-          id.data[i+3]=255
-        }
-        ctx.putImageData(id,0,0)
-        return () => {}
-      },
 
       nbody: () => {
         const N=5, G=50
