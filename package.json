@@ -9,7 +9,10 @@
     "db:seed": "pnpm --filter api db:seed",
     "seed:admin": "pnpm --filter api seed:admin",
     "audit:a11y": "node scripts/a11y-theme-audit.mjs",
-    "start": "node apps/api/dist/index.js"
+    "start": "tsx apps/api/src/index.ts"
+  },
+  "dependencies": {
+    "tsx": "^4.19.0"
   },
   "devDependencies": {
     "turbo": "^2.4.0",
