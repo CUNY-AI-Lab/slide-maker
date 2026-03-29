@@ -128,9 +128,28 @@ Produces self-contained HTML decks matching the CUNY AI Lab framework:
 - `assets/` — bundled uploaded images with rewritten URLs
 - Export code: `apps/api/src/export/` (framework-css.ts, navigation.ts, carousel.ts, html-renderer.ts, index.ts)
 
+## Server Storage
+
+The staging server has two drives:
+- **Root drive** (`/`) — 8.9GB, nearly full. Do NOT store data here.
+- **Data drive** (`/data`) — 2TB, plenty of space. ALL app data lives here.
+
+Storage layout on server:
+```
+/data/slide-maker/                    ← app code (git repo)
+/data/slide-maker-storage/
+  ├── db/slide-maker.db               ← SQLite database
+  ├── uploads/{deckId}/{fileId}.ext    ← uploaded files
+  └── exports/                        ← (reserved for future use)
+```
+
+`apps/api/data` and `apps/api/uploads` are **symlinks** to `/data/slide-maker-storage/`. If you need to add more storage paths, put them under `/data/slide-maker-storage/` and symlink.
+
+**Upload limits:** 10MB per file, 50MB total per deck.
+
 ## Database
 
-SQLite at `apps/api/data/slide-maker.db`. Schema at `apps/api/src/db/schema.ts`.
+SQLite at `apps/api/data/slide-maker.db` (symlinked to `/data/slide-maker-storage/db/`). Schema at `apps/api/src/db/schema.ts`.
 
 Key tables:
 - `slides` — layout, splitRatio, order

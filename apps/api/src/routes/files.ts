@@ -19,7 +19,8 @@ type AuthEnv = {
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const UPLOADS_DIR = path.resolve(__dirname, '../../uploads')
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB
+const MAX_FILE_SIZE = 10 * 1024 * 1024 // 10MB per file
+const MAX_TOTAL_UPLOADS = 50 * 1024 * 1024 // 50MB total per deck
 
 const ALLOWED_TYPES = new Set([
   'image/png',
@@ -71,7 +72,22 @@ filesRouter.post('/:deckId/files', authMiddleware, async (c) => {
   }
 
   if (file.size > MAX_FILE_SIZE) {
-    return c.json({ error: 'File too large (max 10MB)' }, 400)
+    return c.json({ error: 'File too large (max 10MB per file)' }, 400)
+  }
+
+  // Check total uploads for this deck
+  const deckDir = path.join(UPLOADS_DIR, deckId)
+  let currentTotal = 0
+  if (fs.existsSync(deckDir)) {
+    const files = fs.readdirSync(deckDir)
+    for (const f of files) {
+      const stat = fs.statSync(path.join(deckDir, f))
+      currentTotal += stat.size
+    }
+  }
+  if (currentTotal + file.size > MAX_TOTAL_UPLOADS) {
+    const usedMB = Math.round(currentTotal / 1024 / 1024)
+    return c.json({ error: `Upload limit reached (${usedMB}MB / 50MB used). Delete some files first.` }, 400)
   }
 
   if (!ALLOWED_TYPES.has(file.type)) {
