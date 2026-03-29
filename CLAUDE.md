@@ -283,7 +283,7 @@ Tests import directly from `packages/shared/src/` and `apps/web/src/lib/utils/`.
 
 - PreTeXtBook/pretext is a server-side Python toolchain, NOT a browser JS library. Only chenglou/pretext (`@chenglou/pretext`) is integrated for text measurement.
 - svelte-dnd-action used for slide reordering in outline only. Zone module reordering uses ▲/▼ buttons (drag conflicts with resize).
-- Fragment/progressive disclosure: schema + export support exists, step order dropdown in edit mode, but no step preview in editor (only in export/preview).
+- Step reveals render in both inline preview (via `slide-html.ts` `wrapStep()`) and full deck preview (via export `stepAttrs()`). The inline preview CSS overrides `step-hidden` to `opacity: 1` so all steps are visible; the full deck preview uses navigation JS to reveal steps on click/arrow.
 - Export doesn't include speaker notes panel yet.
 - No real-time collaborative editing — uses pessimistic locking (5-min TTL with heartbeat).
 - Font size in format toolbar applies to entire editor DOM, not per-selection (needs TipTap TextStyle extension).
