@@ -463,8 +463,16 @@ decksRouter.patch('/:id/slides/:slideId/blocks/:blockId', async (c) => {
   const body = await c.req.json()
   const { data: blockData, zone, order: blockOrder, stepOrder } = body
 
+  const slideId = c.req.param('slideId')
+
   const existing = await db.select().from(contentBlocks).where(eq(contentBlocks.id, blockId)).get()
-  if (!existing) {
+  if (!existing || existing.slideId !== slideId) {
+    return c.json({ error: 'Block not found' }, 404)
+  }
+
+  // Verify slide belongs to this deck
+  const slide = await db.select().from(slides).where(and(eq(slides.id, slideId), eq(slides.deckId, deckId))).get()
+  if (!slide) {
     return c.json({ error: 'Block not found' }, 404)
   }
 
@@ -512,6 +520,18 @@ decksRouter.delete('/:id/slides/:slideId/blocks/:blockId', async (c) => {
 
   if (!access || access.role === 'viewer') {
     return c.json({ error: 'Forbidden' }, 403)
+  }
+
+  const slideId = c.req.param('slideId')
+
+  // Verify block belongs to this slide and slide belongs to this deck
+  const existing = await db.select().from(contentBlocks).where(eq(contentBlocks.id, blockId)).get()
+  if (!existing || existing.slideId !== slideId) {
+    return c.json({ error: 'Block not found' }, 404)
+  }
+  const slide = await db.select().from(slides).where(and(eq(slides.id, slideId), eq(slides.deckId, deckId))).get()
+  if (!slide) {
+    return c.json({ error: 'Block not found' }, 404)
   }
 
   await db.delete(contentBlocks).where(eq(contentBlocks.id, blockId))

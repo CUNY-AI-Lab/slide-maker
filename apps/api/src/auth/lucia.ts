@@ -10,9 +10,7 @@ export const lucia = new Lucia(adapter, {
     attributes: {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax' as const,
-      // httpOnly is hardcoded to true by Lucia internally (core.js)
-      // Explicitly asserting here as a defense-in-depth measure
-      ...({ httpOnly: true } as Record<string, unknown>),
+      httpOnly: true,
     },
   },
   getUserAttributes: (attributes) => ({

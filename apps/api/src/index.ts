@@ -24,6 +24,8 @@ app.use('/*', cors({
 }))
 
 app.use('/*', csrf({ origin: env.publicUrl }))
+// 11MB for file upload routes (10MB file + overhead), 2MB for everything else
+app.use('/api/decks/:id/files', bodyLimit({ maxSize: 11 * 1024 * 1024 }))
 app.use('/*', bodyLimit({ maxSize: 2 * 1024 * 1024 }))
 
 app.get('/api/health', (c) => c.json({ status: 'ok' }))

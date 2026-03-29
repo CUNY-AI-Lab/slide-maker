@@ -181,7 +181,8 @@ filesRouter.get('/:deckId/files/:fileId', async (c) => {
   c.header('Content-Type', file.mimeType)
   // Force download for SVG to prevent script execution
   if (file.mimeType === 'image/svg+xml') {
-    c.header('Content-Disposition', `attachment; filename="${file.filename}"`)
+    const safeName = path.basename(file.filename).replace(/[^\w.\-]/g, '_')
+    c.header('Content-Disposition', `attachment; filename="${safeName}"`)
   }
   c.header('Cache-Control', 'public, max-age=86400')
   return c.body(data)
