@@ -21,6 +21,7 @@
     onReorder,
     onModuleDataChange,
     onModuleDelete,
+    onModuleStepChange,
     onEditorReady,
   }: {
     modules: Module[]

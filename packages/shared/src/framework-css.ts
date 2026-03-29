@@ -312,7 +312,15 @@ export const FRAMEWORK_CSS_PREVIEW = FRAMEWORK_CSS_BASE + `
   padding: 60px 80px; overflow: auto; flex-direction: column; justify-content: center;
 }
 
-/* ── Step Reveal (all visible in preview) ───────────────────────── */
-.step-hidden { opacity: 1; transform: none; }
+/* ── Step Reveal (all visible in preview, with step indicator) ──── */
+.step-hidden { opacity: 1; transform: none; position: relative; }
+.step-hidden::after {
+  content: 'Step ' attr(data-step);
+  position: absolute; top: 4px; right: 4px;
+  background: rgba(47,184,214,0.85); color: #fff;
+  font-size: 10px; font-weight: 600;
+  padding: 1px 8px; border-radius: 10px;
+  pointer-events: none; z-index: 5;
+}
 .step-visible { opacity: 1; transform: none; }
 `
