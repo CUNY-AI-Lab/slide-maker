@@ -263,11 +263,11 @@
   }
   .slide-frame {
     width: 100%;
-    min-height: 100%;
     background: white;
     border-radius: var(--radius-md);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    overflow: visible;
+    overflow-y: auto;
+    overflow-x: hidden;
   }
   .no-slide {
     color: var(--color-text-muted);
