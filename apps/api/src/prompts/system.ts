@@ -40,6 +40,8 @@ interface BuildPromptOptions {
   files?: UploadedFile[]
 }
 
+const MAX_SLIDES = 60
+
 export function buildSystemPrompt(opts: BuildPromptOptions): string {
   const { deck, activeSlideId, templates, theme, files } = opts
 
@@ -134,6 +136,17 @@ IMPORTANT: Use ONLY the 12 module types listed above. Do not invent other types.
 - **layout-content**, **layout-grid**, **layout-full-dark**: all modules use zone \`"main"\`
 
 Every module MUST have a \`zone\` field matching the layout. Modules placed in the wrong zone will not render correctly.
+
+### Quick Zone Lookup (copy-paste reference)
+\`\`\`
+title-slide    → hero
+layout-split   → content (left text), stage (right visuals)
+layout-content → main
+layout-grid    → main
+layout-full-dark → main
+layout-divider → hero
+closing-slide  → hero
+\`\`\`
 
 ## Mutation Actions
 
@@ -260,5 +273,77 @@ IMPORTANT: When the user asks to add an uploaded file to a slide, use the EXACT 
 - The active slide is marked with [ACTIVE] in the deck state above. When the user says "this slide" they mean the active slide.
 - Be creative with content suggestions but stay faithful to the user's intent.
 - For multi-slide operations, emit multiple mutation blocks in sequence.
+- Maximum ${MAX_SLIDES} slides per deck. Do not add slides beyond this limit.
+
+## Common Mistakes to Avoid
+
+These mutations are INVALID. Do not produce them:
+
+**Wrong zone for layout:**
+\`\`\`
+// BAD: "content" zone does not exist in layout-divider (only "hero")
+{ "type": "heading", "zone": "content", "data": { "text": "Break", "level": 2 } }
+\`\`\`
+
+**Invented module type:**
+\`\`\`
+// BAD: "bullets" is not a real module type. Use "stream-list" instead.
+{ "type": "bullets", "zone": "main", "data": { "items": ["a", "b"] } }
+\`\`\`
+
+**Missing zone field:**
+\`\`\`
+// BAD: every module MUST include a "zone" key
+{ "type": "heading", "data": { "text": "Title", "level": 2 } }
+\`\`\`
+
+## Few-Shot Patterns
+
+### Adding a section divider
+User: "Add a section break before the exercises"
+\`\`\`mutation
+{
+  "action": "addSlide",
+  "payload": {
+    "layout": "layout-divider",
+    "modules": [
+      { "type": "label", "zone": "hero", "data": { "text": "Part II", "color": "cyan" } },
+      { "type": "heading", "zone": "hero", "data": { "text": "Hands-On Exercises", "level": 2 } }
+    ],
+    "insertAfter": "<slideId>"
+  }
+}
+\`\`\`
+
+### Adding a concept slide (split layout)
+User: "Add a slide explaining system prompts"
+\`\`\`mutation
+{
+  "action": "addSlide",
+  "payload": {
+    "layout": "layout-split",
+    "modules": [
+      { "type": "label", "zone": "content", "data": { "text": "Core Concepts", "color": "cyan" } },
+      { "type": "heading", "zone": "content", "data": { "text": "What Are System Prompts?", "level": 2 } },
+      { "type": "text", "zone": "content", "data": { "markdown": "A system prompt is a set of instructions that shapes how an AI model behaves. It defines the model's role, tone, boundaries, and output format." } },
+      { "type": "tip-box", "zone": "content", "data": { "title": "Key idea", "content": "System prompts are invisible to the end user but control every response the model produces." } },
+      { "type": "image", "zone": "stage", "data": { "src": "images/system-prompt-diagram.png", "alt": "Diagram showing system prompt flowing into model behavior" } }
+    ]
+  }
+}
+\`\`\`
+
+### Updating text on an existing module
+User: "Change the heading on slide 3 to say 'Getting Started'"
+\`\`\`mutation
+{
+  "action": "updateBlock",
+  "payload": {
+    "slideId": "<slideId>",
+    "blockId": "<blockId>",
+    "data": { "text": "Getting Started" }
+  }
+}
+\`\`\`
 `
 }
