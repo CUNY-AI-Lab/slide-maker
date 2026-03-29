@@ -12,6 +12,7 @@ SUITES=(
   "tests/test_templates.sh"
   "tests/test_export_pipeline.sh"
   "tests/test_system_prompt.sh"
+  "tests/test_validation.sh"
 )
 
 SUITE_PASS=0
