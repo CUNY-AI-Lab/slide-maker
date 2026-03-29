@@ -1,7 +1,8 @@
 <script lang="ts">
   import ZoneDrop from './ZoneDrop.svelte'
   import SplitHandle from './SplitHandle.svelte'
-  import { updateSlideInDeck } from '$lib/stores/deck'
+  import { currentDeck, updateSlideInDeck } from '$lib/stores/deck'
+  import { get } from 'svelte/store'
   import type { Editor } from '@tiptap/core'
 
   type Module = {
@@ -43,6 +44,16 @@
 
   let layoutType = $derived(slide.layout ?? 'layout-content')
 
+  // Branding from deck metadata
+  let branding = $derived.by(() => {
+    const deck = get(currentDeck)
+    const meta = deck?.metadata as Record<string, unknown> | undefined
+    if (!meta?.branding) return null
+    const b = meta.branding as { logo?: string; position?: string }
+    if (!b.logo) return null
+    return b
+  })
+
   const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
 
   function handleReorder(zone: string, items: Module[]) {
@@ -80,6 +91,21 @@
     }).catch(console.error)
   }
 
+  function handleModuleStepChange(moduleId: string, stepOrder: number | null) {
+    updateSlideInDeck(slide.id, (s) => ({
+      ...s,
+      blocks: s.blocks.map((b) =>
+        b.id === moduleId ? { ...b, stepOrder } : b
+      ),
+    }))
+    fetch(`${API_URL}/api/decks/${slide.deckId}/slides/${slide.id}/blocks/${moduleId}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ stepOrder }),
+    }).catch(console.error)
+  }
+
   function handleModuleDelete(moduleId: string) {
     updateSlideInDeck(slide.id, (s) => ({
       ...s,
@@ -104,6 +130,13 @@
 </script>
 
 <div class="slide" data-layout={layoutType}>
+  {#if branding}
+    <img
+      class="branding-logo {branding.position ?? 'top-left'}"
+      src={branding.logo}
+      alt="Logo"
+    />
+  {/if}
   {#if layoutType === 'title-slide' || layoutType === 'layout-divider' || layoutType === 'closing-slide'}
     <!-- Single hero zone, centered -->
     <div class="zone-centered">
@@ -116,6 +149,7 @@
         onReorder={handleReorder}
         onModuleDataChange={handleModuleDataChange}
           onModuleDelete={handleModuleDelete}
+          onModuleStepChange={handleModuleStepChange}
         {onEditorReady}
       />
     </div>
@@ -132,6 +166,7 @@
           onReorder={handleReorder}
           onModuleDataChange={handleModuleDataChange}
           onModuleDelete={handleModuleDelete}
+          onModuleStepChange={handleModuleStepChange}
           {onEditorReady}
         />
       </div>
@@ -146,6 +181,7 @@
           onReorder={handleReorder}
           onModuleDataChange={handleModuleDataChange}
           onModuleDelete={handleModuleDelete}
+          onModuleStepChange={handleModuleStepChange}
           {onEditorReady}
         />
       </div>
@@ -162,6 +198,7 @@
         onReorder={handleReorder}
         onModuleDataChange={handleModuleDataChange}
           onModuleDelete={handleModuleDelete}
+          onModuleStepChange={handleModuleStepChange}
         {onEditorReady}
       />
     </div>
@@ -177,6 +214,7 @@
     overflow: hidden;
     font-family: var(--font-body);
     box-sizing: border-box;
+    position: relative;
   }
 
   /* ── Title Slide: gradient navy to teal, white text, centered ── */
@@ -264,4 +302,17 @@
     justify-content: flex-start;
     gap: clamp(0.6rem, 1.5vw, 1.25rem);
   }
+
+  /* ── Branding logo ── */
+  .branding-logo {
+    position: absolute;
+    z-index: 10;
+    max-width: 80px;
+    max-height: 40px;
+    object-fit: contain;
+    opacity: 0.85;
+  }
+  .branding-logo.top-left { top: 8px; left: 12px; }
+  .branding-logo.top-right { top: 8px; right: 12px; }
+  .branding-logo.bottom-left { bottom: 8px; left: 12px; }
 </style>

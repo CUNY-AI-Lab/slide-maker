@@ -5,6 +5,12 @@
     onchange?: (newData: Record<string, unknown>) => void;
   } = $props()
 
+  let syncSteps = $derived(!!data.syncSteps)
+
+  function toggleSyncSteps() {
+    onchange?.({ ...data, syncSteps: !syncSteps })
+  }
+
   let items: Array<{ src: string; caption?: string }> = $derived(
     Array.isArray(data.items)
       ? data.items.map((item: unknown) => {
@@ -71,6 +77,13 @@
         {/each}
       </div>
     {/if}
+  {/if}
+
+  {#if editable}
+    <label class="sync-steps-toggle">
+      <input type="checkbox" checked={syncSteps} onchange={toggleSyncSteps} />
+      <span>Sync with steps</span>
+    </label>
   {/if}
 </div>
 
@@ -147,6 +160,21 @@
   }
   .dot.active {
     background: var(--teal, #2FB8D6);
+  }
+  .sync-steps-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.65rem;
+    color: var(--color-text-muted, #6b7280);
+    cursor: pointer;
+    margin-top: 0.5rem;
+    user-select: none;
+  }
+  .sync-steps-toggle input {
+    width: 12px;
+    height: 12px;
+    cursor: pointer;
   }
   .placeholder {
     background: var(--color-bg-tertiary);

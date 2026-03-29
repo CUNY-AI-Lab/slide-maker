@@ -15,7 +15,7 @@
 
   import type { Editor } from '@tiptap/core'
 
-  let { module, editable = false, onchange, oneditorready, ondelete, onmoveup, onmovedown, isFirst = false, isLast = false }: {
+  let { module, editable = false, onchange, oneditorready, ondelete, onmoveup, onmovedown, onstepchange, isFirst = false, isLast = false }: {
     module: { id: string; type: string; data: Record<string, unknown>; stepOrder?: number | null };
     editable: boolean;
     onchange?: (newData: Record<string, unknown>) => void;
@@ -23,9 +23,16 @@
     ondelete?: () => void;
     onmoveup?: () => void;
     onmovedown?: () => void;
+    onstepchange?: (stepOrder: number | null) => void;
     isFirst?: boolean;
     isLast?: boolean;
   } = $props()
+
+  function handleStepChange(e: Event) {
+    const val = (e.target as HTMLSelectElement).value
+    const step = val === '' ? null : Number(val)
+    onstepchange?.(step)
+  }
 
   const rendererMap: Record<string, any> = {
     heading: HeadingModule,
@@ -113,6 +120,19 @@
       {#if !isLast}
         <button class="ctrl-btn" onclick={() => onmovedown?.()} title="Move down">▼</button>
       {/if}
+      <select
+        class="step-select"
+        value={module.stepOrder != null ? String(module.stepOrder) : ''}
+        onchange={handleStepChange}
+        title="Step reveal order"
+      >
+        <option value="">--</option>
+        <option value="0">1</option>
+        <option value="1">2</option>
+        <option value="2">3</option>
+        <option value="3">4</option>
+        <option value="4">5</option>
+      </select>
       <button
         class="ctrl-btn delete-btn"
         class:confirming={confirmDelete}
@@ -209,6 +229,21 @@
     padding: 0 4px;
     font-family: var(--font-body);
     line-height: 1;
+  }
+  .step-select {
+    height: 18px;
+    font-size: 9px;
+    border: 1px solid var(--color-border);
+    border-radius: 9px;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--color-text-muted);
+    padding: 0 4px;
+    cursor: pointer;
+    font-family: var(--font-body);
+    outline: none;
+  }
+  .step-select:focus {
+    border-color: var(--teal, #2FB8D6);
   }
   .delete-btn:hover {
     color: #dc2626;

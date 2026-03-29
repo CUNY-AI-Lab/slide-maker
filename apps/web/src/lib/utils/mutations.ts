@@ -1,5 +1,6 @@
 import { currentDeck, addSlideToDeck, removeSlideFromDeck, updateSlideInDeck } from '$lib/stores/deck'
 import { activeSlideId } from '$lib/stores/ui'
+import { history } from '$lib/stores/history'
 import { get } from 'svelte/store'
 
 const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
@@ -48,6 +49,12 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
         addSlideToDeck(slide)
         // Auto-select the new slide
         activeSlideId.set(slide.id)
+
+        // Track reverse mutation
+        history.pushMutation(mutation, {
+          action: 'removeSlide',
+          payload: { slideId: slide.id },
+        })
       }
       break
     }
@@ -91,6 +98,11 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
           ...s,
           blocks: [...s.blocks, result.block],
         }))
+
+        history.pushMutation(mutation, {
+          action: 'removeBlock',
+          payload: { slideId, blockId: result.block.id },
+        })
       }
       break
     }
@@ -110,6 +122,12 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
       const slideId = payload.slideId as string
       const blockId = payload.blockId as string
       const newData = payload.data as Record<string, unknown>
+
+      // Capture old data for undo
+      const currentSlide = deck.slides.find((s) => s.id === slideId)
+      const oldBlock = currentSlide?.blocks.find((b) => b.id === blockId)
+      const oldData = oldBlock ? { ...oldBlock.data } : {}
+
       await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${blockId}`, 'PATCH', {
         data: newData,
       })
@@ -119,6 +137,11 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
           b.id === blockId ? { ...b, data: { ...b.data, ...newData } } : b,
         ),
       }))
+
+      history.pushMutation(mutation, {
+        action: 'updateBlock',
+        payload: { slideId, blockId, data: oldData },
+      })
       break
     }
 
@@ -163,6 +186,65 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
     default:
       console.warn('Unhandled mutation action:', mutation.action)
   }
+}
+
+/** Apply a mutation without recording history (used for undo/redo) */
+async function applyMutationSilent(mutation: Record<string, unknown>): Promise<void> {
+  const deck = get(currentDeck)
+  if (!deck) return
+
+  const payload = mutation.payload as Record<string, unknown>
+
+  switch (mutation.action) {
+    case 'removeSlide': {
+      const slideId = payload.slideId as string
+      await apiCall(`/api/decks/${deck.id}/slides/${slideId}`, 'DELETE')
+      removeSlideFromDeck(slideId)
+      break
+    }
+    case 'removeBlock': {
+      const slideId = payload.slideId as string
+      const blockId = payload.blockId as string
+      await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${blockId}`, 'DELETE')
+      updateSlideInDeck(slideId, (s) => ({
+        ...s,
+        blocks: s.blocks.filter((b) => b.id !== blockId),
+      }))
+      break
+    }
+    case 'updateBlock': {
+      const slideId = payload.slideId as string
+      const blockId = payload.blockId as string
+      const newData = payload.data as Record<string, unknown>
+      await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${blockId}`, 'PATCH', {
+        data: newData,
+      })
+      updateSlideInDeck(slideId, (s) => ({
+        ...s,
+        blocks: s.blocks.map((b) =>
+          b.id === blockId ? { ...b, data: { ...b.data, ...newData } } : b,
+        ),
+      }))
+      break
+    }
+    default:
+      // For any other action, just apply normally (won't double-push history
+      // because applyMutation's history.pushMutation would be called, but
+      // for safety we handle core cases above)
+      await applyMutation(mutation)
+  }
+}
+
+export async function undo(): Promise<void> {
+  const entry = history.popUndo()
+  if (!entry) return
+  await applyMutationSilent(entry.reverseMutation)
+}
+
+export async function redo(): Promise<void> {
+  const entry = history.popRedo()
+  if (!entry) return
+  await applyMutationSilent(entry.mutation)
 }
 
 /** Extract mutation blocks from assistant text (```mutation fences) */

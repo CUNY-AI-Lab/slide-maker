@@ -2,7 +2,8 @@
   "name": "Comparison Split",
   "layout": "layout-split",
   "modules": [
-    { "type": "heading", "zone": "content", "data": { "text": "", "level": 2 } },
-    { "type": "comparison", "zone": "stage", "data": { "left": { "title": "", "items": [] }, "right": { "title": "", "items": [] } } }
+    { "type": "heading", "zone": "content", "data": { "text": "Before vs. After", "level": 2 } },
+    { "type": "text", "zone": "content", "data": { "markdown": "Compare two approaches side by side. Use this layout when you want to highlight differences or show progress between two states." } },
+    { "type": "comparison", "zone": "stage", "data": { "panels": [{ "title": "Before", "body": "The original approach had these limitations: manual processes, slow iteration, and inconsistent results." }, { "title": "After", "body": "The improved approach offers: automation, rapid feedback loops, and reproducible outcomes." }] } }
   ]
 }

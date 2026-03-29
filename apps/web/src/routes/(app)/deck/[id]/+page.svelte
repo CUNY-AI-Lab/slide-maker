@@ -6,6 +6,7 @@
   import { currentDeck } from '$lib/stores/deck';
   import { activeSlideId } from '$lib/stores/ui';
   import { chatMessages } from '$lib/stores/chat';
+  import { undo, redo } from '$lib/utils/mutations';
   import EditorShell from '$lib/components/editor/EditorShell.svelte';
 
   let loading = $state(true);
@@ -20,6 +21,21 @@
       await api.releaseLock(deckId);
     } catch {
       // best effort
+    }
+  }
+
+  function handleKeyboard(e: KeyboardEvent) {
+    const isMac = navigator.platform.includes('Mac')
+    const mod = isMac ? e.metaKey : e.ctrlKey
+    if (mod && e.key === 'z' && !e.shiftKey) {
+      e.preventDefault()
+      undo()
+    } else if (mod && e.key === 'z' && e.shiftKey) {
+      e.preventDefault()
+      redo()
+    } else if (mod && e.key === 'y') {
+      e.preventDefault()
+      redo()
     }
   }
 
@@ -74,6 +90,7 @@
       }
 
       window.addEventListener('beforeunload', handleBeforeUnload);
+      window.addEventListener('keydown', handleKeyboard);
     } catch (err: any) {
       error = err.message || 'Failed to load deck';
     } finally {
@@ -87,6 +104,7 @@
     }
     chatMessages.set([]);
     window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.removeEventListener('keydown', handleKeyboard);
     if (!readOnly && deckId) {
       releaseLockQuietly();
     }

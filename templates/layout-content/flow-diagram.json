@@ -2,7 +2,8 @@
   "name": "Flow Diagram",
   "layout": "layout-content",
   "modules": [
-    { "type": "heading", "zone": "main", "data": { "text": "", "level": 2 } },
-    { "type": "flow", "zone": "main", "data": { "steps": [] } }
+    { "type": "heading", "zone": "main", "data": { "text": "Process Overview", "level": 2 } },
+    { "type": "flow", "zone": "main", "data": { "nodes": [{ "label": "Research" }, { "label": "Design" }, { "label": "Build" }, { "label": "Test" }, { "label": "Deploy" }] } },
+    { "type": "tip-box", "zone": "main", "data": { "title": "Pro Tip", "content": "Each stage has a feedback loop to the previous step. Don't skip testing — it saves time in the long run." } }
   ]
 }

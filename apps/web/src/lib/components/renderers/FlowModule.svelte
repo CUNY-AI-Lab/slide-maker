@@ -46,15 +46,16 @@
   .flow {
     display: flex;
     flex-direction: column;
+    gap: 0.15rem;
   }
   .flow-node {
     display: flex;
-    align-items: flex-start;
-    gap: clamp(0.5rem, 1vw, 1rem);
+    align-items: center;
+    gap: 0.5rem;
   }
   .flow-icon {
-    width: clamp(2rem, 3vw, 3rem);
-    height: clamp(2rem, 3vw, 3rem);
+    width: 1.8rem;
+    height: 1.8rem;
     border-radius: 50%;
     background: var(--teal, #2FB8D6);
     color: white;
@@ -63,29 +64,29 @@
     justify-content: center;
     flex-shrink: 0;
     font-weight: 700;
-    font-size: clamp(0.7rem, 1vw, 0.9rem);
+    font-size: 0.7rem;
     font-family: var(--font-display);
   }
   .flow-arrow {
     width: 2px;
-    height: clamp(0.75rem, 1.5vw, 1.5rem);
+    height: 0.6rem;
     background: var(--teal, #2FB8D6);
-    margin-left: clamp(1rem, 1.5vw, 1.5rem);
+    margin-left: 0.9rem;
     opacity: 0.4;
   }
   .flow-body {
-    padding-top: 0.15rem;
+    min-width: 0;
   }
   .flow-label {
     font-weight: 600;
-    font-size: clamp(0.8rem, 1.3vw, 1rem);
+    font-size: 0.85rem;
     font-family: var(--font-display);
+    line-height: 1.2;
   }
   .flow-desc {
-    font-size: clamp(0.7rem, 1.1vw, 0.85rem);
+    font-size: 0.75rem;
     color: var(--color-text-secondary);
-    margin-top: 0.15rem;
     font-family: var(--font-body);
-    line-height: 1.5;
+    line-height: 1.4;
   }
 </style>

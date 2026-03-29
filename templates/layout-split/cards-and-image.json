@@ -2,11 +2,11 @@
   "name": "Cards & Image",
   "layout": "layout-split",
   "modules": [
-    { "type": "label", "zone": "content", "data": { "text": "", "color": "cyan" } },
-    { "type": "heading", "zone": "content", "data": { "text": "", "level": 2 } },
-    { "type": "card", "zone": "content", "data": { "title": "", "body": "" } },
-    { "type": "card", "zone": "content", "data": { "title": "", "body": "" } },
-    { "type": "card", "zone": "content", "data": { "title": "", "body": "" } },
-    { "type": "image", "zone": "stage", "data": { "src": "", "alt": "" } }
+    { "type": "label", "zone": "content", "data": { "text": "Key Features", "color": "cyan" } },
+    { "type": "heading", "zone": "content", "data": { "text": "Three Things to Know", "level": 2 } },
+    { "type": "card", "zone": "content", "data": { "title": "First Point", "body": "Explain the first key feature or takeaway. Keep it concise and impactful.", "variant": "cyan" } },
+    { "type": "card", "zone": "content", "data": { "title": "Second Point", "body": "Describe the second important aspect. Focus on what matters most to your audience.", "variant": "cyan" } },
+    { "type": "card", "zone": "content", "data": { "title": "Third Point", "body": "Conclude with a strong third point. This is often the most memorable.", "variant": "cyan" } },
+    { "type": "image", "zone": "stage", "data": { "src": "", "alt": "Supporting visual for the three points", "caption": "A diagram, screenshot, or photo" } }
   ]
 }

@@ -2,10 +2,10 @@
   "name": "Text & Carousel",
   "layout": "layout-split",
   "modules": [
-    { "type": "label", "zone": "content", "data": { "text": "", "color": "cyan" } },
-    { "type": "heading", "zone": "content", "data": { "text": "", "level": 2 } },
-    { "type": "card", "zone": "content", "data": { "title": "", "body": "" } },
-    { "type": "card", "zone": "content", "data": { "title": "", "body": "" } },
-    { "type": "carousel", "zone": "stage", "data": { "items": [] } }
+    { "type": "label", "zone": "content", "data": { "text": "Gallery", "color": "cyan" } },
+    { "type": "heading", "zone": "content", "data": { "text": "Visual Showcase", "level": 2 } },
+    { "type": "card", "zone": "content", "data": { "title": "Step 1: Setup", "body": "Configure your environment and install dependencies.", "variant": "cyan" } },
+    { "type": "card", "zone": "content", "data": { "title": "Step 2: Build", "body": "Create the components and connect the data layer.", "variant": "cyan" } },
+    { "type": "carousel", "zone": "stage", "data": { "items": [{ "src": "", "caption": "Screenshot of the first step" }, { "src": "", "caption": "Screenshot of the second step" }, { "src": "", "caption": "Final result" }] } }
   ]
 }

@@ -11,11 +11,30 @@
     builtIn: boolean
   }
 
+  const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
+
+  const COMMON_FONTS = [
+    'Inter', 'Outfit', 'Roboto', 'Open Sans', 'Lato', 'Montserrat',
+    'Poppins', 'Raleway', 'Nunito', 'Playfair Display', 'Merriweather',
+    'Source Sans Pro', 'PT Sans', 'Work Sans', 'DM Sans', 'Space Grotesk',
+  ]
+
   let themes = $state<Theme[]>([])
   let loading = $state(true)
   let error = $state<string | null>(null)
   let applying = $state<string | null>(null)
   let deckThemeId = $state<string | null>(null)
+
+  // Create theme form
+  let showCreateForm = $state(false)
+  let formName = $state('')
+  let formPrimary = $state('#3b82f6')
+  let formSecondary = $state('#6366f1')
+  let formAccent = $state('#2FB8D6')
+  let formBg = $state('#ffffff')
+  let formHeadingFont = $state('Outfit')
+  let formBodyFont = $state('Inter')
+  let saving = $state(false)
 
   $effect(() => {
     const unsub = currentDeck.subscribe((d) => {
@@ -24,28 +43,26 @@
     return unsub
   })
 
-  $effect(() => {
-    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
-    fetch(`${API_URL}/api/themes`, { credentials: 'include' })
-      .then((res) => res.json())
-      .then((data) => {
-        themes = data.themes ?? []
-        loading = false
-      })
-      .catch((err) => {
-        console.error('Failed to fetch themes:', err)
-        error = 'Failed to load themes'
-        loading = false
-      })
-  })
+  async function fetchThemes() {
+    try {
+      const res = await fetch(`${API_URL}/api/themes`, { credentials: 'include' })
+      const data = await res.json()
+      themes = data.themes ?? []
+      loading = false
+    } catch (err) {
+      console.error('Failed to fetch themes:', err)
+      error = 'Failed to load themes'
+      loading = false
+    }
+  }
+
+  $effect(() => { fetchThemes() })
 
   async function applyTheme(themeId: string) {
     const deck = get(currentDeck)
     if (!deck || applying) return
 
     applying = themeId
-    const API_URL = import.meta.env.PUBLIC_API_URL ?? 'http://localhost:3001'
-
     try {
       const res = await fetch(`${API_URL}/api/decks/${deck.id}`, {
         method: 'PATCH',
@@ -62,6 +79,51 @@
     } finally {
       applying = null
     }
+  }
+
+  async function handleCreateTheme() {
+    if (!formName.trim() || saving) return
+    saving = true
+
+    try {
+      const res = await fetch(`${API_URL}/api/themes`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formName.trim(),
+          colors: { primary: formPrimary, secondary: formSecondary, accent: formAccent, bg: formBg },
+          fonts: { heading: formHeadingFont, body: formBodyFont },
+        }),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        if (data.theme) {
+          themes = [...themes, data.theme]
+        }
+        showCreateForm = false
+        formName = ''
+      }
+    } catch (err) {
+      console.error('Failed to create theme:', err)
+    } finally {
+      saving = false
+    }
+  }
+
+  async function forkTheme(theme: Theme) {
+    const colors = theme.colors as Record<string, string> | null
+    const fonts = theme.fonts as Record<string, string> | null
+
+    formName = `${theme.name} (Copy)`
+    formPrimary = colors?.primary ?? '#3b82f6'
+    formSecondary = colors?.secondary ?? '#6366f1'
+    formAccent = colors?.accent ?? '#2FB8D6'
+    formBg = colors?.bg ?? '#ffffff'
+    formHeadingFont = fonts?.heading ?? 'Outfit'
+    formBodyFont = fonts?.body ?? 'Inter'
+    showCreateForm = true
   }
 
   function getColors(theme: Theme): string[] {
@@ -81,6 +143,60 @@
 </script>
 
 <div class="themes-tab">
+  <div class="tab-header">
+    <button class="create-btn" onclick={() => { showCreateForm = !showCreateForm }}>
+      {showCreateForm ? 'Cancel' : '+ Create Theme'}
+    </button>
+  </div>
+
+  {#if showCreateForm}
+    <div class="create-form">
+      <input class="form-input" type="text" bind:value={formName} placeholder="Theme name" />
+
+      <div class="color-row">
+        <label class="color-field">
+          <span>Primary</span>
+          <input type="color" bind:value={formPrimary} />
+        </label>
+        <label class="color-field">
+          <span>Secondary</span>
+          <input type="color" bind:value={formSecondary} />
+        </label>
+        <label class="color-field">
+          <span>Accent</span>
+          <input type="color" bind:value={formAccent} />
+        </label>
+        <label class="color-field">
+          <span>Bg</span>
+          <input type="color" bind:value={formBg} />
+        </label>
+      </div>
+
+      <div class="font-row">
+        <label class="font-field">
+          <span>Heading</span>
+          <select bind:value={formHeadingFont}>
+            {#each COMMON_FONTS as font}
+              <option value={font}>{font}</option>
+            {/each}
+          </select>
+        </label>
+        <label class="font-field">
+          <span>Body</span>
+          <select bind:value={formBodyFont}>
+            {#each COMMON_FONTS as font}
+              <option value={font}>{font}</option>
+            {/each}
+          </select>
+        </label>
+      </div>
+
+      <button class="save-btn" onclick={handleCreateTheme} disabled={!formName.trim() || saving}>
+        {saving ? 'Saving...' : 'Save Theme'}
+      </button>
+    </div>
+  {/if}
+
   {#if loading}
     <div class="center-msg">Loading themes...</div>
   {:else if error}
@@ -91,25 +207,27 @@
     <div class="theme-list">
       {#each themes as theme (theme.id)}
         {@const isActive = deckThemeId === theme.id}
-        <button
-          class="theme-card"
-          class:active={isActive}
-          onclick={() => applyTheme(theme.id)}
-          disabled={applying !== null}
-        >
-          <div class="theme-header">
-            <span class="theme-name">{theme.name}</span>
-            {#if isActive}
-              <span class="check">{'\u2713'}</span>
-            {/if}
-          </div>
-          <div class="swatches">
-            {#each getColors(theme) as color}
-              <span class="swatch" style:background={color}></span>
-            {/each}
-          </div>
-          <div class="theme-fonts">{getFonts(theme)}</div>
-        </button>
+        <div class="theme-card" class:active={isActive}>
+          <button
+            class="theme-apply"
+            onclick={() => applyTheme(theme.id)}
+            disabled={applying !== null}
+          >
+            <div class="theme-header">
+              <span class="theme-name">{theme.name}</span>
+              {#if isActive}
+                <span class="check">{'\u2713'}</span>
+              {/if}
+            </div>
+            <div class="swatches">
+              {#each getColors(theme) as color}
+                <span class="swatch" style:background={color}></span>
+              {/each}
+            </div>
+            <div class="theme-fonts">{getFonts(theme)}</div>
+          </button>
+          <button class="fork-btn" onclick={() => forkTheme(theme)} title="Fork this theme">Fork</button>
+        </div>
       {/each}
     </div>
   {/if}
@@ -119,6 +237,114 @@
   .themes-tab {
     padding: 8px;
   }
+
+  .tab-header {
+    margin-bottom: 8px;
+  }
+
+  .create-btn {
+    width: 100%;
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #eff6ff;
+    color: #3b82f6;
+    border: 1px dashed #93c5fd;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .create-btn:hover {
+    background: #dbeafe;
+  }
+
+  .create-form {
+    background: #f9fafb;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 6px;
+    padding: 10px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 6px 8px;
+    font-size: 12px;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 4px;
+    outline: none;
+    box-sizing: border-box;
+  }
+  .form-input:focus {
+    border-color: #3b82f6;
+  }
+
+  .color-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+  }
+
+  .color-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: center;
+  }
+  .color-field span {
+    font-size: 9px;
+    color: var(--color-text-muted, #6b7280);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .color-field input[type="color"] {
+    width: 32px;
+    height: 24px;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0;
+  }
+
+  .font-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+
+  .font-field {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .font-field span {
+    font-size: 9px;
+    color: var(--color-text-muted, #6b7280);
+    text-transform: uppercase;
+  }
+  .font-field select {
+    font-size: 11px;
+    padding: 4px;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 4px;
+  }
+
+  .save-btn {
+    padding: 6px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .save-btn:hover:not(:disabled) { opacity: 0.9; }
+  .save-btn:disabled { opacity: 0.5; cursor: default; }
 
   .center-msg {
     display: flex;
@@ -143,15 +369,12 @@
 
   .theme-card {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding: 10px 12px;
-    background: white;
+    align-items: stretch;
     border: 1px solid var(--color-border, #e5e7eb);
     border-radius: 6px;
-    cursor: pointer;
-    text-align: left;
+    background: white;
     transition: border-color 0.15s, box-shadow 0.15s;
+    overflow: hidden;
   }
 
   .theme-card:hover {
@@ -163,9 +386,37 @@
     box-shadow: 0 0 0 1px #3b82f6;
   }
 
-  .theme-card:disabled {
+  .theme-apply {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .theme-apply:disabled {
     opacity: 0.6;
     cursor: wait;
+  }
+
+  .fork-btn {
+    padding: 0 10px;
+    background: #f9fafb;
+    border: none;
+    border-left: 1px solid var(--color-border, #e5e7eb);
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--color-text-muted, #6b7280);
+    transition: background 0.15s, color 0.15s;
+  }
+  .fork-btn:hover {
+    background: #eff6ff;
+    color: #3b82f6;
   }
 
   .theme-header {

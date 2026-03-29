@@ -2,7 +2,14 @@
   "name": "Card Grid (3 Columns)",
   "layout": "layout-grid",
   "modules": [
-    { "type": "heading", "zone": "main", "data": { "text": "", "level": 2 } },
-    { "type": "card-grid", "zone": "main", "data": { "columns": 3, "cards": [] } }
+    { "type": "heading", "zone": "main", "data": { "text": "Core Capabilities", "level": 2 } },
+    { "type": "card-grid", "zone": "main", "data": { "columns": 3, "cards": [
+      { "title": "Performance", "body": "Optimized for speed with lazy loading, code splitting, and edge caching.", "variant": "cyan" },
+      { "title": "Security", "body": "Built-in protection against XSS, CSRF, and injection attacks.", "variant": "cyan" },
+      { "title": "Accessibility", "body": "WCAG 2.1 AA compliant with semantic HTML and ARIA support.", "variant": "cyan" },
+      { "title": "Scalability", "body": "Horizontal scaling with stateless architecture and queue-based processing.", "variant": "navy" },
+      { "title": "Observability", "body": "Integrated logging, metrics, and distributed tracing out of the box.", "variant": "navy" },
+      { "title": "Developer Experience", "body": "Hot reload, TypeScript support, and comprehensive documentation.", "variant": "navy" }
+    ] } }
   ]
 }

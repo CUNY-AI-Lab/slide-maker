@@ -2,9 +2,9 @@
   "name": "Text & Image",
   "layout": "layout-split",
   "modules": [
-    { "type": "label", "zone": "content", "data": { "text": "", "color": "cyan" } },
-    { "type": "heading", "zone": "content", "data": { "text": "", "level": 2 } },
-    { "type": "text", "zone": "content", "data": { "markdown": "" } },
-    { "type": "image", "zone": "stage", "data": { "src": "", "alt": "" } }
+    { "type": "label", "zone": "content", "data": { "text": "Section Name", "color": "cyan" } },
+    { "type": "heading", "zone": "content", "data": { "text": "Your Topic Title", "level": 2 } },
+    { "type": "text", "zone": "content", "data": { "markdown": "Write your main content here. Explain the concept, provide context, and guide your audience through the key points.\n\nUse **bold** for emphasis and *italic* for technical terms." } },
+    { "type": "image", "zone": "stage", "data": { "src": "", "alt": "Add a relevant image or screenshot", "caption": "Describe what the image shows" } }
   ]
 }

@@ -104,7 +104,7 @@
     <div class="blocks-list" use:dndzone={{ items: blockItems, flipDurationMs: 200, dropTargetStyle: {} }} onconsider={handleDndConsider} onfinalize={handleDndFinalize}>
       {#each blockItems as block (block.id)}
         <div>
-          <BlockItem {block} />
+          <BlockItem {block} slideId={slide.id} />
         </div>
       {/each}
     </div>

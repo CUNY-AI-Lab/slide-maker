@@ -36,12 +36,24 @@
 
 {#if editor}
   <div class="format-toolbar">
+    <select class="heading-select" onchange={(e) => {
+      const val = (e.target as HTMLSelectElement).value
+      if (val === 'p') { editor?.chain().focus().setParagraph().run() }
+      else { editor?.chain().focus().toggleHeading({ level: Number(val) as 1|2|3|4 }).run() }
+    }} title="Text Style">
+      <option value="p">Normal</option>
+      <option value="1">H1</option>
+      <option value="2">H2</option>
+      <option value="3">H3</option>
+      <option value="4">H4</option>
+    </select>
     <select class="font-size-select" onchange={(e) => {
       const size = (e.target as HTMLSelectElement).value
       if (size === 'default') {
-        editor?.chain().focus().unsetFontSize?.().run() || editor?.chain().focus().run()
+        editor?.chain().focus().run()
+        const el = editor?.view.dom
+        if (el) el.style.fontSize = ''
       } else {
-        // Use inline style via TextStyle
         editor?.chain().focus().run()
         const el = editor?.view.dom
         if (el) el.style.fontSize = size
@@ -143,6 +155,24 @@
     height: 18px;
     background: var(--color-border);
     margin: 0 4px;
+  }
+
+  .heading-select {
+    height: 28px;
+    padding: 0 4px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: var(--color-bg);
+    color: var(--color-text-secondary);
+    font-size: 11px;
+    font-family: var(--font-body);
+    cursor: pointer;
+    outline: none;
+    font-weight: 600;
+  }
+
+  .heading-select:hover {
+    border-color: var(--color-primary);
   }
 
   .font-size-select {

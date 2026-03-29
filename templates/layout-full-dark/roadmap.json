@@ -2,7 +2,11 @@
   "name": "Roadmap",
   "layout": "layout-full-dark",
   "modules": [
-    { "type": "heading", "zone": "main", "data": { "text": "", "level": 2 } },
-    { "type": "card-grid", "zone": "main", "data": { "columns": 3, "cards": [] } }
+    { "type": "heading", "zone": "main", "data": { "text": "Product Roadmap", "level": 2 } },
+    { "type": "card-grid", "zone": "main", "data": { "columns": 3, "cards": [
+      { "title": "Q1: Foundation", "body": "Core infrastructure, auth system, basic CRUD operations, and CI/CD pipeline.", "variant": "cyan" },
+      { "title": "Q2: Features", "body": "Real-time collaboration, AI integration, export capabilities, and theme system.", "variant": "cyan" },
+      { "title": "Q3: Scale", "body": "Performance optimization, enterprise features, analytics dashboard, and API v2.", "variant": "cyan" }
+    ] } }
   ]
 }

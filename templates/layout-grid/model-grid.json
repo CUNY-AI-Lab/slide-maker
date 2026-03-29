@@ -2,7 +2,12 @@
   "name": "Model Grid",
   "layout": "layout-grid",
   "modules": [
-    { "type": "heading", "zone": "main", "data": { "text": "", "level": 2 } },
-    { "type": "card-grid", "zone": "main", "data": { "columns": 4, "cards": [] } }
+    { "type": "heading", "zone": "main", "data": { "text": "Model Comparison", "level": 2 } },
+    { "type": "card-grid", "zone": "main", "data": { "columns": 4, "cards": [
+      { "title": "GPT-4o", "body": "Multimodal, fast responses, strong at coding and analysis.", "variant": "cyan" },
+      { "title": "Claude 3.5", "body": "Excellent reasoning, long context, careful and thorough.", "variant": "cyan" },
+      { "title": "Gemini Pro", "body": "Native multimodal, integrated with Google services.", "variant": "navy" },
+      { "title": "Llama 3", "body": "Open source, self-hostable, competitive performance.", "variant": "navy" }
+    ] } }
   ]
 }

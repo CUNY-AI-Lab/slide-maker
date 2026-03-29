@@ -2,7 +2,7 @@
   "name": "Section Break",
   "layout": "layout-divider",
   "modules": [
-    { "type": "label", "zone": "hero", "data": { "text": "", "color": "cyan" } },
-    { "type": "heading", "zone": "hero", "data": { "text": "", "level": 1 } }
+    { "type": "label", "zone": "hero", "data": { "text": "Part Two", "color": "cyan" } },
+    { "type": "heading", "zone": "hero", "data": { "text": "Technical Deep Dive", "level": 1 } }
   ]
 }

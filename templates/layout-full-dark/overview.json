@@ -2,7 +2,13 @@
   "name": "Overview",
   "layout": "layout-full-dark",
   "modules": [
-    { "type": "heading", "zone": "main", "data": { "text": "", "level": 2 } },
-    { "type": "stream-list", "zone": "main", "data": { "items": [] } }
+    { "type": "heading", "zone": "main", "data": { "text": "What We Will Cover", "level": 2 } },
+    { "type": "stream-list", "zone": "main", "data": { "items": [
+      { "text": "Background and motivation for the project" },
+      { "text": "Technical architecture and key design decisions" },
+      { "text": "Live demonstration of the core features" },
+      { "text": "Performance benchmarks and comparison with alternatives" },
+      { "text": "Roadmap and next steps for the team" }
+    ] } }
   ]
 }

@@ -2,7 +2,7 @@
   "name": "Comparison Panels",
   "layout": "layout-content",
   "modules": [
-    { "type": "heading", "zone": "main", "data": { "text": "", "level": 2 } },
-    { "type": "comparison", "zone": "main", "data": { "left": { "title": "", "items": [] }, "right": { "title": "", "items": [] } } }
+    { "type": "heading", "zone": "main", "data": { "text": "Option A vs. Option B", "level": 2 } },
+    { "type": "comparison", "zone": "main", "data": { "panels": [{ "title": "Option A: Traditional Approach", "body": "Proven track record, well-documented, large community support. May be slower to iterate but offers stability and predictability." }, { "title": "Option B: Modern Alternative", "body": "Faster development cycle, better developer experience, smaller bundle size. Newer ecosystem with fewer battle-tested patterns." }] } }
   ]
 }

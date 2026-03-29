@@ -2,8 +2,8 @@
   "name": "Code Walkthrough",
   "layout": "layout-split",
   "modules": [
-    { "type": "heading", "zone": "content", "data": { "text": "", "level": 2 } },
-    { "type": "text", "zone": "content", "data": { "markdown": "" } },
-    { "type": "prompt-block", "zone": "stage", "data": { "language": "", "code": "" } }
+    { "type": "heading", "zone": "content", "data": { "text": "How It Works", "level": 2 } },
+    { "type": "text", "zone": "content", "data": { "markdown": "Walk through the code step by step:\n\n1. **Import** the required modules\n2. **Define** the main function\n3. **Handle** edge cases gracefully\n\nThe key insight is how we combine *async iteration* with error boundaries." } },
+    { "type": "prompt-block", "zone": "stage", "data": { "content": "async function processStream(input) {\n  const reader = input.getReader();\n  const decoder = new TextDecoder();\n\n  try {\n    while (true) {\n      const { done, value } = await reader.read();\n      if (done) break;\n      \n      const chunk = decoder.decode(value);\n      yield parseChunk(chunk);\n    }\n  } finally {\n    reader.releaseLock();\n  }\n}", "language": "javascript", "quality": "good" } }
   ]
 }

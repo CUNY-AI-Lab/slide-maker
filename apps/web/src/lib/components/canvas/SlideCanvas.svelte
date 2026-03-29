@@ -1,4 +1,5 @@
 <script lang="ts">
+  import '$lib/framework-preview.css'
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId } from '$lib/stores/ui'
   import CanvasToolbar from './CanvasToolbar.svelte'
@@ -53,16 +54,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 2rem;
+    padding: 1rem;
     overflow: auto;
   }
   .slide-frame {
     width: 100%;
-    max-width: 720px;
+    height: 100%;
+    max-height: 100%;
     aspect-ratio: 16 / 9;
     background: white;
     border-radius: var(--radius-md);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     overflow: hidden;
   }
   .no-slide {

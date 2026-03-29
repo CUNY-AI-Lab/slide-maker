@@ -2,7 +2,7 @@
   "name": "Minimal Title",
   "layout": "title-slide",
   "modules": [
-    { "type": "heading", "zone": "hero", "data": { "text": "", "level": 1 } },
-    { "type": "text", "zone": "hero", "data": { "markdown": "" } }
+    { "type": "heading", "zone": "hero", "data": { "text": "Clean & Focused", "level": 1 } },
+    { "type": "text", "zone": "hero", "data": { "markdown": "A minimal title slide that lets your message speak for itself. Replace this with a brief tagline or overview statement." } }
   ]
 }

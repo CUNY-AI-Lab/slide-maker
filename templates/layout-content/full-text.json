@@ -2,7 +2,7 @@
   "name": "Full Text",
   "layout": "layout-content",
   "modules": [
-    { "type": "heading", "zone": "main", "data": { "text": "", "level": 2 } },
-    { "type": "text", "zone": "main", "data": { "markdown": "" } }
+    { "type": "heading", "zone": "main", "data": { "text": "Deep Dive: Understanding the Concept", "level": 2 } },
+    { "type": "text", "zone": "main", "data": { "markdown": "Use this layout when you need to present detailed written content without competing visuals.\n\n## Key Principles\n\nExplain the foundational ideas that your audience needs to understand. Use structured text with headings, lists, and emphasis to make long-form content scannable.\n\n- **Clarity**: Write in simple, direct language\n- **Structure**: Break content into digestible sections\n- **Evidence**: Support claims with data or examples\n\n> \"The best presentations teach the audience something they can use immediately.\"\n\nConclude with a clear takeaway or call to action." } }
   ]
 }
