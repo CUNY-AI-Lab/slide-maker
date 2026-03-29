@@ -97,7 +97,6 @@ filesRouter.post('/:deckId/files', authMiddleware, async (c) => {
   const fileId = createId()
   const ext = MIME_TO_EXT[file.type] ?? ''
   const diskFilename = `${fileId}${ext}`
-  const deckDir = path.join(UPLOADS_DIR, deckId)
   const filePath = path.join(deckDir, diskFilename)
 
   // Ensure directory exists
