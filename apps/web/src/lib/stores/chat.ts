@@ -11,6 +11,9 @@ export const chatMessages = writable<ChatMsg[]>([])
 export const chatStreaming = writable(false)
 export const selectedModelId = writable('google/gemini-3.1-flash-lite-preview')
 
+/** Set from any component to inject text into the chat input without sending. */
+export const chatDraft = writable<string>('')
+
 let msgCounter = 0
 
 export function addUserMessage(content: string): string {
