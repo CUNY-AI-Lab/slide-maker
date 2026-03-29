@@ -34,8 +34,8 @@
   let configJson = $state('')
   let configError = $state<string | null>(null)
 
-  // Collapse state — tracks which groups are expanded
-  let expandedGroups = $state<Set<string>>(new Set())
+  // Collapse state — tracks which groups are expanded (all open by default)
+  let expandedGroups = $state<Set<string>>(new Set(['chart', 'diagram', 'map', 'widget']))
 
   $effect(() => {
     fetch(`${API_URL}/api/artifacts`, { credentials: 'include' })
@@ -55,28 +55,11 @@
     return str.startsWith('http://') || str.startsWith('https://')
   }
 
-  // Group artifacts: URL-based (visualizations) vs inline by type
+  // Group artifacts by type
   let groups = $derived.by(() => {
-    const result: ArtifactGroup[] = []
-    const urlArtifacts: Artifact[] = []
     const byType: Record<string, Artifact[]> = {}
-
     for (const a of artifacts) {
-      if (isUrl(a.source)) {
-        urlArtifacts.push(a)
-      } else {
-        ;(byType[a.type] ??= []).push(a)
-      }
-    }
-
-    // URL-based visualizations first
-    if (urlArtifacts.length > 0) {
-      result.push({
-        key: 'visualizations',
-        label: 'Visualizations',
-        badge: 'JS',
-        items: urlArtifacts,
-      })
+      ;(byType[a.type] ??= []).push(a)
     }
 
     const typeLabels: Record<string, { label: string; badge: string }> = {
@@ -86,9 +69,22 @@
       widget: { label: 'Widgets', badge: 'W' },
     }
 
+    const typeOrder = ['chart', 'diagram', 'map', 'widget']
+    const result: ArtifactGroup[] = []
+
+    for (const type of typeOrder) {
+      if (byType[type]?.length) {
+        const meta = typeLabels[type]
+        result.push({ key: type, label: meta.label, badge: meta.badge, items: byType[type] })
+      }
+    }
+
+    // Any remaining types not in typeOrder
     for (const [type, items] of Object.entries(byType)) {
-      const meta = typeLabels[type] ?? { label: type, badge: '?' }
-      result.push({ key: type, label: meta.label, badge: meta.badge, items })
+      if (!typeOrder.includes(type)) {
+        const meta = typeLabels[type] ?? { label: type, badge: '?' }
+        result.push({ key: type, label: meta.label, badge: meta.badge, items })
+      }
     }
 
     return result
@@ -232,7 +228,12 @@
                 <div class="artifact-row" class:editing={editingArtifactId === artifact.id}>
                   <div class="artifact-main">
                     <div class="artifact-top">
-                      <span class="artifact-name">{artifact.name}</span>
+                      <div class="artifact-info">
+                        <span class="artifact-name">{artifact.name}</span>
+                        {#if artifact.description}
+                          <span class="artifact-desc">{artifact.description}</span>
+                        {/if}
+                      </div>
                       <div class="artifact-actions">
                         <button
                           class="insert-btn"
@@ -417,19 +418,35 @@
 
   .artifact-top {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: 6px;
+  }
+
+  .artifact-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
   }
 
   .artifact-name {
     font-size: 11px;
     font-weight: 500;
     color: var(--color-text, #1f2937);
-    flex: 1;
-    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .artifact-desc {
+    font-size: 10px;
+    color: var(--color-text-muted, #94a3b8);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .artifact-actions {
