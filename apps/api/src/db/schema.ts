@@ -10,6 +10,8 @@ export const users = sqliteTable('users', {
   emailVerified: integer('email_verified', { mode: 'boolean' }).notNull().default(false),
   status: text('status', { enum: ['pending', 'approved', 'rejected'] }).notNull().default('pending'),
   role: text('role', { enum: ['admin', 'editor', 'viewer'] }).notNull().default('editor'),
+  tokenCap: integer('token_cap').notNull().default(1000000), // 1M tokens
+  tokenCapResetDate: integer('token_cap_reset_date', { mode: 'timestamp_ms' }),
   createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 })
 
@@ -129,4 +131,17 @@ export const deckLocks = sqliteTable('deck_locks', {
   userName: text('user_name').notNull(),
   lockedAt: integer('locked_at', { mode: 'timestamp_ms' }).notNull(),
   expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
+})
+
+// ── Token Usage ──
+
+export const tokenUsage = sqliteTable('token_usage', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  deckId: text('deck_id').references(() => decks.id, { onDelete: 'set null' }),
+  provider: text('provider').notNull(),
+  model: text('model').notNull(),
+  inputTokens: integer('input_tokens').notNull().default(0),
+  outputTokens: integer('output_tokens').notNull().default(0),
+  createdAt: integer('created_at', { mode: 'timestamp_ms' }).notNull(),
 })
