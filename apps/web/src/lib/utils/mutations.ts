@@ -56,6 +56,14 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
 
         const nextData: Record<string, unknown> = { config: nextCfg }
 
+        // Allow size controls via config keys too (width/height)
+        if (typeof (newConfig as any).width === 'string') {
+          nextData.width = (newConfig as any).width
+        }
+        if (typeof (newConfig as any).height === 'string') {
+          nextData.height = (newConfig as any).height
+        }
+
         // Rebuild rawSource from original artifact source with new config
         const originalSource = artifactDef?.source
         if (originalSource) {
