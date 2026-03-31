@@ -2,7 +2,7 @@ import archiver from 'archiver'
 import path from 'node:path'
 import fs from 'node:fs'
 import { PassThrough } from 'stream'
-import { renderDeckHtml } from './html-renderer.js'
+import { renderDeckHtml, getExtractedArtifacts, clearExtractedArtifacts } from './html-renderer.js'
 import { FRAMEWORK_CSS } from './framework-css.js'
 
 const UPLOAD_DIR = path.resolve(import.meta.dirname ?? '.', '..', '..', 'uploads')
@@ -51,7 +51,10 @@ export async function exportDeckAsZip(
     modules: s.modules || s.blocks || [],
   }))
 
-  const html = renderDeckHtml(deckName, normalized, theme, files)
+  // Reset any prior artifact state and render with extraction enabled
+  clearExtractedArtifacts()
+  const html = renderDeckHtml(deckName, normalized, theme, files, { extractArtifacts: true })
+  const artifacts = getExtractedArtifacts()
 
   const manifest = JSON.stringify({
     name: deckName,
@@ -77,6 +80,13 @@ export async function exportDeckAsZip(
     archive.append(html, { name: `${slug}/index.html` })
     archive.append(FRAMEWORK_CSS, { name: `${slug}/css/styles.css` })
     archive.append(manifest, { name: `${slug}/manifest.json` })
+
+    // Include extracted artifact files, if any
+    if (artifacts.size > 0) {
+      for (const [filename, source] of artifacts) {
+        archive.append(source, { name: `${slug}/artifacts/${filename}` })
+      }
+    }
 
     if (files?.length) {
       for (const file of files) {

@@ -124,7 +124,21 @@ function rewriteSrc(src: string, files?: ExportFile[]): string {
   return src
 }
 
-function renderModule(mod: Module, files?: ExportFile[]): string {
+interface RenderOptions {
+  extractArtifacts?: boolean
+}
+
+const extractedArtifacts: Map<string, string> = new Map()
+
+export function getExtractedArtifacts(): Map<string, string> {
+  return new Map(extractedArtifacts)
+}
+
+export function clearExtractedArtifacts(): void {
+  extractedArtifacts.clear()
+}
+
+function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): string {
   const d = mod.data || {}
   const step = stepAttrs(mod)
 
@@ -262,6 +276,12 @@ function renderModule(mod: Module, files?: ExportFile[]): string {
       if (isUrl) {
         return `<div class="artifact-wrapper"${step}><iframe src="${esc(rawSrc)}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe></div>`
       }
+      if (rawSource && opts?.extractArtifacts) {
+        const hash = Buffer.from(rawSource).toString('base64url').slice(0, 12)
+        const filename = `artifact-${hash}.html`
+        extractedArtifacts.set(filename, rawSource)
+        return `<div class="artifact-wrapper"${step}><iframe src="artifacts/${filename}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe></div>`
+      }
       if (rawSource) {
         return `<div class="artifact-wrapper"${step}><iframe srcdoc="${esc(rawSource)}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe></div>`
       }
@@ -291,7 +311,7 @@ function renderModule(mod: Module, files?: ExportFile[]): string {
 
 // ── Slide Rendering ─────────────────────────────────────────────────
 
-function renderSlide(slide: Slide, index: number, files?: ExportFile[]): string {
+function renderSlide(slide: Slide, index: number, files?: ExportFile[], opts?: RenderOptions): string {
   const layout = slide.layout || 'layout-content'
   const modules = [...slide.modules].sort((a, b) => a.order - b.order)
   const title = modules.find(m => m.type === 'heading')
@@ -302,8 +322,8 @@ function renderSlide(slide: Slide, index: number, files?: ExportFile[]): string 
   if (layout === 'layout-split') {
     const contentMods = modules.filter(m => m.zone === 'content')
     const stageMods = modules.filter(m => m.zone === 'stage')
-    const contentHtml = contentMods.map(m => renderModule(m, files)).join('\n      ')
-    const stageHtml = stageMods.map(m => renderModule(m, files)).join('\n      ')
+    const contentHtml = contentMods.map(m => renderModule(m, files, opts)).join('\n      ')
+    const stageHtml = stageMods.map(m => renderModule(m, files, opts)).join('\n      ')
 
     return `  <div ${attrs}>
     <div class="content">
@@ -316,7 +336,7 @@ function renderSlide(slide: Slide, index: number, files?: ExportFile[]): string 
   }
 
   // All other layouts: render modules in order (ignore zone distinction)
-  const body = modules.map(m => renderModule(m, files)).join('\n    ')
+  const body = modules.map(m => renderModule(m, files, opts)).join('\n    ')
   return `  <div ${attrs}>
     ${body}
   </div>`
@@ -329,9 +349,10 @@ export function renderDeckHtml(
   slideList: Slide[],
   theme: any,
   files?: ExportFile[],
+  opts?: RenderOptions,
 ): string {
   const sorted = [...slideList].sort((a, b) => a.order - b.order)
-  const slidesHtml = sorted.map((s, i) => renderSlide(s, i, files)).join('\n\n')
+  const slidesHtml = sorted.map((s, i) => renderSlide(s, i, files, opts)).join('\n\n')
   const slideCount = sorted.length
   const title = esc(deckName)
 
@@ -448,3 +469,5 @@ ${CAROUSEL_JS}
 </body>
 </html>`
 }
+
+export { renderModule }
