@@ -71,6 +71,9 @@
   let resizing = $state(false)
   let scaleFactor = $state(1)
 
+  // Resize dimension tooltip
+  let resizeLabel = $state('')
+
   function startResize(e: MouseEvent) {
     e.preventDefault()
     e.stopPropagation()
@@ -88,6 +91,7 @@
       const newH = Math.max(30, startH + (ev.clientY - startY))
       customW = newW
       customH = newH
+      resizeLabel = `${Math.round(newW)} × ${Math.round(newH)}`
       // Scale content proportionally — both up and down
       const scaleX = newW / Math.max(naturalW, 1)
       const scaleY = newH / Math.max(naturalH, 1)
@@ -95,6 +99,7 @@
     }
     function onUp() {
       resizing = false
+      resizeLabel = ''
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
       // Persist resize for artifact/image modules
@@ -165,6 +170,9 @@
   {#if editable}
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="corner-resize" onmousedown={startResize}></div>
+    {#if resizeLabel}
+      <div class="resize-tooltip">{resizeLabel}</div>
+    {/if}
   {/if}
 </div>
 
@@ -175,9 +183,10 @@
     overflow: hidden;
   }
   .module-wrapper.editable:hover {
-    outline: 1px dashed rgba(59, 115, 230, 0.4);
-    outline-offset: 2px;
+    outline: 1px dashed rgba(59, 115, 230, 0.3);
+    outline-offset: 3px;
     border-radius: var(--radius-sm);
+    transition: outline-color 0.15s ease;
   }
   .module-wrapper.resizing {
     user-select: none;
@@ -190,27 +199,29 @@
   }
   .step-badge {
     position: absolute;
-    top: -10px;
-    right: 50px;
+    top: -8px;
+    left: -3px;
     background: var(--teal, #2FB8D6);
     color: white;
-    font-size: 10px;
-    padding: 1px 8px;
-    border-radius: 10px;
-    font-weight: 600;
+    font-size: 9px;
+    padding: 1px 7px;
+    border-radius: 0 8px 8px 0;
+    font-weight: 700;
+    letter-spacing: 0.03em;
     z-index: 5;
+    text-transform: uppercase;
   }
 
   .module-content {
     width: 100%;
   }
 
-  /* Controls */
+  /* Controls — fade in/out */
   .module-controls {
     position: absolute;
     top: 4px;
     right: 4px;
-    display: none;
+    display: flex;
     align-items: center;
     gap: 2px;
     z-index: 10;
@@ -220,10 +231,16 @@
     padding: 2px 3px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
     backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-2px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
   }
   .module-wrapper.editable:hover .module-controls,
   .module-wrapper.editable:focus-within .module-controls {
-    display: flex;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
   }
 
   .ctrl-group {
@@ -273,29 +290,30 @@
     color: var(--color-primary, #3B73E6);
   }
   .delete-btn:hover {
-    color: #dc2626;
-    background: rgba(220, 38, 38, 0.06);
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
   }
   .delete-btn.confirming {
     color: white;
-    background: #dc2626;
+    background: #ef4444;
     font-weight: 600;
-    border-radius: 4px;
+    border-radius: var(--radius-sm, 6px);
     width: auto;
-    padding: 0 8px;
-    font-size: 10px;
+    padding: 4px 8px;
+    font-size: 12px;
   }
 
-  /* Corner resize */
+  /* Corner resize — fade in on hover */
   .corner-resize {
     position: absolute;
     bottom: 0;
     right: 0;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     cursor: nwse-resize;
     z-index: 10;
-    display: none;
+    opacity: 0;
+    transition: opacity 0.15s ease;
   }
   .corner-resize::after {
     content: '';
@@ -307,12 +325,29 @@
     border-right: 2px solid var(--color-primary);
     border-bottom: 2px solid var(--color-primary);
     opacity: 0.5;
+    transition: opacity 0.1s;
   }
   .module-wrapper.editable:hover .corner-resize {
-    display: block;
+    opacity: 1;
   }
   .corner-resize:hover::after {
     opacity: 1;
+  }
+
+  /* Resize dimension tooltip */
+  .resize-tooltip {
+    position: absolute;
+    bottom: -22px;
+    right: 0;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    font-size: 10px;
+    font-family: ui-monospace, monospace;
+    padding: 2px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+    z-index: 20;
+    pointer-events: none;
   }
 
   .unknown-module {

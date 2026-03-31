@@ -546,23 +546,23 @@
   }
 
   .delete-btn {
-    padding: 0 8px;
+    padding: 4px 8px;
     background: #f9fafb;
     border: none;
     border-left: 1px solid var(--color-border, #e5e7eb);
     cursor: pointer;
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--color-text-muted, #6b7280);
     transition: background 0.15s, color 0.15s;
   }
   .delete-btn:hover {
-    background: rgba(239, 68, 68, 0.08);
+    background: rgba(239, 68, 68, 0.1);
     color: #ef4444;
   }
   .delete-btn:disabled {
-    opacity: 0.5;
-    cursor: wait;
+    opacity: 0.3;
+    cursor: not-allowed;
   }
 
   .theme-header {

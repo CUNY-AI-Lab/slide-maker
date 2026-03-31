@@ -352,15 +352,15 @@
     position: absolute;
     top: 4px;
     right: 4px;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 12px;
     background: rgba(255, 255, 255, 0.85);
     border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: 50%;
+    border-radius: var(--radius-sm, 6px);
     cursor: pointer;
     color: var(--color-text-muted, #6b7280);
     transition: color 0.15s, background 0.15s, border-color 0.15s;
@@ -370,9 +370,9 @@
   }
 
   .delete-btn:hover {
-    color: #dc2626;
-    border-color: #dc2626;
-    background: #fef2f2;
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
+    background: rgba(239, 68, 68, 0.1);
   }
 
   .thumb-wrapper {

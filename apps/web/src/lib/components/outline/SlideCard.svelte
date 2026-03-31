@@ -1,5 +1,7 @@
 <script lang="ts">
+  import { untrack } from 'svelte'
   import { get } from 'svelte/store'
+  import { flip } from 'svelte/animate'
   import { dndzone } from 'svelte-dnd-action'
   import BlockItem from './BlockItem.svelte'
   import { activeSlideId } from '$lib/stores/ui'
@@ -15,6 +17,8 @@
     'layout-divider': 'Section Break',
     'closing-slide': 'Closing',
   }
+
+  const flipDurationMs = 200
 
   let { slide, active, index }: {
     slide: {
@@ -32,18 +36,28 @@
 
   let deleting = $state(false)
   let blockItems = $state(slide.blocks)
+  let draggingBlocks = false  // plain boolean — invisible to reactive system
 
   $effect(() => {
-    blockItems = slide.blocks
+    const blocks = slide.blocks
+    if (untrack(() => !draggingBlocks)) {
+      blockItems = blocks
+    }
   })
 
   function handleDndConsider(e: CustomEvent<{ items: typeof blockItems }>) {
+    draggingBlocks = true
     blockItems = e.detail.items
   }
 
   function handleDndFinalize(e: CustomEvent<{ items: typeof blockItems }>) {
     blockItems = e.detail.items.map((b, i) => ({ ...b, order: i }))
+
+    // Update store FIRST while draggingBlocks is still true
     updateSlideInDeck(slide.id, (s) => ({ ...s, blocks: blockItems }))
+
+    // NOW allow syncing again
+    draggingBlocks = false
 
     // Persist new order to API
     for (const item of blockItems) {
@@ -110,9 +124,9 @@
   </div>
 
   {#if active && blockItems.length > 0}
-    <div class="blocks-list" use:dndzone={{ items: blockItems, flipDurationMs: 200, dropTargetStyle: {} }} onconsider={handleDndConsider} onfinalize={handleDndFinalize}>
+    <div class="blocks-list" use:dndzone={{ items: blockItems, flipDurationMs, dropTargetStyle: {} }} onconsider={handleDndConsider} onfinalize={handleDndFinalize}>
       {#each blockItems as block (block.id)}
-        <div>
+        <div animate:flip={{ duration: flipDurationMs }}>
           <BlockItem {block} slideId={slide.id} />
         </div>
       {/each}
@@ -191,11 +205,12 @@
     cursor: pointer;
     color: var(--color-text-muted, #9ca3af);
     font-size: 12px;
-    padding: 0 2px;
+    padding: 4px 6px;
     line-height: 1;
     flex-shrink: 0;
     opacity: 0;
-    transition: opacity 0.15s, color 0.15s;
+    border-radius: var(--radius-sm, 6px);
+    transition: opacity 0.15s, color 0.15s, background-color 0.15s;
   }
 
   .slide-card:hover .delete-btn {
@@ -204,6 +219,7 @@
 
   .delete-btn:hover {
     color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
   }
 
   .delete-btn:disabled {

@@ -146,9 +146,9 @@
   }
 
   .delete-btn:hover {
-    background: #fef2f2;
-    color: var(--color-error);
-    border-color: #fecaca;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.3);
   }
 
   .share-btn {
@@ -179,8 +179,8 @@
 
   .delete-btn.confirming {
     opacity: 1;
-    background: var(--color-error);
+    background: #ef4444;
     color: white;
-    border-color: var(--color-error);
+    border-color: #ef4444;
   }
 </style>
