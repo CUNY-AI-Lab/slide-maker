@@ -1,0 +1,621 @@
+▗ ▗   ▖ ▖  Claude Code v2.1.87
+           Opus 4.6 (1M context) · Claude Max
+  ▘▘ ▝▝    ~/Desktop/STUDIO/projects/slide-maker
+
+✻ Conversation compacted (ctrl+o for history)
+
+
+❯ /compact                                                                      
+  ⎿  Compacted 
+  ⎿  Referenced file apps/api/src/db/seed.ts
+  ⎿  Read apps/web/src/lib/components/resources/ArtifactsTab.svelte (390 lines)
+  ⎿  Read apps/web/src/lib/components/resources/ThemesTab.svelte (438 lines)
+  ⎿  Read apps/api/src/env.ts (35 lines)
+  ⎿  Read ../../../../../../private/tmp/claude-501/-Users-zacharymuhlbauer-Deskt
+     op-STUDIO-projects-slide-maker/43fdfb48-5b69-478c-a749-b5d69af68e74/tasks/b
+     bia7mxnk.output (2 lines)
+
+❯ run the server and api local endpoint so i can test                           
+
+⏺ Bash(lsof -ti:3001 -ti:5173 2>/dev/null | xargs kill -9 2>/dev/null; echo
+      "ports cleared")
+  ⎿  ports cleared
+
+⏺ Bash(corepack pnpm dev 2>&1 | head -30)
+  ⎿  Running in the background (↓ to manage)
+
+⏺ Bash(sleep 8 && cat
+      /private/tmp/claude-501/-Users-zacharymuhlbauer-Desktop-STUDIO-projects-sl
+      ide-maker/43fdfb48-5b69-478c-a749-b5d69af68e74/tasks/b2ypklhu6.output)
+  ⎿  > slide-maker@ dev /Users/zacharymuhlbauer/Desktop/STUDIO/projects/sli
+     de-maker
+     > turbo dev
+     … +22 lines (ctrl+o to expand)
+  ⎿  (timeout 15s)
+
+⏺ Both servers are running:
+
+  - Web: http://localhost:5173/
+  - API: http://localhost:3001/
+
+  The env warnings about missing API keys and SMTP are expected for local dev —
+  chat/AI features won't work without those, but everything else is testable.
+
+❯ for every artifact configuration there should be a small clipboard button     
+that copies the config and another that injects the relative path into the chat 
+ (but does not send) with an @ function that pin points the artifact config     
+itself                                                                          
+
+⏺ Let me explore the chat input mechanism to understand how to inject text into
+  it.
+
+⏺ Explore(Find chat input injection mechanism)
+  ⎿  Done (15 tool uses · 32.8k tokens · 31s)
+  (ctrl+o to expand)
+
+⏺ Now let me read the current ChatInput and chat store to implement this.
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Now I have the full picture. I need to:
+
+  1. Add a chatDraft store for cross-component text injection
+  2. Wire ChatInput to consume it
+  3. Add clipboard + @ buttons to each artifact card in ArtifactsTab
+
+⏺ Update(apps/web/src/lib/stores/chat.ts)
+  ⎿  Added 3 lines
+      11  export const chatStreaming = writable(false)
+      12  export const selectedModelId = writable('google/gemini-3.1-flas
+          h-lite-preview')
+      13  
+      14 +/** Set from any component to inject text into the chat input w
+         +ithout sending. */                                             
+      15 +export const chatDraft = writable<string>('')                  
+      16 +                                                               
+      17  let msgCounter = 0
+      18  
+      19  export function addUserMessage(content: string): string {
+
+⏺ Update(apps/web/src/lib/components/chat/ChatInput.svelte)
+  ⎿  Added 1 line, removed 1 line
+      1  <script lang="ts">
+      2 -  import { chatStreaming } from '$lib/stores/chat'              
+      2 +  import { chatStreaming, chatDraft } from '$lib/stores/chat'   
+      3    import { currentDeck } from '$lib/stores/deck'
+      4    import { api } from '$lib/api'
+      5    import { get } from 'svelte/store'
+
+⏺ Now add the effect that consumes chatDraft and appends to the local text,
+  right after the existing state declarations:
+
+⏺ Update(apps/web/src/lib/components/chat/ChatInput.svelte)
+  ⎿  Added 11 lines
+      13    let dragOver = $state(false)
+      14    let uploading = $state(false)
+      15  
+      16 +  let textarea: HTMLTextAreaElement | undefined = $state()     
+      17 +                                                               
+      18 +  $effect(() => {                                              
+      19 +    const draft = $chatDraft                                   
+      20 +    if (!draft) return                                         
+      21 +    text = text ? `${text}\n${draft}` : draft                  
+      22 +    chatDraft.set('')                                          
+      23 +    // Focus the textarea so the user can keep typing          
+      24 +    textarea?.focus()                                          
+      25 +  })                                                           
+      26 +                                                               
+      27    let showAddMenu = $derived(text.trim() === '/add')
+      28  
+      29    const moduleShortcuts = [
+
+⏺ Bind the textarea ref:
+
+⏺ Update(apps/web/src/lib/components/chat/ChatInput.svelte)
+  ⎿  Added 1 line
+      117      <div class="drop-overlay">Drop file to upload</div>
+      118    {/if}
+      119    <textarea
+      120 +    bind:this={textarea}                                      
+      121      bind:value={text}
+      122      placeholder="Ask AI, /add module, /search images..."
+      123      onkeydown={handleKeydown}
+
+⏺ Now add the two buttons to each artifact card in ArtifactsTab. I need to
+  re-read it to make precise edits:
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(apps/web/src/lib/components/resources/ArtifactsTab.svelte)
+  ⎿  Added 1 line
+       4    import { applyMutation } from '$lib/utils/mutations'
+       5    import { get } from 'svelte/store'
+       6    import { API_URL } from '$lib/api'
+       7 +  import { chatDraft } from '$lib/stores/chat'                 
+       8  
+       9    interface ArtifactConfigField {
+      10      type: string
+⏺ Now add the helper functions for copy and inject, right before the typeIcons
+  constant:
+
+⏺ Update(apps/web/src/lib/components/resources/ArtifactsTab.svelte)
+  ⎿  Added 27 lines
+      137      }
+      138    }
+      139  
+      140 +  let copied = $state<string | null>(null)                    
+      141 +                                                              
+      142 +  function getConfigDefaults(artifact: Artifact): Record<strin
+          +g, unknown> {                                                 
+      143 +    const cfg = artifact.config as Record<string, ArtifactConf
+          +igField> | null                                               
+      144 +    if (!cfg || typeof cfg !== 'object') return {}            
+      145 +    const defaults: Record<string, unknown> = {}              
+      146 +    for (const [key, field] of Object.entries(cfg)) {         
+      147 +      if (field && typeof field === 'object' && 'default' in f
+          +ield) {                                                       
+      148 +        defaults[key] = field.default                         
+      149 +      }                                                       
+      150 +    }                                                         
+      151 +    return defaults                                           
+      152 +  }                                                           
+      153 +                                                              
+      154 +  async function copyConfig(artifact: Artifact) {             
+      155 +    const defaults = getConfigDefaults(artifact)              
+      156 +    await navigator.clipboard.writeText(JSON.stringify(default
+          +s, null, 2))                                                  
+      157 +    copied = artifact.id                                      
+      158 +    setTimeout(() => { if (copied === artifact.id) copied = nu
+          +ll }, 1500)                                                   
+      159 +  }                                                           
+      160 +                                                              
+      161 +  function injectAtRef(artifact: Artifact) {                  
+      162 +    const defaults = getConfigDefaults(artifact)              
+      163 +    const json = JSON.stringify(defaults, null, 2)            
+      164 +    chatDraft.set(`@artifact:${artifact.name}\n\`\`\`json\n${j
+          +son}\n\`\`\``)                                                
+      165 +  }                                                           
+      166 +                                                              
+      167    const typeIcons: Record<string, string> = {
+      168      chart: 'C',
+      169      diagram: 'D',
+
+⏺ Now add the two icon buttons to each artifact card, in the actions row:
+
+⏺ Update(apps/web/src/lib/components/resources/ArtifactsTab.svelte)
+  ⎿  Added 16 lines
+      212                    {editingArtifactId === artifact.id ? 'Close'
+            : 'Configure'}
+      213                  </button>
+      214                {/if}
+      215 +              <div class="icon-actions">                      
+      216 +                <button                                       
+      217 +                  class="icon-btn"                            
+      218 +                  onclick={() => copyConfig(artifact)}        
+      219 +                  title="Copy config to clipboard"            
+      220 +                >                                             
+      221 +                  {copied === artifact.id ? '\u2713' : '\u2398
+          +'}                                                            
+      222 +                </button>                                     
+      223 +                <button                                       
+      224 +                  class="icon-btn"                            
+      225 +                  onclick={() => injectAtRef(artifact)}       
+      226 +                  title="Send @reference to chat"             
+      227 +                >                                             
+      228 +                  @                                           
+      229 +                </button>                                     
+      230 +              </div>                                          
+      231              </div>
+      232            </div>
+      233  
+
+⏺ Now add styles for the new buttons:
+
+⏺ Update(apps/web/src/lib/components/resources/ArtifactsTab.svelte)
+  ⎿  Added 25 lines
+      374    }
+      375    .config-btn:hover { background: #e2e8f0; color: #334155; }
+      376  
+      377 +  .icon-actions {                                             
+      378 +    display: flex;                                            
+      379 +    gap: 4px;                                                 
+      380 +    margin-left: auto;                                        
+      381 +  }                                                           
+      382 +                                                              
+      383 +  .icon-btn {                                                 
+      384 +    width: 24px;                                              
+      385 +    height: 24px;                                             
+      386 +    display: flex;                                            
+      387 +    align-items: center;                                      
+      388 +    justify-content: center;                                  
+      389 +    padding: 0;                                               
+      390 +    font-size: 12px;                                          
+      391 +    font-weight: 700;                                         
+      392 +    background: #f1f5f9;                                      
+      393 +    color: #64748b;                                           
+      394 +    border: 1px solid #e2e8f0;                                
+      395 +    border-radius: 4px;                                       
+      396 +    cursor: pointer;                                          
+      397 +    transition: background 0.15s, color 0.15s;                
+      398 +    line-height: 1;                                           
+      399 +  }                                                           
+      400 +  .icon-btn:hover { background: #e0e7ff; color: #3b82f6; }    
+      401 +                                                              
+      402    /* ── Config editor ── */
+      403    .config-editor {
+      404      padding: 8px 12px 12px;
+
+⏺ Let me verify everything looks correct:
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ Let me also check the build compiles:
+
+⏺ Bash(corepack pnpm exec svelte-check --workspace apps/web 2>&1 | tail -20)
+  ⎿  undefined
+      ERR_PNPM_RECURSIVE_EXEC_FIRST_FAIL  Command "svelte-check" not found
+
+⏺ Bash(cd /Users/zacharymuhlbauer/Desktop/STUDIO/projects/slide-maker/apps/web
+      && corepack pnpm svelte-check 2>&1 | tail -30)
+  ⎿  1774762197275 START "/Users/zacharymuhlbauer/Desktop/STUDIO/projects/s
+     lide-maker/apps/web"
+     1774762197279 ERROR "../../node_modules/.pnpm/@chenglou+pretext@0.0.2_
+     … +89 lines (ctrl+o to expand)
+  ⎿  (timeout 1m)
+
+⏺ No new errors from my changes. The 7 errors are all pre-existing (pretext
+  library + ZoneDrop). The a11y warning on ArtifactsTab.svelte:236 is for the
+  existing config label, not my additions.
+
+  Done. Here's what was added:
+
+  stores/chat.ts — new chatDraft writable store for cross-component text
+  injection
+
+  ChatInput.svelte — consumes chatDraft via $effect, appends to the textarea
+  text without sending, focuses the input
+
+  ArtifactsTab.svelte — each artifact card now has two small icon buttons pushed
+   to the right of the actions row:
+  - Clipboard button (⎘) — copies the artifact's default config JSON to
+  clipboard, shows ✓ for 1.5s
+  - @ button — injects @artifact:ArtifactName + the config as a JSON fenced code
+   block into the chat input (without sending), so you can edit or add
+  instructions before sending
+
+✻ Worked for 2m 39s
+
+❯ @ creates this in the chat: @artifact:Boids Visualization                     
+```json                                                                         
+{}                                                                              
+```                                                                             
+
+⏺ The template-based artifacts (like Boids) have their source as a URL, not
+  inline HTML with a data-config schema — so their config field is empty/null,
+  producing {}.
+
+  Let me check what the actual artifact data looks like from the API.
+
+⏺ Bash(curl -s http://localhost:3001/api/artifacts 2>/dev/null | python3 -m
+      json.tool | head -80)
+  ⎿  {
+         "artifacts": [
+             {
+     … +39 lines (ctrl+o to expand)
+
+❯ copy makes this: {} 
+
+⏺ Bash(curl -s http://localhost:3001/api/artifacts 2>/dev/null | python3 -m
+      json.tool | tail -100)
+  ⎿          {
+                 "id": "artifact-mandelbrot",
+                 "name": "Mandelbrot Visualization",
+     … +49 lines (ctrl+o to expand)
+
+⏺ The problem is clear. The config objects are flat { width, height, sandbox },
+  not the ArtifactConfigField schema with .default keys. getConfigDefaults finds
+   nothing and returns {}. I need to fix both functions to use the raw config
+  when it's a flat object, and also include more useful context (source,
+  description) in the @ reference.
+
+⏺ Update(apps/web/src/lib/components/resources/ArtifactsTab.svelte)
+  ⎿  Error editing file
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(apps/web/src/lib/components/resources/ArtifactsTab.svelte)
+  ⎿  Added 24 lines, removed 11 lines
+      195  
+      196    let copied = $state<string | null>(null)
+      197  
+      198 -  function getConfigDefaults(artifact: Artifact): Record<strin
+          -g, unknown> {                                                 
+      199 -    const cfg = artifact.config as Record<string, ArtifactConf
+          -igField> | null                                               
+      198 +  function getResolvedConfig(artifact: Artifact): Record<strin
+          +g, unknown> {                                                 
+      199 +    const cfg = artifact.config as Record<string, unknown> | n
+          +ull                                                           
+      200      if (!cfg || typeof cfg !== 'object') return {}
+      201 -    const defaults: Record<string, unknown> = {}              
+      202 -    for (const [key, field] of Object.entries(cfg)) {         
+      203 -      if (field && typeof field === 'object' && 'default' in f
+          -ield) {                                                       
+      204 -        defaults[key] = field.default                         
+      201 +    // If values look like ArtifactConfigField objects with .d
+          +efault, extract defaults                                      
+      202 +    const hasSchema = Object.values(cfg).some(                
+      203 +      (v) => v && typeof v === 'object' && 'default' in (v as 
+          +Record<string, unknown>),                                     
+      204 +    )                                                         
+      205 +    if (hasSchema) {                                          
+      206 +      const defaults: Record<string, unknown> = {}            
+      207 +      for (const [key, field] of Object.entries(cfg)) {       
+      208 +        if (field && typeof field === 'object' && 'default' in
+          + (field as Record<string, unknown>)) {                        
+      209 +          defaults[key] = (field as ArtifactConfigField).defau
+          +lt                                                            
+      210 +        }                                                     
+      211        }
+      212 +      return defaults                                         
+      213      }
+      207 -    return defaults                                           
+      214 +    return cfg                                                
+      215    }
+      216  
+      217    async function copyConfig(artifact: Artifact) {
+      211 -    const defaults = getConfigDefaults(artifact)              
+      212 -    await navigator.clipboard.writeText(JSON.stringify(default
+          -s, null, 2))                                                  
+      218 +    const config = getResolvedConfig(artifact)                
+      219 +    await navigator.clipboard.writeText(JSON.stringify(config,
+          + null, 2))                                                    
+      220      copied = artifact.id
+      221      setTimeout(() => { if (copied === artifact.id) copied = nu
+           ll }, 1500)
+      222    }
+      223  
+      224    function injectAtRef(artifact: Artifact) {
+      218 -    const defaults = getConfigDefaults(artifact)              
+      219 -    const json = JSON.stringify(defaults, null, 2)            
+      225 +    const config = getResolvedConfig(artifact)                
+      226 +    const payload = {                                         
+      227 +      name: artifact.name,                                    
+      228 +      type: artifact.type,                                    
+      229 +      source: artifact.source,                                
+      230 +      config,                                                 
+      231 +    }                                                         
+      232 +    const json = JSON.stringify(payload, null, 2)             
+      233      chatDraft.set(`@artifact:${artifact.name}\n\`\`\`json\n${j
+           son}\n\`\`\``)
+      234    }
+      235  
+
+⏺ Now both buttons should work correctly:
+
+  - Clipboard copies the actual flat config ({ "width": "100%", "height": 
+  "400px", "sandbox": "allow-scripts" }) instead of {}
+  - @ injects a full reference with name, type, source URL, and config — giving
+  the AI everything it needs to work with the artifact
+
+✻ Baked for 1m 4s
+
+❯ unit test and add to the /tests                                               
+
+  Searched for 3 patterns (ctrl+o to expand)
+
+⏺ No test infrastructure exists yet. Let me check what test frameworks are
+  available.
+
+  Read 3 files (ctrl+o to expand)
+
+⏺ Vitest is already in the API's devDependencies. I'll set up a root-level
+  /tests directory with vitest, extract the pure logic to a testable utility,
+  and write tests.
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+⏺ First, extract the pure logic into a utility file, then create tests.
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Write(apps/web/src/lib/utils/artifact-config.ts)
+  ⎿  Wrote 57 lines to apps/web/src/lib/utils/artifact-config.ts
+       1 export interface ArtifactConfigField {
+       2   type: string
+       3   label: string
+       4   default: unknown
+       5   itemShape?: Record<string, string>
+       6 }
+       7 
+       8 export interface ArtifactRef {
+       9   id: string
+      10   name: string
+     … +47 lines (ctrl+o to expand)
+
+⏺ Now update the component to import from the utility:
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ Update(apps/web/src/lib/components/resources/ArtifactsTab.svelte)
+  ⎿  Added 1 line, removed 7 lines
+       5    import { get } from 'svelte/store'
+       6    import { API_URL } from '$lib/api'
+       7    import { chatDraft } from '$lib/stores/chat'
+       8 +  import { getResolvedConfig, buildAtRef, type ArtifactConfigFi
+         +eld } from '$lib/utils/artifact-config'                        
+       9  
+       9 -  interface ArtifactConfigField {                              
+      10 -    type: string                                               
+      11 -    label: string                                              
+      12 -    default: unknown                                           
+      13 -    itemShape?: Record<string, string>                         
+      14 -  }                                                            
+      15 -                                                               
+      10    interface Artifact {
+      11      id: string
+      12      name: string
+
+⏺ Now replace the inline functions with the imported ones:
+
+⏺ Update(apps/web/src/lib/components/resources/ArtifactsTab.svelte)
+  ⎿  Added 1 line, removed 28 lines
+      189  
+      190    let copied = $state<string | null>(null)
+      191  
+      192 -  function getResolvedConfig(artifact: Artifact): Record<strin
+          -g, unknown> {                                                 
+      193 -    const cfg = artifact.config as Record<string, unknown> | n
+          -ull                                                           
+      194 -    if (!cfg || typeof cfg !== 'object') return {}            
+      195 -    // If values look like ArtifactConfigField objects with .d
+          -efault, extract defaults                                      
+      196 -    const hasSchema = Object.values(cfg).some(                
+      197 -      (v) => v && typeof v === 'object' && 'default' in (v as 
+          -Record<string, unknown>),                                     
+      198 -    )                                                         
+      199 -    if (hasSchema) {                                          
+      200 -      const defaults: Record<string, unknown> = {}            
+      201 -      for (const [key, field] of Object.entries(cfg)) {       
+      202 -        if (field && typeof field === 'object' && 'default' in
+          - (field as Record<string, unknown>)) {                        
+      203 -          defaults[key] = (field as ArtifactConfigField).defau
+          -lt                                                            
+      204 -        }                                                     
+      205 -      }                                                       
+      206 -      return defaults                                         
+      207 -    }                                                         
+      208 -    return cfg                                                
+      209 -  }                                                           
+      210 -                                                              
+      192    async function copyConfig(artifact: Artifact) {
+      193      const config = getResolvedConfig(artifact)
+      194      await navigator.clipboard.writeText(JSON.stringify(config,
+            null, 2))
+     ...
+      197    }
+      198  
+      199    function injectAtRef(artifact: Artifact) {
+      219 -    const config = getResolvedConfig(artifact)                
+      220 -    const payload = {                                         
+      221 -      name: artifact.name,                                    
+      222 -      type: artifact.type,                                    
+      223 -      source: artifact.source,                                
+      224 -      config,                                                 
+      225 -    }                                                         
+      226 -    const json = JSON.stringify(payload, null, 2)             
+      227 -    chatDraft.set(`@artifact:${artifact.name}\n\`\`\`json\n${j
+          -son}\n\`\`\``)                                                
+      200 +    chatDraft.set(buildAtRef(artifact))                       
+      201    }
+      202  
+      203    function hasConfig(artifact: Artifact): boolean {
+
+⏺ Now install vitest at the root and create the tests:
+
+⏺ Bash(cd /Users/zacharymuhlbauer/Desktop/STUDIO/projects/slide-maker &&
+      corepack pnpm add -D -w vitest 2>&1 | tail -5)
+  ⎿    └── ✕ unmet peer svelte@"^3.54.0 || ^4.0.0": found 5.55.0
+
+     Packages: +2
+     … +2 lines (ctrl+o to expand)
+  ⎿  (timeout 30s)
+
+  Read 1 file (ctrl+o to expand)
+
+⏺ There's already a tests/ directory with shell-based tests. Let me see the
+  pattern:
+
+  Read 2 files (ctrl+o to expand)
+
+⏺ The test suite uses shell-based grep assertions. I'll create a vitest-based
+  test for the logic AND a shell test that fits the existing pattern, then
+  register both.
+
+⏺ Write(tests/artifact-config.test.ts)
+  ⎿  Wrote 134 lines to tests/artifact-config.test.ts
+       1 import { describe, it, expect } from 'vitest'
+       2 import { getResolvedConfig, buildAtRef, type ArtifactRef } from 
+         '../apps/web/src/lib/utils/artifact-config'
+       3 
+       4 // ── Fixtures ────────────────────────────────────────────
+       5 
+       6 const flatArtifact: ArtifactRef = {
+       7   id: 'artifact-boids',
+       8   name: 'Boids Visualization',
+       9   description: 'Interactive boids visualization',
+      10   type: 'widget',
+     … +124 lines (ctrl+o to expand)
+
+⏺ Now add a shell test following the existing pattern:
+
+⏺ Write(tests/test_artifact_config.sh)
+  ⎿  Wrote 84 lines to tests/test_artifact_config.sh
+       1 #!/usr/bin/env bash
+       2 # ==============================================================
+         ===============
+       3 # slide-maker / tests / test_artifact_config.sh
+       4 # Validates artifact config resolution utility and chat draft in
+         tegration.
+       5 # ==============================================================
+         ===============
+       6 set -euo pipefail
+       7 cd "$(dirname "$0")/.."
+       8 
+       9 PASS=0; FAIL=0
+      10 pass() { PASS=$((PASS + 1)); echo "  ✓ $1"; }
+     … +74 lines (ctrl+o to expand)
+
+⏺ Register it in run_all.sh:
+
+⏺ Update(tests/run_all.sh)
+  ⎿  Added 1 line
+      13    "tests/test_export_pipeline.sh"
+      14    "tests/test_system_prompt.sh"
+      15    "tests/test_validation.sh"
+      16 +  "tests/test_artifact_config.sh"                              
+      17  )
+      18  
+      19  SUITE_PASS=0
+
+⏺ Now add a vitest config at root and a test script:
+
+⏺ Write(vitest.config.ts)
+  ⎿  Wrote 7 lines to vitest.config.ts
+      1 import { defineConfig } from 'vitest/config'
+      2 
+      3 export default defineConfig({
+      4   test: {
+      5     include: ['tests/**/*.test.ts'],
+      6   },
+      7 })
+
+⏺ Now run the vitest tests:
+
+⏺ Bash(corepack pnpm vitest run tests/artifact-config.test.ts 2>&1)
+  ⎿  The CJS build of Vite's Node API is deprecated. See https://vite.dev/g
+     uide/troubleshooting.html#vite-cjs-node-api-deprecated for more detail
+     s.
+     … +11 lines (ctrl+o to expand)
+  ⎿  (timeout 30s)
+
+⏺ All 10 tests pass. Now run the full shell test:
+
+⏺ Bash(bash /Users/zacharymuhlbauer/Desktop/STUDIO/projects/slide-maker/tests/te
+      st_artifact_config.sh 2>&1)
+  ⎿  ═══════════════════════════════════════════════
+       ARTIFACT CONFIG UTILITY
+     ═══════════════════════════════════════════════
+     … +27 lines (ctrl+o to expand)
+
+⏺ 29/29 passed. Here's a summary of what was added:
+
+  New files:
+  - apps/web/src/lib/utils/artifact-config.ts — extracted getResolvedConfig and
+  buildAtRef as testable pure functions
+  - tests/artifact-config.test.ts — 10 vitest unit tests covering flat config,
+  schema config, null/empty config, mixed fields, and buildAtRef output format
+  - tests/test_artifact_config.sh — 29 shell assertions (structure checks +
+  vitest run), registered in run_all.sh
+  - vitest.config.ts — root vitest configuration
+
+✻ Crunched for 2m 55s
