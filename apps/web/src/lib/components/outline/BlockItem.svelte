@@ -8,6 +8,8 @@
     slideId?: string
   } = $props()
 
+  let confirmingDelete = $state(false)
+
   const typeLabels: Record<string, string> = {
     heading: 'Heading',
     text: 'Text',
@@ -71,6 +73,35 @@
   })
 
   const LABEL_COLORS = ['cyan', 'blue', 'navy', 'red', 'amber', 'green']
+
+  async function handleDelete(e: MouseEvent) {
+    e.stopPropagation()
+    if (!confirmingDelete) {
+      confirmingDelete = true
+      setTimeout(() => confirmingDelete = false, 2000)
+      return
+    }
+    const sid = slideId ?? block.slideId
+    if (!sid) return
+    const deck = get(currentDeck)
+    if (!deck) return
+
+    try {
+      const res = await fetch(`${API_URL}/api/decks/${deck.id}/slides/${sid}/blocks/${block.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      })
+      if (res.ok) {
+        updateSlideInDeck(sid, (s) => ({
+          ...s,
+          blocks: s.blocks.filter((b) => b.id !== block.id),
+        }))
+      }
+    } catch (err) {
+      console.error('Failed to delete block:', err)
+    }
+    confirmingDelete = false
+  }
 </script>
 
 <div class="block-item">
@@ -81,6 +112,14 @@
       <span class="block-preview">{preview}</span>
     {/if}
     <span class="expand-arrow">{expanded ? '\u25BC' : '\u25B6'}</span>
+    <button
+      class="delete-block-btn"
+      class:confirming={confirmingDelete}
+      onclick={handleDelete}
+      title={confirmingDelete ? 'Click again to delete' : 'Delete module'}
+    >
+      {'\u2715'}
+    </button>
   </button>
 
   {#if expanded}
@@ -249,5 +288,31 @@
     font-size: 12px;
     color: var(--color-text-muted, #9ca3af);
     font-style: italic;
+  }
+
+  .delete-block-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--color-text-muted, #9ca3af);
+    font-size: 10px;
+    padding: 0 2px;
+    line-height: 1;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.15s, color 0.15s;
+  }
+
+  .block-header:hover .delete-block-btn {
+    opacity: 1;
+  }
+
+  .delete-block-btn:hover {
+    color: #ef4444;
+  }
+
+  .delete-block-btn.confirming {
+    opacity: 1;
+    color: #ef4444;
   }
 </style>
