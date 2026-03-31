@@ -290,3 +290,7 @@ Tests import directly from `packages/shared/src/` and `apps/web/src/lib/utils/`.
 - `adapter-auto` warning on build — could switch to `adapter-node` for production.
 - Email verification (SMTP) not configured on staging — admin must manually approve users.
 - `.env` symlink (`apps/api/.env -> ../../.env`) must exist or the API won't load any API keys. If chat shows "No models available", recreate the symlink and restart `pnpm dev`.
+
+## Session Hand-Off Prompts
+
+When completing a significant session of work, ask the user whether they'd like a hand-off prompt logged to `docs/prompts/`. These are structured markdown briefs with checkboxes that contextualize progress, audit needs, and next steps for the next Claude Code instance or human collaborator picking up the work. See `docs/prompts/` for examples.

@@ -105,14 +105,14 @@
   }
   .carousel-slide img {
     width: 100%;
-    max-height: 55vh;
+    max-height: 55cqi;
     object-fit: contain;
     border-radius: 6px;
     display: block;
     margin: 0 auto;
   }
   .carousel-slide figcaption {
-    font-size: clamp(0.7rem, 1vw, 0.85rem);
+    font-size: clamp(0.7rem, 1cqi, 0.85rem);
     color: var(--color-text-secondary);
     text-align: center;
     margin-top: 0.5rem;
@@ -126,10 +126,10 @@
     background: rgba(0, 0, 0, 0.4);
     color: white;
     border: none;
-    width: clamp(1.5rem, 3vw, 2.5rem);
-    height: clamp(1.5rem, 3vw, 2.5rem);
+    width: clamp(1.5rem, 3cqi, 2.5rem);
+    height: clamp(1.5rem, 3cqi, 2.5rem);
     border-radius: 50%;
-    font-size: clamp(1rem, 2vw, 1.5rem);
+    font-size: clamp(1rem, 2cqi, 1.5rem);
     cursor: pointer;
     display: flex;
     align-items: center;

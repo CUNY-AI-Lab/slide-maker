@@ -9,12 +9,15 @@
     "db:seed": "pnpm --filter api db:seed",
     "seed:admin": "pnpm --filter api seed:admin",
     "audit:a11y": "node scripts/a11y-theme-audit.mjs",
-    "start": "tsx apps/api/src/index.ts"
+    "start": "tsx apps/api/src/index.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "dependencies": {
     "tsx": "^4.19.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "turbo": "^2.4.0",
     "typescript": "^5.7.0",
     "vitest": "^3.0.0"

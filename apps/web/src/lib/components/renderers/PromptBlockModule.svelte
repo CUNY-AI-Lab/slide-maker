@@ -51,10 +51,10 @@
     background: #0b0e14;
     color: rgba(255, 255, 255, 0.92);
     font-family: 'JetBrains Mono', monospace;
-    padding: clamp(0.75rem, 1.5vw, 1.25rem);
+    padding: clamp(0.75rem, 1.5cqi, 1.25rem);
     border-radius: 6px;
     border-left: 4px solid #79c0ff;
-    font-size: clamp(0.7rem, 1.1vw, 0.85rem);
+    font-size: clamp(0.7rem, 1.1cqi, 0.85rem);
     line-height: 1.6;
     white-space: pre-wrap;
     position: relative;

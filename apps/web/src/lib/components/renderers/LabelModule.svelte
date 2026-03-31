@@ -30,7 +30,7 @@
 <style>
   .label {
     display: inline-block;
-    font-size: clamp(0.6rem, 1vw, 0.75rem);
+    font-size: clamp(0.6rem, 1cqi, 0.75rem);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;

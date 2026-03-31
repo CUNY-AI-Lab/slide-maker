@@ -16,7 +16,7 @@
   let draggingRight = $state(false)
 
   // Canvas mode — bound to SlideCanvas
-  let canvasMode = $state<'edit' | 'view'>('view')
+  let canvasMode = $state<'edit' | 'view'>('edit')
 
   // Saved panel state for view/edit toggle
   let savedLeft = false
