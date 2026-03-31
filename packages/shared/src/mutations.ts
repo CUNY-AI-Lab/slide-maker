@@ -11,6 +11,7 @@ export type Mutation =
   | { action: 'applyTemplate'; payload: { slideId: string; templateId: string } }
   | { action: 'setTheme'; payload: { themeId: string } }
   | { action: 'updateMetadata'; payload: { field: string; value: string } }
+  | { action: 'updateArtifactConfig'; payload: { artifactName: string; config: Record<string, unknown> } }
 
 export interface AddSlidePayload {
   layout: SlideLayout

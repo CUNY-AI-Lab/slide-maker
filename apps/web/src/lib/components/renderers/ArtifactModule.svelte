@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { untrack } from 'svelte'
+  import { buildSourceWithConfig } from '$lib/utils/artifact-config'
+
   let { data, editable = false } = $props<{
     data: {
       src?: string
@@ -12,21 +15,42 @@
     editable?: boolean
   }>()
 
+  const CSP_META = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\' \'unsafe-inline\' blob: data:; script-src \'unsafe-inline\' \'unsafe-eval\'; connect-src \'none\'; frame-src \'none\';">'
+
   const width = $derived(data.width || '100%')
-  const height = $derived(data.height || '400px')
+  const height = $derived(data.height || '100%')
   const alt = $derived(data.alt || 'Interactive visualization')
 
-  // Build iframe src: prefer rawSource with config injected, fallback to src/url
+  // Build iframe src: prefer rawSource with CSP injected, fallback to src/url
   let iframeSrc = $derived.by(() => {
     if (data.rawSource) {
       // If rawSource is a URL, use it directly (don't wrap in a blob)
       if (/^https?:\/\//i.test(data.rawSource)) return data.rawSource
-      const blob = new Blob([data.rawSource], { type: 'text/html' })
+      // Inject config into source if present
+      let html = data.config && Object.keys(data.config).length > 0
+        ? buildSourceWithConfig(data.rawSource, data.config)
+        : data.rawSource
+      if (html.includes('<head>')) {
+        html = html.replace('<head>', '<head>' + CSP_META)
+      } else if (html.includes('<html>')) {
+        html = html.replace('<html>', '<html><head>' + CSP_META + '</head>')
+      } else {
+        html = CSP_META + html
+      }
+      const blob = new Blob([html], { type: 'text/html' })
       return URL.createObjectURL(blob)
     }
     const src = data.src || data.url || ''
     // Only allow http(s) and blob URLs to prevent javascript: and data: injection
     return /^(https?:\/\/|blob:)/i.test(src) ? src : ''
+  })
+
+  // Revoke blob URLs on cleanup
+  $effect(() => {
+    const url = iframeSrc
+    return () => {
+      if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
+    }
   })
 </script>
 
@@ -44,6 +68,7 @@
       style="height: {height};"
       sandbox="allow-scripts allow-same-origin"
       title={alt}
+      loading="lazy"
     ></iframe>
   {:else}
     <div class="artifact-placeholder">
@@ -59,6 +84,7 @@
     border-radius: 4px;
     overflow: hidden;
     background: rgba(0, 0, 0, 0.02);
+    aspect-ratio: 1;
   }
   .artifact-header {
     display: flex;
@@ -80,6 +106,7 @@
     display: block;
     border: none;
     width: 100%;
+    height: 100%;
   }
   .artifact-iframe.no-interact {
     pointer-events: none;

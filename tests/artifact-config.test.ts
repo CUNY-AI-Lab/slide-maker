@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { getResolvedConfig, buildAtRef, type ArtifactRef } from '../apps/web/src/lib/utils/artifact-config'
+import { buildSourceWithConfig } from '../apps/web/src/lib/utils/artifact-config'
 
 // ── Fixtures ────────────────────────────────────────────
 
@@ -130,5 +131,120 @@ describe('buildAtRef', () => {
     const jsonBlock = ref.split('```json\n')[1].split('\n```')[0]
     const payload = JSON.parse(jsonBlock)
     expect(payload.config).toEqual({})
+  })
+})
+
+// ── Rich schema types (number, color, boolean, select) ──
+
+describe('getResolvedConfig with rich schemas', () => {
+  it('extracts defaults from number/color/boolean/select fields', () => {
+    const artifact: ArtifactRef = {
+      id: 'artifact-lorenz',
+      name: 'Lorenz Attractor',
+      description: 'Chaotic attractor',
+      type: 'visualization',
+      source: '<html><body></body></html>',
+      config: {
+        sigma: { type: 'number', label: 'Sigma', default: 10, min: 1, max: 30 },
+        rho: { type: 'number', label: 'Rho', default: 28, min: 10, max: 50 },
+        color: { type: 'color', label: 'Trail Color', default: '#ff0000' },
+        autoRotate: { type: 'boolean', label: 'Auto Rotate', default: true },
+        mode: { type: 'select', label: 'Mode', default: 'arcs', options: ['arcs', 'triangles'] },
+      },
+    }
+    const result = getResolvedConfig(artifact)
+    expect(result).toEqual({
+      sigma: 10,
+      rho: 28,
+      color: '#ff0000',
+      autoRotate: true,
+      mode: 'arcs',
+    })
+  })
+
+  it('merges partial config with resolved defaults', () => {
+    const artifact: ArtifactRef = {
+      id: 'artifact-boids',
+      name: 'Boids',
+      description: 'Flocking',
+      type: 'visualization',
+      source: '<html><body></body></html>',
+      config: {
+        count: { type: 'number', label: 'Count', default: 120, min: 20, max: 400 },
+        maxSpeed: { type: 'number', label: 'Max Speed', default: 2.2, min: 0.5, max: 5 },
+      },
+    }
+    const defaults = getResolvedConfig(artifact)
+    const merged = { ...defaults, count: 200 }
+    expect(merged).toEqual({ count: 200, maxSpeed: 2.2 })
+  })
+})
+
+// ── Mutation extraction ─────────────────────────────────
+
+describe('extractMutations (updateArtifactConfig)', () => {
+  // Pure reimplementation of extractMutations for testing (original has Svelte store deps)
+  function extractMutations(text: string): Record<string, unknown>[] {
+    const mutations: Record<string, unknown>[] = []
+    const regex = /```mutation\s*\n([\s\S]*?)```/g
+    let match
+    while ((match = regex.exec(text)) !== null) {
+      try { mutations.push(JSON.parse(match[1].trim())) } catch { /* skip */ }
+    }
+    return mutations
+  }
+
+  it('extracts updateArtifactConfig mutation from fenced block', () => {
+    const text = `Sure, I'll make the boids faster!
+
+\`\`\`mutation
+{
+  "action": "updateArtifactConfig",
+  "payload": {
+    "artifactName": "Boids",
+    "config": { "count": 200, "maxSpeed": 3.5 }
+  }
+}
+\`\`\`
+
+That should give you a bigger, faster flock.`
+
+    const mutations = extractMutations(text)
+    expect(mutations).toHaveLength(1)
+    expect(mutations[0].action).toBe('updateArtifactConfig')
+    const payload = mutations[0].payload as { artifactName: string; config: Record<string, unknown> }
+    expect(payload.artifactName).toBe('Boids')
+    expect(payload.config).toEqual({ count: 200, maxSpeed: 3.5 })
+  })
+
+  it('extracts multiple mutations including updateArtifactConfig', () => {
+    const text = `\`\`\`mutation
+{"action":"addSlide","payload":{"layout":"layout-split","modules":[]}}
+\`\`\`
+
+\`\`\`mutation
+{"action":"updateArtifactConfig","payload":{"artifactName":"Lorenz Attractor","config":{"sigma":15}}}
+\`\`\`
+`
+    const mutations = extractMutations(text)
+    expect(mutations).toHaveLength(2)
+    expect(mutations[0].action).toBe('addSlide')
+    expect(mutations[1].action).toBe('updateArtifactConfig')
+  })
+})
+
+describe('buildSourceWithConfig', () => {
+  it('injects data-config when none present', () => {
+    const src = '<html><body><div id="app"></div></body></html>'
+    const out = buildSourceWithConfig(src, { a: 1 })
+    expect(out).toContain('data-config="{&quot;a&quot;:1}"')
+  })
+
+  it('replaces existing data-config attribute', () => {
+    const src = '<html><body data-config="{&quot;a&quot;:1}"><div></div></body></html>'
+    const out = buildSourceWithConfig(src, { a: 2, b: 3 })
+    expect(out).toContain('data-config="{&quot;a&quot;:2,&quot;b&quot;:3}"')
+    // not duplicated
+    expect(out.match(/data-config=/g)?.length).toBe(1)
   })
 })

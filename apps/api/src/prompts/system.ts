@@ -32,15 +32,75 @@ interface UploadedFile {
   url: string
 }
 
+interface ArtifactInfo {
+  id: string
+  name: string
+  description: string
+  type: string
+  config?: Record<string, unknown>
+  paramCount?: number
+}
+
+interface ActiveArtifact {
+  name: string
+  slidePositions: number[]
+  config: Record<string, unknown>
+}
+
 interface BuildPromptOptions {
   deck: DeckState
   activeSlideId: string | null
   templates?: { id: string; name: string; layout: string; modules: unknown[] }[]
   theme?: { id: string; name: string; colors: unknown; fonts: unknown } | null
   files?: UploadedFile[]
+  artifacts?: ArtifactInfo[]
+  activeArtifacts?: ActiveArtifact[]
+  focusedArtifactNames?: string[]
 }
 
 const MAX_SLIDES = 60
+
+function buildArtifactsSection(opts: BuildPromptOptions): string {
+  const { artifacts, activeArtifacts, focusedArtifactNames } = opts
+  if (!artifacts?.length) return '## Artifacts\n(none available)\n'
+
+  // Tier 1: Index — always present, one line per artifact
+  const index = artifacts.map((a) => {
+    const params = a.paramCount ?? (a.config ? Object.keys(a.config).length : 0)
+    return `${a.id.replace('artifact-', '')} | ${a.name} | ${a.description} | ${params} params`
+  }).join('\n')
+
+  let section = `## Available Artifacts (${artifacts.length})\n| ID | Name | Description | Params |\n|-----|------|-------------|--------|\n${index}\n`
+
+  // Tier 2: Active — artifacts placed in deck slides with resolved config
+  if (activeArtifacts?.length) {
+    section += '\n## Deck Artifacts (in slides)\n'
+    for (const aa of activeArtifacts) {
+      const slides = aa.slidePositions.map((p) => p + 1).join(', ')
+      const cfg = JSON.stringify(aa.config)
+      section += `@artifact:${aa.name} (slide${aa.slidePositions.length > 1 ? 's' : ''} ${slides})\n  Config: ${cfg}\n`
+    }
+  }
+
+  // Tier 3: Focused — full schema for explicitly @-referenced artifacts
+  if (focusedArtifactNames?.length) {
+    for (const name of focusedArtifactNames) {
+      const art = artifacts.find((a) => a.name.toLowerCase() === name.toLowerCase())
+      if (!art?.config) continue
+      section += `\n## @artifact:${art.name} (full schema)\n`
+      for (const [key, field] of Object.entries(art.config)) {
+        const f = field as Record<string, unknown>
+        if (f && typeof f === 'object' && 'type' in f) {
+          const range = f.min !== undefined && f.max !== undefined ? ` (${f.min}-${f.max})` : ''
+          const opts = f.options ? ` [${(f.options as string[]).join(', ')}]` : ''
+          section += `  ${key}: ${f.type}${range}${opts}, default ${JSON.stringify(f.default)} — ${f.label}\n`
+        }
+      }
+    }
+  }
+
+  return section
+}
 
 export function buildSystemPrompt(opts: BuildPromptOptions): string {
   const { deck, activeSlideId, templates, theme, files } = opts
@@ -232,6 +292,19 @@ Update deck name or metadata.
 { "action": "updateMetadata", "payload": { "name": "New Deck Name" } }
 \`\`\`
 
+### 10. updateArtifactConfig
+Update the configuration of a named artifact across ALL instances in the deck. Only include keys you want to change (partial update, merged with existing config). Target by exact artifact name from the Available Artifacts table. Refer to Deck Artifacts for current config values. Use @artifact:Name in chat to see valid ranges.
+\`\`\`json
+{
+  "action": "updateArtifactConfig",
+  "payload": {
+    "artifactName": "Lorenz Attractor",
+    "config": { "particleCount": 12, "sigma": 15 }
+  }
+}
+\`\`\`
+Use \`updateBlock\` instead if you need to change a single instance only.
+
 ## Step Reveal (Progressive Disclosure)
 
 Modules can have a \`stepOrder\` field (integer starting at 0) for progressive reveal during presentation. Modules with \`stepOrder\` reveal one at a time on click/advance.
@@ -263,6 +336,18 @@ IMAGE RULES:
 - NEVER make up or guess image URLs. Never invent URLs from wikimedia, unsplash, or other sites.
 - If the user wants an image from the web, tell them to use the /search command in the chat to find and download images. The app will search the web and download the image for them.
 - If no image is available, use an empty src with a descriptive alt text as placeholder.
+
+${buildArtifactsSection(opts)}
+
+ARTIFACT RULES:
+- Artifacts are interactive JavaScript visualizations (canvas animations, simulations, generative art).
+- The user can insert artifacts from the **Artifacts tab** in the Resources panel on the right.
+- When a user asks for a visualization or interactive element, check if a matching artifact exists in Available Artifacts and suggest they insert it from the Artifacts tab.
+- Do NOT try to embed raw HTML source code in mutations. Artifacts are too large to inline.
+- You CAN create a placeholder artifact module: \`{ "type": "artifact", "zone": "<zone>", "data": { "alt": "Lorenz Attractor" } }\` — the user can then replace it from the Artifacts tab.
+- To change artifact parameters, use the \`updateArtifactConfig\` mutation (see below).
+- For natural language requests like "make the attractor faster", infer the right artifact from context (slide position, description, Deck Artifacts list) and the right parameter.
+- If ambiguous which artifact the user means, ask them to clarify.
 
 ## Guidelines
 - ALWAYS include conversational text alongside mutations. Never respond with only mutation blocks.
@@ -349,6 +434,18 @@ User: "Change the heading on slide 3 to say 'Getting Started'"
     "slideId": "<slideId>",
     "blockId": "<blockId>",
     "data": { "text": "Getting Started" }
+  }
+}
+\`\`\`
+
+### Changing artifact visualization parameters
+User: "Make the boids faster and add more of them"
+\`\`\`mutation
+{
+  "action": "updateArtifactConfig",
+  "payload": {
+    "artifactName": "Boids",
+    "config": { "count": 200, "maxSpeed": 3.5 }
   }
 }
 \`\`\`

@@ -1,9 +1,6 @@
-export interface ArtifactConfigField {
-  type: string
-  label: string
-  default: unknown
-  itemShape?: Record<string, string>
-}
+import type { ArtifactConfigField, ArtifactConfigSchema } from '@slide-maker/shared'
+
+export type { ArtifactConfigField, ArtifactConfigSchema }
 
 export interface ArtifactRef {
   id: string
@@ -11,7 +8,7 @@ export interface ArtifactRef {
   description: string
   type: string
   source: string
-  config: Record<string, ArtifactConfigField> | unknown
+  config: ArtifactConfigSchema | Record<string, unknown>
 }
 
 /**
@@ -54,4 +51,26 @@ export function buildAtRef(artifact: ArtifactRef): string {
   }
   const json = JSON.stringify(payload, null, 2)
   return `@artifact:${artifact.name}\n\`\`\`json\n${json}\n\`\`\``
+}
+
+/**
+ * Inject a config object into an artifact's HTML source via data-config attribute on <body>.
+ * The artifact JS reads this at boot via document.body.getAttribute('data-config').
+ */
+export function buildSourceWithConfig(source: string, configData: Record<string, unknown>): string {
+  const configStr = JSON.stringify(configData).replace(/"/g, '&quot;')
+  // Replace existing data-config if present
+  const replaced = source.replace(
+    /<body([^>]*?)\sdata-config=\"[^\"]*\"([^>]*)>/i,
+    (_m, pre, post) => `<body${pre} data-config=\"${configStr}\"${post}>`,
+  )
+  if (replaced !== source) return replaced
+  // Otherwise, inject
+  if (source.includes('<body>')) {
+    return source.replace('<body>', `<body data-config=\"${configStr}\">`)
+  }
+  if (source.includes('<body ')) {
+    return source.replace('<body ', `<body data-config=\"${configStr}\" `)
+  }
+  return source
 }

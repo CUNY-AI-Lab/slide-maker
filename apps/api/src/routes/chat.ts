@@ -4,7 +4,7 @@ import { eq, and, inArray, gte, sql } from 'drizzle-orm'
 import { createId } from '@paralleldrive/cuid2'
 import type { Session, User } from 'lucia'
 import { db } from '../db/index.js'
-import { decks, deckAccess, slides, contentBlocks, chatMessages, templates, themes, uploadedFiles, users, tokenUsage } from '../db/schema.js'
+import { decks, deckAccess, slides, contentBlocks, chatMessages, templates, themes, uploadedFiles, users, tokenUsage, artifacts } from '../db/schema.js'
 import { authMiddleware } from '../middleware/auth.js'
 import { chatRateLimit } from '../middleware/rate-limit.js'
 import { getModelStream } from '../providers/index.js'
@@ -116,6 +116,48 @@ chat.post('/', chatRateLimit, async (c) => {
     }
   }
 
+  // Load available artifacts (include config for tiered prompt)
+  const allArtifacts = await db.select().from(artifacts)
+  const artifactsList = allArtifacts.map((a) => {
+    const cfg = (a.config ?? {}) as Record<string, unknown>
+    const paramCount = Object.values(cfg).filter(
+      (v) => v && typeof v === 'object' && 'default' in (v as Record<string, unknown>),
+    ).length
+    return {
+      id: a.id,
+      name: a.name,
+      description: a.description,
+      type: a.type,
+      config: cfg,
+      paramCount,
+    }
+  })
+
+  // Compute active artifacts (those placed in deck slides)
+  const activeArtifactsMap = new Map<string, { name: string; slidePositions: number[]; config: Record<string, unknown> }>()
+  for (const slide of slidesWithBlocks) {
+    for (const block of slide.blocks) {
+      if (block.type !== 'artifact') continue
+      const d = block.data as Record<string, unknown>
+      const name = String(d.artifactName || d.alt || '').trim()
+      if (!name) continue
+      const existing = activeArtifactsMap.get(name.toLowerCase())
+      if (existing) {
+        existing.slidePositions.push(slide.order)
+      } else {
+        activeArtifactsMap.set(name.toLowerCase(), {
+          name,
+          slidePositions: [slide.order],
+          config: (d.config as Record<string, unknown>) || {},
+        })
+      }
+    }
+  }
+  const activeArtifactsList = Array.from(activeArtifactsMap.values())
+
+  // Detect @artifact: references in user message for focused tier
+  const atRefs = [...message.matchAll(/@artifact:([^\n@]+)/gi)].map((m) => m[1].trim())
+
   // Build system prompt
   const systemPrompt = buildSystemPrompt({
     deck: {
@@ -128,6 +170,9 @@ chat.post('/', chatRateLimit, async (c) => {
     templates: templatesList,
     theme: activeTheme,
     files: filesList,
+    artifacts: artifactsList,
+    activeArtifacts: activeArtifactsList,
+    focusedArtifactNames: atRefs.length > 0 ? atRefs : undefined,
   })
 
   // Prepare messages for the LLM

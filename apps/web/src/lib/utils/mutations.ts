@@ -27,6 +27,50 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
   const payload = mutation.payload as Record<string, unknown>
 
   switch (mutation.action) {
+    case 'updateArtifactConfig': {
+      const { artifactName, config: newConfig } = payload as { artifactName: string; config: Record<string, unknown> }
+      if (!artifactName || !newConfig) break
+
+      // Find artifact definition for the original source
+      const { findArtifactByName, ensureArtifactsLoaded } = await import('../stores/artifacts')
+      await ensureArtifactsLoaded()
+      const artifactDef = findArtifactByName(artifactName)
+
+      // Find all matching artifact blocks across the deck
+      const targets: { slideId: string; blockId: string; data: Record<string, unknown> }[] = []
+      for (const s of deck.slides) {
+        for (const b of s.blocks) {
+          if (b.type !== 'artifact') continue
+          const d = (b.data || {}) as Record<string, unknown>
+          const name = String(d.artifactName || d.alt || '').trim()
+          if (name && name.toLowerCase() === artifactName.toLowerCase()) {
+            targets.push({ slideId: s.id, blockId: b.id, data: d })
+          }
+        }
+      }
+
+      // Apply updates to each target via updateBlock mutations
+      for (const t of targets) {
+        const prevCfg = (t.data.config as Record<string, unknown>) || {}
+        const nextCfg = { ...prevCfg, ...newConfig }
+
+        const nextData: Record<string, unknown> = { config: nextCfg }
+
+        // Rebuild rawSource from original artifact source with new config
+        const originalSource = artifactDef?.source
+        if (originalSource) {
+          const { buildSourceWithConfig } = await import('../utils/artifact-config')
+          nextData.rawSource = buildSourceWithConfig(originalSource, nextCfg)
+        }
+
+        await applyMutation({
+          action: 'updateBlock',
+          payload: { slideId: t.slideId, blockId: t.blockId, data: nextData },
+        })
+      }
+
+      break
+    }
     case 'addSlide': {
       const moduleDefs = (payload.modules as any[]) || []
 

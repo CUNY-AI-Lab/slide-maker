@@ -46,7 +46,29 @@ export interface ComparisonData { panels: { title: string; content: string }[] }
 export interface CardGridData { cards: { title: string; content: string; icon?: string; color?: string }[]; columns?: 2 | 3 | 4 }
 export interface FlowData { nodes: { icon?: string; label: string; description?: string }[] }
 export interface StreamListData { items: string[] }
-export interface ArtifactData { src: string; config?: Record<string, unknown>; width?: string; height?: string; alt?: string }
+export interface ArtifactData {
+  src?: string
+  rawSource?: string
+  config?: Record<string, unknown>
+  width?: string
+  height?: string
+  alt?: string
+  artifactId?: string
+  artifactName?: string
+}
+
+// Artifact config schema types
+export interface ArtifactConfigField {
+  type: 'number' | 'string' | 'color' | 'boolean' | 'select'
+  label: string
+  default: unknown
+  min?: number
+  max?: number
+  step?: number
+  options?: string[]
+}
+
+export type ArtifactConfigSchema = Record<string, ArtifactConfigField>
 
 export type ModuleDataMap = {
   heading: HeadingData
