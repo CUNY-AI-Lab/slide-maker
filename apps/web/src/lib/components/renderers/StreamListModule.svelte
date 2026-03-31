@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { inlineMarkdown } from '$lib/utils/markdown'
+  import DOMPurify from 'dompurify'
+
   let { data = {}, editable = false, onchange }: {
     data: Record<string, unknown>;
     editable: boolean;
@@ -27,11 +30,15 @@
 
 <ul class="stream-list">
   {#each items as item, i}
-    <li
-      contenteditable={editable}
-      oninput={(e) => handleItemInput(i, e)}
-      role={editable ? 'textbox' : undefined}
-    >{item}</li>
+    {#if editable}
+      <li
+        contenteditable="true"
+        oninput={(e) => handleItemInput(i, e)}
+        role="textbox"
+      >{item}</li>
+    {:else}
+      <li>{@html DOMPurify.sanitize(inlineMarkdown(item))}</li>
+    {/if}
   {/each}
 </ul>
 
@@ -45,7 +52,7 @@
   .stream-list li {
     padding: 0.35rem 0 0.35rem 1.25rem;
     position: relative;
-    font-size: clamp(0.8rem, 1.3vw, 1rem);
+    font-size: clamp(0.8rem, 1.3cqi, 1rem);
     line-height: 1.6;
     outline: none;
   }

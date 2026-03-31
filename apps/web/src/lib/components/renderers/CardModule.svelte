@@ -1,6 +1,6 @@
 <script lang="ts">
   import RichTextEditor from './RichTextEditor.svelte'
-  import DOMPurify from 'dompurify'
+  import { renderContent } from '$lib/utils/markdown'
   import type { Editor } from '@tiptap/core'
 
   let { data = {}, editable = false, onchange, oneditorready }: {
@@ -10,7 +10,7 @@
     oneditorready?: (editor: Editor) => void;
   } = $props()
 
-  let content = $derived(DOMPurify.sanitize(typeof data.content === 'string' ? data.content : ''))
+  let content = $derived(renderContent(typeof data.content === 'string' ? data.content : ''))
   let variant = $derived(typeof data.variant === 'string' ? data.variant : 'default')
 
   function handleRichTextChange(html: string) {
@@ -35,10 +35,10 @@
 <style>
   .card {
     border-left: 4px solid var(--teal, #2FB8D6);
-    padding: clamp(0.75rem, 1.5vw, 1.25rem);
+    padding: clamp(0.75rem, 1.5cqi, 1.25rem);
     background: rgba(47, 184, 214, 0.06);
     border-radius: 0 6px 6px 0;
-    font-size: clamp(0.8rem, 1.3vw, 1rem);
+    font-size: clamp(0.8rem, 1.3cqi, 1rem);
     line-height: 1.6;
     font-family: var(--font-body);
   }

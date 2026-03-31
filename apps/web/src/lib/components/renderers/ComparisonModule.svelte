@@ -1,5 +1,5 @@
 <script lang="ts">
-  import DOMPurify from 'dompurify'
+  import { renderContent } from '$lib/utils/markdown'
 
   let { data = {}, editable = false, onchange }: {
     data: Record<string, unknown>;
@@ -27,7 +27,7 @@
         <h4>{panel.title}</h4>
       {/if}
       <div class="panel-content">
-        {@html DOMPurify.sanitize(panel.content)}
+        {@html renderContent(panel.content)}
       </div>
     </div>
   {/each}
@@ -43,7 +43,7 @@
     font-family: var(--font-body);
   }
   .comparison-panel {
-    padding: clamp(0.75rem, 1.5vw, 1.25rem);
+    padding: clamp(0.75rem, 1.5cqi, 1.25rem);
   }
   .comparison-panel + .comparison-panel {
     border-left: 1px solid var(--color-border);
@@ -52,12 +52,21 @@
     color: #79c0ff;
     font-weight: 700;
     margin: 0 0 0.5rem 0;
-    font-size: clamp(0.8rem, 1.2vw, 1rem);
+    font-size: clamp(0.8rem, 1.2cqi, 1rem);
     font-family: var(--font-display);
   }
   .panel-content {
-    font-size: clamp(0.75rem, 1.1vw, 0.9rem);
+    font-size: clamp(0.75rem, 1.1cqi, 0.9rem);
     line-height: 1.6;
     color: var(--color-text-secondary);
+  }
+  @container (max-width: 500px) {
+    .comparison {
+      grid-template-columns: 1fr;
+    }
+    .comparison-panel + .comparison-panel {
+      border-left: none;
+      border-top: 1px solid var(--color-border);
+    }
   }
 </style>

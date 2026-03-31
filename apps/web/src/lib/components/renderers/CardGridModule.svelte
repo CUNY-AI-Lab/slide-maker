@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { renderContent } from '$lib/utils/markdown'
+
   let { data = {} }: { data: Record<string, unknown>; editable: boolean } = $props()
 
   let columns = $derived(
@@ -28,7 +30,7 @@
         <strong class="card-title">{card.title}</strong>
       {/if}
       {#if card.content}
-        <p class="card-content">{card.content}</p>
+        <div class="card-content">{@html renderContent(card.content)}</div>
       {/if}
     </div>
   {/each}
@@ -37,25 +39,25 @@
 <style>
   .card-grid {
     display: grid;
-    gap: clamp(0.5rem, 1.2vw, 1rem);
+    gap: clamp(0.5rem, 1.2cqi, 1rem);
     width: 100%;
   }
   .card {
     background: var(--color-bg-secondary, rgba(0, 0, 0, 0.03));
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    padding: clamp(0.75rem, 1.5vw, 1.25rem);
+    padding: clamp(0.75rem, 1.5cqi, 1.25rem);
   }
   .card-title {
     font-family: var(--font-display);
-    font-size: clamp(0.85rem, 1.3vw, 1.05rem);
+    font-size: clamp(0.85rem, 1.3cqi, 1.05rem);
     font-weight: 600;
     display: block;
     margin-bottom: 0.35rem;
   }
   .card-content {
     margin: 0;
-    font-size: clamp(0.75rem, 1.1vw, 0.9rem);
+    font-size: clamp(0.75rem, 1.1cqi, 0.9rem);
     line-height: 1.5;
     color: var(--color-text-secondary);
     font-family: var(--font-body);

@@ -1,6 +1,6 @@
 <script lang="ts">
   import RichTextEditor from './RichTextEditor.svelte'
-  import DOMPurify from 'dompurify'
+  import { renderContent } from '$lib/utils/markdown'
   import type { Editor } from '@tiptap/core'
 
   let { data = {}, editable = false, onchange, oneditorready }: {
@@ -10,7 +10,7 @@
     oneditorready?: (editor: Editor) => void;
   } = $props()
 
-  let content = $derived(DOMPurify.sanitize(typeof data.content === 'string' ? data.content : ''))
+  let content = $derived(renderContent(typeof data.content === 'string' ? data.content : ''))
   let title = $derived(typeof data.title === 'string' ? data.title : '')
 
   function handleRichTextChange(html: string) {
@@ -41,7 +41,7 @@
   .tip-box {
     background: rgba(121, 192, 255, 0.1);
     border-left: 4px solid #79c0ff;
-    padding: clamp(0.75rem, 1.5vw, 1.25rem);
+    padding: clamp(0.75rem, 1.5cqi, 1.25rem);
     border-radius: 0 6px 6px 0;
     font-family: var(--font-body);
   }
@@ -49,10 +49,10 @@
     font-weight: 700;
     color: #79c0ff;
     margin-bottom: 0.35rem;
-    font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+    font-size: clamp(0.8rem, 1.2cqi, 0.95rem);
   }
   .tip-box-content {
-    font-size: clamp(0.8rem, 1.3vw, 1rem);
+    font-size: clamp(0.8rem, 1.3cqi, 1rem);
     line-height: 1.6;
   }
 </style>
