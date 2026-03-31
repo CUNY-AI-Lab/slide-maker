@@ -87,20 +87,20 @@
     outline: none;
   }
   .heading-1 {
-    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-size: clamp(2rem, 5cqi, 3.5rem);
     font-weight: 800;
     letter-spacing: -0.02em;
   }
   .heading-2 {
-    font-size: clamp(1.5rem, 3.5vw, 2.5rem);
+    font-size: clamp(1.5rem, 3.5cqi, 2.5rem);
     font-weight: 700;
   }
   .heading-3 {
-    font-size: clamp(1.1rem, 2.5vw, 1.75rem);
+    font-size: clamp(1.1rem, 2.5cqi, 1.75rem);
     font-weight: 600;
   }
   .heading-4 {
-    font-size: clamp(0.95rem, 2vw, 1.25rem);
+    font-size: clamp(0.95rem, 2cqi, 1.25rem);
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;

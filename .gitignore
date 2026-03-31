@@ -33,3 +33,11 @@ apps/api/uploads/
 
 # Local planning
 TODO.md
+
+# Playwright
+e2e/.auth/
+test-results/
+playwright-report/
+
+# Generated demo
+docs/demo.html

@@ -38,12 +38,23 @@
   })
 
   let sorted = $derived([...slide.blocks].sort((a, b) => a.order - b.order))
-  let heroModules = $derived(sorted.filter((m) => m.zone === 'hero'))
+  let layoutType = $derived(slide.layout ?? 'layout-content')
+
+  // For split layouts, filter by zone. For single-zone layouts, render ALL modules
+  // regardless of zone (matches export behavior — prevents modules from disappearing
+  // when inserted with a mismatched zone like 'stage' on a title-slide).
+  let heroModules = $derived(
+    ['title-slide', 'layout-divider', 'closing-slide'].includes(layoutType)
+      ? sorted
+      : sorted.filter((m) => m.zone === 'hero')
+  )
   let contentModules = $derived(sorted.filter((m) => m.zone === 'content'))
   let stageModules = $derived(sorted.filter((m) => m.zone === 'stage'))
-  let mainModules = $derived(sorted.filter((m) => m.zone === 'main'))
-
-  let layoutType = $derived(slide.layout ?? 'layout-content')
+  let mainModules = $derived(
+    ['layout-content', 'layout-grid', 'layout-full-dark'].includes(layoutType)
+      ? sorted
+      : sorted.filter((m) => m.zone === 'main')
+  )
 
   // Branding from deck metadata
   let branding = $derived.by(() => {
@@ -214,6 +225,7 @@
     font-family: var(--font-body);
     box-sizing: border-box;
     position: relative;
+    container-type: inline-size;
   }
 
   /* ── Padding: scaled for the ~700px edit canvas ── */
@@ -224,7 +236,7 @@
   .slide[data-layout="layout-content"],
   .slide[data-layout="layout-grid"],
   .slide[data-layout="layout-full-dark"] {
-    padding: clamp(1rem, 3vw, 32px) clamp(1.25rem, 4vw, 40px);
+    padding: clamp(1rem, 3cqi, 32px) clamp(1.25rem, 4cqi, 40px);
   }
 
   /* ── Zone containers ── */
@@ -235,14 +247,14 @@
     align-items: center;
     justify-content: center;
     text-align: center;
-    gap: clamp(1rem, 2.5vw, 2rem);
+    gap: clamp(1rem, 2.5cqi, 2rem);
   }
 
   .zone-split {
     flex: 1;
     display: flex;
     flex-direction: row;
-    gap: clamp(0.75rem, 2vw, 20px);
+    gap: clamp(0.75rem, 2cqi, 20px);
     position: relative;
     min-height: 0;
     align-items: stretch;
@@ -273,7 +285,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: clamp(1rem, 2vw, 24px);
+    gap: clamp(1rem, 2cqi, 24px);
   }
 
   /* ── Branding logo ── */

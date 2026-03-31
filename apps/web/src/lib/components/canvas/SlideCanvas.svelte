@@ -5,7 +5,6 @@
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId } from '$lib/stores/ui'
   import { activeTheme, ensureThemesLoaded, isDark } from '$lib/stores/themes'
-  import { renderSlideHtml } from '$lib/utils/slide-html'
   import CanvasToolbar from './CanvasToolbar.svelte'
   import FormatToolbar from './FormatToolbar.svelte'
   import SlideRenderer from './SlideRenderer.svelte'
@@ -38,12 +37,6 @@
 
   // Derive theme
   let theme = $derived($activeTheme)
-
-  // Build iframe srcdoc from slide + theme
-  let slideHtml = $derived.by(() => {
-    if (!activeSlide) return ''
-    return renderSlideHtml(activeSlide, theme)
-  })
 
   function openPreview() {
     if (!$currentDeck) return
@@ -123,15 +116,8 @@
           <SlideRenderer slide={activeSlide} {editable} onEditorReady={handleEditorReady} />
         </div>
       {:else}
-        <div class="preview-container">
-          {#key slideHtml}
-          <iframe
-            class="slide-preview-frame"
-            srcdoc={slideHtml}
-            sandbox="allow-same-origin allow-scripts"
-            title="Slide preview"
-          ></iframe>
-          {/key}
+        <div class="slide-frame view-mode" style={themeStyle}>
+          <SlideRenderer slide={activeSlide} editable={false} />
           {#if editable}
             <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div class="click-overlay" onclick={() => setMode('edit')}></div>
@@ -160,23 +146,9 @@
     padding: 1rem;
     overflow: auto;
   }
-  .preview-container {
-    width: 100%;
-    height: 100%;
-    max-height: 100%;
-    aspect-ratio: 16 / 9;
-    position: relative;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  .slide-frame.view-mode {
     cursor: pointer;
-  }
-  .slide-preview-frame {
-    width: 100%;
-    height: 100%;
-    border: none;
-    border-radius: var(--radius-md);
-    background: white;
+    position: relative;
   }
   .click-overlay {
     position: absolute;
@@ -199,7 +171,7 @@
     opacity: 0;
     transition: opacity 0.2s;
   }
-  .preview-container:hover .edit-hint {
+  .slide-frame.view-mode:hover .edit-hint {
     opacity: 1;
   }
   .slide-frame {

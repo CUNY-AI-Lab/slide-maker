@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { untrack } from 'svelte'
+  import { flip } from 'svelte/animate'
   import SlideCard from './SlideCard.svelte'
   import AddSlideMenu from './AddSlideMenu.svelte'
   import { currentDeck } from '$lib/stores/deck'
@@ -6,49 +8,51 @@
   import { dndzone } from 'svelte-dnd-action'
   import { API_URL } from '$lib/api'
 
-  let deck = $state<any>(null)
-  let activeId = $state<string | null>(null)
+  const flipDurationMs = 200
+
   let dragItems = $state<any[]>([])
+  let dragging = false  // plain boolean — NOT $state, so it's invisible to the reactive system
 
+  // Sync dragItems from store — skips during drag so svelte-dnd-action owns the array
   $effect(() => {
-    const unsub = currentDeck.subscribe((v) => { deck = v })
-    return unsub
-  })
-
-  $effect(() => {
-    const unsub = activeSlideId.subscribe((v) => { activeId = v })
-    return unsub
-  })
-
-  // Sync dragItems from store when not actively dragging
-  $effect(() => {
-    dragItems = (deck?.slides ?? []).map((s: any) => ({ ...s }))
+    const slides = $currentDeck?.slides ?? []
+    // untrack: reading `dragging` must not create a dependency
+    if (untrack(() => !dragging)) {
+      dragItems = slides.map((s: any) => ({ ...s }))
+    }
   })
 
   // Scroll to newly active slide
   $effect(() => {
-    if (activeId) {
+    if ($activeSlideId) {
+      const id = $activeSlideId
       requestAnimationFrame(() => {
-        const el = document.querySelector(`[data-slide-id="${activeId}"]`)
+        const el = document.querySelector(`[data-slide-id="${id}"]`)
         el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
       })
     }
   })
 
   function handleConsider(e: CustomEvent<{ items: any[] }>) {
+    dragging = true
     dragItems = e.detail.items
   }
 
   async function handleFinalize(e: CustomEvent<{ items: any[] }>) {
     dragItems = e.detail.items
 
-    // Update the store with the new order
+    // Update store FIRST while dragging is still true (blocks the sync effect)
+    const reordered = dragItems.map((item, i) => ({ ...item, order: i }))
     currentDeck.update((d) => {
       if (!d) return d
-      return { ...d, slides: dragItems.map((item, i) => ({ ...item, order: i })) }
+      return { ...d, slides: reordered }
     })
 
+    // NOW allow syncing again — store already has new order, so next sync is safe
+    dragging = false
+
     // Persist to API
+    const deck = $currentDeck
     if (deck) {
       try {
         await fetch(`${API_URL}/api/decks/${deck.id}/slides/reorder`, {
@@ -67,8 +71,8 @@
 <div class="slide-outline">
   <div class="outline-header">
     <span class="outline-label">SLIDES</span>
-    {#if deck}
-      <AddSlideMenu deckId={deck.id} />
+    {#if $currentDeck}
+      <AddSlideMenu deckId={$currentDeck.id} />
     {/if}
   </div>
 
@@ -79,12 +83,14 @@
   {:else}
     <div
       class="slide-list"
-      use:dndzone={{ items: dragItems, flipDurationMs: 200 }}
+      use:dndzone={{ items: dragItems, flipDurationMs }}
       onconsider={handleConsider}
       onfinalize={handleFinalize}
     >
       {#each dragItems as slide, i (slide.id)}
-        <SlideCard {slide} active={slide.id === activeId} index={i} />
+        <div animate:flip={{ duration: flipDurationMs }}>
+          <SlideCard {slide} active={slide.id === $activeSlideId} index={i} />
+        </div>
       {/each}
     </div>
   {/if}
