@@ -5,6 +5,7 @@ import { PassThrough } from 'stream'
 import { renderDeckHtml, getExtractedArtifacts, clearExtractedArtifacts } from './html-renderer.js'
 import { NAVIGATION_JS } from './navigation.js'
 import { CAROUSEL_JS } from './carousel.js'
+import { ARTIFACTS_JS } from './artifacts.js'
 import { FRAMEWORK_CSS } from './framework-css.js'
 
 const UPLOAD_DIR = path.resolve(import.meta.dirname ?? '.', '..', '..', 'uploads')
@@ -84,6 +85,7 @@ export async function exportDeckAsZip(
     // Bundle deck engine JS
     const ENGINE_JS = `${NAVIGATION_JS}\n${CAROUSEL_JS}`
     archive.append(ENGINE_JS, { name: `${slug}/js/engine.js` })
+    archive.append(ARTIFACTS_JS, { name: `${slug}/js/artifacts.js` })
     archive.append(manifest, { name: `${slug}/manifest.json` })
 
     // Include extracted artifact files, if any
