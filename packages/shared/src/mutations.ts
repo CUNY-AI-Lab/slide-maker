@@ -10,7 +10,7 @@ export type Mutation =
   | { action: 'reorderBlocks'; payload: { slideId: string; order: string[] } }
   | { action: 'applyTemplate'; payload: { slideId?: string; templateId: string } }
   | { action: 'setTheme'; payload: { themeId: string } }
-  | { action: 'updateMetadata'; payload: { field: string; value: string } }
+  | { action: 'updateMetadata'; payload: { name?: string } }
   | { action: 'updateArtifactConfig'; payload: { artifactName: string; config: Record<string, unknown> } }
 
 export interface AddSlidePayload {

@@ -274,17 +274,21 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
       const rawSource = d.rawSource ? String(d.rawSource) : ''
       const isUrl = /^https?:\/\//i.test(rawSrc)
       const alt = esc(String(d.alt || 'Interactive visualization'))
+      const aw = d.width ? String(d.width) : ''
+      const ah = d.height ? String(d.height) : ''
+      const sizeStyle = aw || ah ? ` style="${aw ? `width:${esc(aw)};` : ''}${ah ? `height:${esc(ah)};aspect-ratio:auto;` : ''}"` : ''
+      const iframeTag = (content: string) => `<div class="artifact-wrapper"${step}${sizeStyle}>${content}</div>`
       if (isUrl) {
-        return `<div class="artifact-wrapper"${step}><iframe src="${esc(rawSrc)}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe></div>`
+        return iframeTag(`<iframe src="${esc(rawSrc)}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe>`)
       }
       if (rawSource && opts?.extractArtifacts) {
         const hash = Buffer.from(rawSource).toString('base64url').slice(0, 12)
         const filename = `artifact-${hash}.html`
         extractedArtifacts.set(filename, rawSource)
-        return `<div class="artifact-wrapper"${step}><iframe src="artifacts/${filename}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe></div>`
+        return iframeTag(`<iframe src="artifacts/${filename}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe>`)
       }
       if (rawSource) {
-        return `<div class="artifact-wrapper"${step}><iframe srcdoc="${esc(rawSource)}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe></div>`
+        return iframeTag(`<iframe srcdoc="${esc(rawSource)}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe>`)
       }
       return `<div class="artifact-wrapper"${step} style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;">${alt}</div>`
     }

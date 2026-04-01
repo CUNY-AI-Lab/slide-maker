@@ -19,6 +19,7 @@
 
   const width = $derived(data.width || '100%')
   const height = $derived(data.height || '100%')
+  const hasCustomSize = $derived(!!data.width || !!data.height)
   const alt = $derived(data.alt || 'Interactive visualization')
 
   // Build iframe src: prefer rawSource with CSP injected, fallback to src/url
@@ -54,7 +55,7 @@
   })
 </script>
 
-<div class="artifact-card" style="width: {width};">
+<div class="artifact-card" class:custom-sized={hasCustomSize} style="width: {width};{hasCustomSize ? ` height: ${height};` : ''}">
   {#if editable}
     <div class="artifact-header">
       <span class="artifact-label">{alt}</span>
@@ -65,7 +66,6 @@
       src={iframeSrc}
       class="artifact-iframe"
       class:no-interact={editable}
-      style="height: {height};"
       sandbox="allow-scripts allow-same-origin"
       title={alt}
       loading="lazy"
@@ -80,11 +80,16 @@
 
 <style>
   .artifact-card {
+    display: flex;
+    flex-direction: column;
     border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
     border-radius: 4px;
     overflow: hidden;
     background: rgba(0, 0, 0, 0.02);
     aspect-ratio: 1;
+  }
+  .artifact-card.custom-sized {
+    aspect-ratio: auto;
   }
   .artifact-header {
     display: flex;
@@ -106,7 +111,8 @@
     display: block;
     border: none;
     width: 100%;
-    height: 100%;
+    flex: 1;
+    min-height: 0;
   }
   .artifact-iframe.no-interact {
     pointer-events: none;

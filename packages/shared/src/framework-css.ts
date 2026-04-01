@@ -192,11 +192,13 @@ figcaption { margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); }
 
 /* ── Module: Artifact ─────────────────────────────────────────────── */
 .artifact-wrapper {
+  display: flex; flex-direction: column;
   max-width: 280px; border-radius: 4px; overflow: hidden;
   border: 1px solid var(--border-subtle);
   background: rgba(0,0,0,0.15);
 }
-.artifact-wrapper iframe { display: block; width: 100%; aspect-ratio: 1; max-height: 280px; border: none; }
+.artifact-wrapper iframe { display: block; width: 100%; flex: 1; min-height: 0; aspect-ratio: 1; max-height: 280px; border: none; }
+.artifact-wrapper[style*="height"] iframe { aspect-ratio: auto; max-height: none; }
 .layout-split > .stage .artifact-wrapper { max-width: 240px; }
 .layout-split > .stage .artifact-wrapper iframe { max-height: 240px; }
 

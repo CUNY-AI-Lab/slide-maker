@@ -172,7 +172,7 @@ Each layout defines named **zones** where modules are placed.
 | \`layout-divider\` | Section break | \`hero\` (centered). For part labels between sections. |
 | \`closing-slide\` | Final slide | \`hero\` (centered). For recap, CTA, contact info. |
 
-## Module Types (12 types)
+## Module Types (13 types)
 
 Every module MUST specify a \`zone\` field that matches one of the layout's zones.
 

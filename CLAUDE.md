@@ -290,6 +290,7 @@ Tests import directly from `packages/shared/src/` and `apps/web/src/lib/utils/`.
 - `adapter-auto` warning on build — could switch to `adapter-node` for production.
 - Email verification (SMTP) not configured on staging — admin must manually approve users.
 - `.env` symlink (`apps/api/.env -> ../../.env`) must exist or the API won't load any API keys. If chat shows "No models available", recreate the symlink and restart `pnpm dev`.
+- Undo for `applyTemplate` replace path uses a pre-template snapshot (`_restoreSlide`). If the user edits the slide after applying a template and then undoes, the intermediate edits are lost. Standard undo behavior, but a richer approach (e.g. per-block diffing or undo stack per slide) may be warranted if users report data loss.
 
 ## Session Hand-Off Prompts
 

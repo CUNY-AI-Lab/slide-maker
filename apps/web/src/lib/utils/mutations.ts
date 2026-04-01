@@ -251,6 +251,10 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
         // Replace slide content with template
         const slide = deck.slides.find((s) => s.id === slideId)
         if (slide) {
+          // Snapshot old state for undo
+          const oldLayout = slide.layout
+          const oldBlocks = slide.blocks.map((b) => ({ type: b.type, zone: b.zone, data: { ...b.data }, stepOrder: b.stepOrder }))
+
           for (const block of slide.blocks) {
             await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${block.id}`, 'DELETE')
           }
@@ -270,6 +274,12 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
             layout: template.layout,
             blocks: newBlocks,
           }))
+
+          // Undo: restore old layout and blocks
+          history.pushMutation(
+            { action: 'applyTemplate', payload },
+            { action: '_restoreSlide', payload: { slideId, layout: oldLayout, modules: oldBlocks } }
+          )
         }
       } else {
         // Create new slide from template
@@ -334,6 +344,31 @@ async function applyMutationSilent(mutation: Record<string, unknown>): Promise<v
           b.id === blockId ? { ...b, data: { ...b.data, ...newData } } : b,
         ),
       }))
+      break
+    }
+    case '_restoreSlide': {
+      // Undo for applyTemplate replace path: delete current blocks, restore layout + old blocks
+      const slideId = payload.slideId as string
+      const layout = payload.layout as string
+      const modules = payload.modules as { type: string; zone: string; data: Record<string, unknown>; stepOrder?: number | null }[]
+      const slide = deck.slides.find((s) => s.id === slideId)
+      if (slide) {
+        for (const block of slide.blocks) {
+          await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${block.id}`, 'DELETE')
+        }
+        await apiCall(`/api/decks/${deck.id}/slides/${slideId}`, 'PATCH', { layout })
+        const newBlocks = []
+        for (const mod of modules) {
+          const result = await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks`, 'POST', {
+            type: mod.type,
+            zone: mod.zone,
+            data: mod.data || {},
+            stepOrder: mod.stepOrder,
+          })
+          if (result?.block) newBlocks.push(result.block)
+        }
+        updateSlideInDeck(slideId, (s) => ({ ...s, layout, blocks: newBlocks }))
+      }
       break
     }
     default:
