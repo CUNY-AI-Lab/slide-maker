@@ -214,9 +214,19 @@ describe('module CSS rules in base', () => {
     expect(getProperty(rules[0], 'justify-content')).toBe('center')
   })
 
-  it('artifact-wrapper has max-width constraint', () => {
+  it('artifact-wrapper is fluid width by default', () => {
     const rules = findRules(FRAMEWORK_CSS_BASE, '.artifact-wrapper')
     expect(rules.length).toBeGreaterThan(0)
-    expect(hasProperty(rules[0], 'max-width')).toBe(true)
+    expect(getProperty(rules[0], 'width')).toBe('100%')
+  })
+
+  it('artifact iframe is square by default and drops aspect when height is set', () => {
+    const iframeRules = findRules(FRAMEWORK_CSS_BASE, '.artifact-wrapper iframe')
+    expect(iframeRules.length).toBeGreaterThan(0)
+    expect(getProperty(iframeRules[0], 'aspect-ratio')).toBe('1')
+
+    const override = findRules(FRAMEWORK_CSS_BASE, '.artifact-wrapper[style*="height"] iframe')
+    expect(override.length).toBeGreaterThan(0)
+    expect(getProperty(override[0], 'aspect-ratio')).toBe('auto')
   })
 })
