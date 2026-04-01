@@ -204,8 +204,8 @@
     border: none;
     cursor: pointer;
     color: var(--color-text-muted, #9ca3af);
-    font-size: 12px;
-    padding: 4px 6px;
+    font-size: 11px;
+    padding: 3px 5px;
     line-height: 1;
     flex-shrink: 0;
     opacity: 0;

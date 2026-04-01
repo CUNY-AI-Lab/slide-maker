@@ -7,6 +7,8 @@
   import { activeSlideId } from '$lib/stores/ui'
   import { dndzone } from 'svelte-dnd-action'
   import { API_URL } from '$lib/api'
+  import { goto } from '$app/navigation'
+  import { base } from '$app/paths'
 
   const flipDurationMs = 200
 
@@ -71,9 +73,12 @@
 <div class="slide-outline">
   <div class="outline-header">
     <span class="outline-label">SLIDES</span>
-    {#if $currentDeck}
-      <AddSlideMenu deckId={$currentDeck.id} />
-    {/if}
+    <div class="header-actions">
+      <button class="back-btn" title="Back to decks" onclick={() => goto(`${base}/`)} aria-label="Back to decks">⟵</button>
+      {#if $currentDeck}
+        <AddSlideMenu deckId={$currentDeck.id} />
+      {/if}
+    </div>
   </div>
 
   {#if dragItems.length === 0}
@@ -120,6 +125,16 @@
     letter-spacing: 0.5px;
     color: var(--color-text-muted, #6b7280);
   }
+
+  .header-actions { display: flex; align-items: center; gap: 6px; }
+  .back-btn {
+    width: 24px; height: 24px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid var(--color-border);
+    border-radius: 6px; color: var(--color-text-muted);
+    cursor: pointer; font-size: 13px; line-height: 1;
+  }
+  .back-btn:hover { color: var(--color-primary); border-color: var(--color-primary); background: var(--color-ghost-bg); }
 
   .slide-list {
     flex: 1;

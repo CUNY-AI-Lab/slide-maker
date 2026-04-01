@@ -207,9 +207,9 @@
     display: flex;
     flex-direction: column;
     padding: 0 8px 0 20px;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--color-text-muted, #6b7280);
-    line-height: 1.4;
+    line-height: 1.35;
   }
 
   .block-header {
@@ -237,26 +237,11 @@
     flex-shrink: 0;
   }
 
-  .block-label {
-    white-space: nowrap;
-    font-weight: 600;
-    flex-shrink: 0;
-  }
+  .block-label { white-space: nowrap; font-weight: 600; flex-shrink: 0; font-size: 12px; }
 
-  .block-preview {
-    flex: 1;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    color: var(--color-text-muted, #9ca3af);
-    font-size: 11px;
-  }
+  .block-preview { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--color-text-muted, #9ca3af); font-size: 10px; }
 
-  .expand-arrow {
-    font-size: 9px;
-    color: var(--color-text-muted, #9ca3af);
-    flex-shrink: 0;
-  }
+  .expand-arrow { font-size: 9px; color: var(--color-text-muted, #9ca3af); flex-shrink: 0; }
 
   .block-fields {
     display: flex;
@@ -303,20 +288,12 @@
   }
 
   .delete-block-btn {
-    background: none;
-    border: none;
-    cursor: pointer;
+    background: none; border: none; cursor: pointer;
     color: var(--color-text-muted, #9ca3af);
-    font-size: 14px;
-    padding: 6px 8px;
-    line-height: 1;
-    flex-shrink: 0;
+    font-size: 12px; padding: 4px; line-height: 1; flex-shrink: 0;
     border-radius: var(--radius-sm, 6px);
-    min-width: 24px;
-    min-height: 24px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    min-width: 20px; min-height: 20px;
+    display: inline-flex; align-items: center; justify-content: center;
     transition: color 0.12s ease, background-color 0.12s ease, transform 0.06s ease;
   }
 
