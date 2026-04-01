@@ -317,9 +317,11 @@
 
   .tab-header {
     margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
   }
 
-  .header-actions { display: flex; gap: 6px; }
+  .header-actions { display: flex; gap: 6px; align-items: center; }
 
   .toggle-btn {
     display: flex;
