@@ -12,6 +12,14 @@
   let rightWidth = $state(260)
   let leftCollapsed = $state(false)
   let rightCollapsed = $state(false)
+  let chatCollapsed = $state(false)
+  let outlineCollapsed = $state(false)
+
+  $effect(() => {
+    if (chatCollapsed && outlineCollapsed) {
+      outlineCollapsed = false
+    }
+  })
   let draggingLeft = $state(false)
   let draggingRight = $state(false)
 
@@ -21,6 +29,8 @@
   // Saved panel state for view/edit toggle
   let savedLeft = false
   let savedRight = false
+  let savedChat = false
+  let savedOutline = false
 
   // Only react to canvasMode changes, not panel state
   $effect(() => {
@@ -29,11 +39,15 @@
       if (mode === 'view') {
         savedLeft = leftCollapsed
         savedRight = rightCollapsed
+        savedChat = chatCollapsed
+        savedOutline = outlineCollapsed
         leftCollapsed = true
         rightCollapsed = true
       } else {
         leftCollapsed = savedLeft
         rightCollapsed = savedRight
+        chatCollapsed = savedChat
+        outlineCollapsed = savedOutline
       }
     })
   })
@@ -108,12 +122,58 @@
   
   {#if !leftCollapsed}
     <div class="left-panel" style:width="{leftWidth}px" style:min-width="{leftWidth}px">
-      <div class="chat-section">
-        <ChatPanel />
-      </div>
-      <div class="outline-section">
-        <SlideOutline />
-      </div>
+      {#if !chatCollapsed && !outlineCollapsed}
+        <div class="chat-section">
+          <div class="section-header">
+            <span class="section-label">Chat</span>
+            <button class="section-toggle" onclick={() => chatCollapsed = true} title="Collapse chat" aria-label="Collapse chat">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            </button>
+          </div>
+          <ChatPanel />
+        </div>
+        <div class="outline-section">
+          <div class="section-header">
+            <span class="section-label">Slides</span>
+            <button class="section-toggle" onclick={() => outlineCollapsed = true} title="Collapse outline" aria-label="Collapse outline">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            </button>
+          </div>
+          <SlideOutline />
+        </div>
+      {:else if chatCollapsed}
+        <div class="collapsed-tab top">
+          <button class="tab-restore" onclick={() => chatCollapsed = false} title="Expand chat" aria-label="Expand chat">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            <span>Chat</span>
+          </button>
+        </div>
+        <div class="outline-section full">
+          <div class="section-header">
+            <span class="section-label">Slides</span>
+            <button class="section-toggle" onclick={() => outlineCollapsed = true} title="Collapse outline" aria-label="Collapse outline">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            </button>
+          </div>
+          <SlideOutline />
+        </div>
+      {:else}
+        <div class="chat-section full">
+          <div class="section-header">
+            <span class="section-label">Chat</span>
+            <button class="section-toggle" onclick={() => chatCollapsed = true} title="Collapse chat" aria-label="Collapse chat">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            </button>
+          </div>
+          <ChatPanel />
+        </div>
+        <div class="collapsed-tab bottom">
+          <button class="tab-restore" onclick={() => outlineCollapsed = false} title="Expand outline" aria-label="Expand outline">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            <span>Slides</span>
+          </button>
+        </div>
+      {/if}
     </div>
     <div class="resize-handle left-handle" onmousedown={startLeftResize}>
       <div class="handle-line"></div>
@@ -182,18 +242,102 @@
     overflow: hidden;
   }
 
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .section-label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-muted);
+  }
+
+  .section-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .section-toggle:hover {
+    color: var(--color-primary);
+    background: var(--color-ghost-bg);
+  }
+
   .chat-section {
     flex: 1;
     display: flex;
     flex-direction: column;
-    border-bottom: 2px solid var(--color-border);
     min-height: 0;
+    overflow: hidden;
+  }
+
+  .chat-section.full {
+    flex: 1;
+    height: 0;
   }
 
   .outline-section {
     height: 260px;
     min-height: 200px;
     overflow-y: auto;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .outline-section.full {
+    flex: 1;
+    height: 0;
+    min-height: 0;
+    border-top: none;
+  }
+
+  .collapsed-tab {
+    flex-shrink: 0;
+  }
+
+  .collapsed-tab.top {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .collapsed-tab.bottom {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .tab-restore {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 8px 10px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .tab-restore:hover {
+    color: var(--color-primary);
+    background: var(--color-ghost-bg);
   }
 
   .center-panel {
