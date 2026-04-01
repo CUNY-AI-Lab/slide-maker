@@ -1,5 +1,6 @@
 <script lang="ts">
   import { get } from 'svelte/store'
+  import { base } from '$app/paths'
   import { api } from '$lib/api'
   import ModelSelector from './ModelSelector.svelte'
   import ChatMessage from './ChatMessage.svelte'
@@ -227,7 +228,7 @@
 
 <div class="chat-panel">
   <div class="chat-header">
-    <span class="chat-title"><span class="brand-slide">Slide</span> <span class="brand-wiz">Wiz</span></span>
+    <a href="{base}/" class="chat-title"><span class="brand-slide">Slide</span> <span class="brand-wiz">Wiz</span></a>
     <div class="chat-controls">
       <ModelSelector />
       {#if $chatStreaming}
@@ -343,7 +344,10 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    text-decoration: none;
+    transition: opacity 0.15s;
   }
+  .chat-title:hover { opacity: 0.7; }
 
   .brand-slide {
     color: #1a1a2e;
