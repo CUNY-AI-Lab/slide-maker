@@ -102,17 +102,20 @@
   }
 
   function handleModuleStepChange(moduleId: string, stepOrder: number | null) {
+    // Harden: clamp step values to a safe range [0, 8]
+    const MAX_STEP = 8
+    const normalized = stepOrder == null ? null : Math.max(0, Math.min(MAX_STEP, Number(stepOrder)))
     updateSlideInDeck(slide.id, (s) => ({
       ...s,
       blocks: s.blocks.map((b) =>
-        b.id === moduleId ? { ...b, stepOrder } : b
+        b.id === moduleId ? { ...b, stepOrder: normalized } : b
       ),
     }))
     fetch(`${API_URL}/api/decks/${slide.deckId}/slides/${slide.id}/blocks/${moduleId}`, {
       method: 'PATCH',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stepOrder }),
+      body: JSON.stringify({ stepOrder: normalized }),
     }).catch(console.error)
   }
 
