@@ -5,6 +5,8 @@
   import SlideCanvas from '$lib/components/canvas/SlideCanvas.svelte'
   import ResourcePanel from '$lib/components/resources/ResourcePanel.svelte'
   import { base } from '$app/paths'
+  import { history } from '$lib/stores/history'
+  import { undo, redo } from '$lib/utils/mutations'
 
   let { editable = true }: { editable?: boolean } = $props()
 
@@ -78,10 +80,62 @@
     window.addEventListener('mousemove', onMove)
     window.addEventListener('mouseup', onUp)
   }
+
+  // Ensure slides (center) remain visible on narrow viewports
+  // Auto-collapse side panels below a breakpoint and restore above
+  const NARROW_BP = 1024
+  function handleResize() {
+    const narrow = window.innerWidth < NARROW_BP
+    if (narrow) {
+      leftCollapsed = true
+      rightCollapsed = true
+    } else {
+      // restore previously saved states when exiting narrow mode
+      leftCollapsed = savedLeft
+      rightCollapsed = savedRight
+    }
+  }
+
+  $effect(() => {
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  })
+
+  // Undo/Redo availability (industry-standard: visible controls + shortcuts)
+  let canUndo = $state(false)
+  let canRedo = $state(false)
+  let isMac = $state(false)
+
+  $effect(() => {
+    const u = history.canUndo.subscribe((v) => (canUndo = v))
+    const r = history.canRedo.subscribe((v) => (canRedo = v))
+    return () => { u(); r() }
+  })
+
+  // Detect platform for tooltip hint
+  $effect(() => { isMac = navigator.platform.includes('Mac') })
 </script>
 
 <div class="editor-wrapper">
 <div class="editor-shell" class:resizing={draggingLeft || draggingRight}>
+  <!-- Top toolbar: Undo / Redo -->
+  <div class="editor-toolbar">
+    <button
+      class="toolbar-btn"
+      title={`Undo (${isMac ? '⌘' : 'Ctrl+'}Z)`}
+      onclick={() => undo()}
+      disabled={!canUndo || !editable}
+      aria-label="Undo"
+    >↶</button>
+    <button
+      class="toolbar-btn"
+      title={`Redo (${isMac ? '⌘⇧' : 'Ctrl+Shift+'}Z)`}
+      onclick={() => redo()}
+      disabled={!canRedo || !editable}
+      aria-label="Redo"
+    >↷</button>
+  </div>
   {#if !leftCollapsed}
     <div class="left-panel" style:width="{leftWidth}px" style:min-width="{leftWidth}px">
       <div class="chat-section">
@@ -142,6 +196,44 @@
     overflow: hidden;
     position: relative;
   }
+
+  /* Toolbar */
+  .editor-toolbar {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.8);
+    color: var(--color-text, #1f2937);
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 999px;
+    padding: 4px;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    z-index: 30;
+  }
+  :global(.dark) .editor-toolbar { background: rgba(17, 24, 39, 0.6); color: #e5e7eb; }
+
+  .toolbar-btn {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    line-height: 1;
+    background: transparent;
+    border: none;
+    border-radius: 999px;
+    color: inherit;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.06s, color 0.15s;
+  }
+  .toolbar-btn:hover:not(:disabled) { background: rgba(59, 115, 230, 0.12); color: var(--color-primary, #3B73E6); }
+  .toolbar-btn:active:not(:disabled) { transform: translateY(1px); }
+  .toolbar-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
   .editor-shell.resizing {
     cursor: col-resize;
