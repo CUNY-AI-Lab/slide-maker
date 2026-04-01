@@ -1,5 +1,6 @@
 <script lang="ts">
   import { untrack } from 'svelte'
+  import { base } from '$app/paths'
   import { buildSourceWithConfig } from '$lib/utils/artifact-config'
 
   let { data, editable = false } = $props<{
@@ -43,7 +44,7 @@
       // Serve via same-origin endpoint so subresources (e.g., OSM tiles) get a proper Referer
       // Base64-encode to pass safely in the query string
       const b64 = btoa(unescape(encodeURIComponent(html)))
-      return { src: `/artifact?b64=${encodeURIComponent(b64)}`, srcdoc: '' }
+      return { src: `${base}/artifact?b64=${encodeURIComponent(b64)}`, srcdoc: '' }
     }
     const src = data.src || data.url || ''
     // Only allow http(s) and blob URLs to prevent javascript: and data: injection
