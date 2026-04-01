@@ -299,8 +299,9 @@
     max-height: 40px;
     object-fit: contain;
     opacity: 0.85;
+    pointer-events: none; /* don't block interactions or selection */
   }
-  .branding-logo.top-left { top: 8px; left: 12px; }
-  .branding-logo.top-right { top: 8px; right: 12px; }
-  .branding-logo.bottom-left { bottom: 8px; left: 12px; }
+  .branding-logo.top-left { top: 10px; left: 14px; }
+  .branding-logo.top-right { top: 10px; right: 14px; }
+  .branding-logo.bottom-left { bottom: 12px; left: 14px; }
 </style>

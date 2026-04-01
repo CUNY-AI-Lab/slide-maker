@@ -144,7 +144,7 @@
   .slide-card {
     border: 1px solid var(--color-border, #e5e7eb);
     border-radius: 4px;
-    margin: 0 6px 4px;
+    margin: 0 6px 2px;
     background: var(--color-bg);
     cursor: pointer;
     transition: border-color 0.15s, background-color 0.15s;
@@ -159,7 +159,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 6px 8px;
+    padding: 4px 8px;
     font-size: 13px;
     font-weight: 500;
     user-select: none;
