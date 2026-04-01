@@ -113,7 +113,7 @@ export function buildSystemPrompt(opts: BuildPromptOptions): string {
       const blocksSummary = s.blocks
         .map(
           (b) =>
-            `      - Module "${b.id}" type="${b.type}" zone="${(b.data as Record<string, unknown>).zone ?? 'unknown'}" data=${JSON.stringify(b.data)}`
+            `      - Module "${b.id}" type="${b.type}" zone="${b.zone ?? 'unknown'}" data=${JSON.stringify(b.data)}`
         )
         .join('\n')
       return `    Slide ${s.order + 1} (id="${s.id}", layout="${s.layout}")${active}\n${blocksSummary || '      (no modules)'}`
@@ -121,7 +121,7 @@ export function buildSystemPrompt(opts: BuildPromptOptions): string {
     .join('\n')
 
   const activeSlideInfo = (() => {
-    if (!activeSlideId) return 'Active Slide: none'
+    if (!activeSlideId) return 'Active Slide: none — do not modify slides; ask the user to select a slide first.'
     const s = deck.slides.find((sl) => sl.id === activeSlideId)
     if (!s) return `Active Slide: id="${activeSlideId}" (not found in deck)`
     return `Active Slide: Slide ${s.order + 1} (id="${s.id}", layout="${s.layout}")`
@@ -206,7 +206,7 @@ Every module MUST specify a \`zone\` field that matches one of the layout's zone
 - **flow**: \`{ "nodes": [{"label": "string", "description": "optional string"}, ...] }\` — Vertical process flow with arrows
 
 ### Embeds
-- **artifact**: \`{ "src": "url string", "width": "optional (default 100%)", "height": "optional (default 400px)", "alt": "description" }\` — Interactive JS visualization in sandboxed iframe. Use for live demos, simulations, or interactive visualizations.
+- **artifact**: \`{ "artifactName": "string", "alt": "string", "width": "optional (default 100%)", "height": "optional (default 400px)" }\` — Interactive JS visualization rendered in a sandboxed iframe. Pick a name from "Available Artifacts". Do not inline raw source.
 
 IMPORTANT: Use ONLY the 13 module types listed above. Do not invent other types.
 
@@ -379,14 +379,12 @@ IMAGE RULES:
 ${buildArtifactsSection(opts)}
 
 ARTIFACT RULES:
-- Artifacts are interactive JavaScript visualizations (canvas animations, simulations, generative art).
-- The user can insert artifacts from the **Artifacts tab** in the Resources panel on the right.
-- When a user asks for a visualization or interactive element, check if a matching artifact exists in Available Artifacts and suggest they insert it from the Artifacts tab.
-- Do NOT try to embed raw HTML source code in mutations. Artifacts are too large to inline.
-- You CAN create a placeholder artifact module: \`{ "type": "artifact", "zone": "<zone>", "data": { "alt": "Lorenz Attractor" } }\` — the user can then replace it from the Artifacts tab.
-- To change artifact parameters, use the \`updateArtifactConfig\` mutation (see below).
-- For natural language requests like "make the attractor faster", infer the right artifact from context (slide position, description, Deck Artifacts list) and the right parameter.
-- If ambiguous which artifact the user means, ask them to clarify.
+- Artifacts are interactive JavaScript visualizations (canvas animations, simulations, maps, charts).
+- Insert with an artifact block referencing a known name: \`{ "type": "artifact", "zone": "<zone>", "data": { "artifactName": "Lorenz Attractor", "alt": "Lorenz Attractor", "width": "100%", "height": "400px" } }\`.
+- Do NOT inline large raw HTML sources or third‑party script URLs in mutations. The app resolves the source from the artifact catalog and injects config safely.
+- Use \`updateArtifactConfig\` to change parameters for a named artifact across all of its instances in the deck. Use \`updateBlock\` only for per‑instance size/placement (e.g., width/height).
+- When a user requests a visualization, look it up in Available Artifacts by name; if unclear, ask them to clarify or propose a close match.
+- The Deck Artifacts list shows which artifacts are already placed and their config. Use it to guide updates.
 
 ## Guidelines
 - ALWAYS include conversational text alongside mutations. Never respond with only mutation blocks.
@@ -487,6 +485,32 @@ User: "Make the boids faster and add more of them"
   "payload": {
     "artifactName": "Boids",
     "config": { "count": 200, "maxSpeed": 3.5 }
+  }
+}
+\`\`\`
+
+### Inserting an artifact and sizing it
+User: "Add a Lorenz Attractor on the right"
+\`\`\`mutation
+{
+  "action": "addBlock",
+  "payload": {
+    "slideId": "<slideId>",
+    "block": {
+      "type": "artifact",
+      "zone": "stage",
+      "data": { "artifactName": "Lorenz Attractor", "alt": "Lorenz Attractor", "width": "100%", "height": "380px" }
+    }
+  }
+}
+\`\`\`
+To tweak the parameters after insertion:
+\`\`\`mutation
+{
+  "action": "updateArtifactConfig",
+  "payload": {
+    "artifactName": "Lorenz Attractor",
+    "config": { "particleCount": 12, "sigma": 15 }
   }
 }
 \`\`\`

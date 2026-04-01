@@ -47,7 +47,7 @@
       case 'carousel':
         return { items: [] }
       case 'comparison':
-        return { panels: [{ title: 'Left', content: '' }, { title: 'Right', content: '' }] }
+        return { panels: [{ title: 'Option A', content: 'Describe this approach...' }, { title: 'Option B', content: 'Describe this approach...' }] }
       case 'card-grid':
         return { cards: [] }
       case 'flow':

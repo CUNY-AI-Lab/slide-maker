@@ -159,6 +159,8 @@
     min-height: 2rem;
     flex: 1;
     padding: 0;
+    width: 100%;
+    align-self: stretch;
     container-type: inline-size;
   }
 
@@ -192,10 +194,10 @@
     border-radius: var(--radius-sm, 4px);
     font-size: 0.875rem;
     color: inherit;
-    /* Avoid splitting words mid‑letters; allow long URLs/text to wrap */
+    /* Allow long URLs/text to wrap at word boundaries */
     word-break: normal;
-    overflow-wrap: anywhere;
-    hyphens: auto;
+    overflow-wrap: break-word;
+    hyphens: manual;
     transition: background 0.15s ease;
   }
 
