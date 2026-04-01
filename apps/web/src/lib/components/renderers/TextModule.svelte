@@ -121,9 +121,6 @@
   .text-preview.editable {
     cursor: text;
     border-radius: var(--radius-sm, 4px);
-  }
-  .text-preview.editable:hover {
-    outline: 1px dashed rgba(59, 115, 230, 0.25);
-    outline-offset: 2px;
+    padding-inline: 12px;
   }
 </style>

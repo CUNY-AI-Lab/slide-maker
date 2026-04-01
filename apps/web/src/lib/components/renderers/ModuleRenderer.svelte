@@ -129,8 +129,8 @@
     const naturalH = wrapperEl!.scrollHeight
 
     function onMove(ev: MouseEvent) {
-      const newW = Math.max(60, startW + (ev.clientX - startX))
-      const newH = Math.max(30, startH + (ev.clientY - startY))
+      const newW = Math.max(160, startW + (ev.clientX - startX))
+      const newH = Math.max(60, startH + (ev.clientY - startY))
       customW = newW
       customH = newH
       resizeLabel = `${Math.round(newW)} × ${Math.round(newH)}`
@@ -250,12 +250,12 @@
     overflow: hidden;
   }
   .module-wrapper.editable {
-    outline: 1px dashed rgba(255, 255, 255, 0.12);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-sm, 6px);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+    transition: box-shadow 0.15s ease;
   }
   .module-wrapper.editable:hover {
-    outline-color: rgba(59, 115, 230, 0.4);
-    transition: outline-color 0.15s ease;
+    box-shadow: inset 0 0 0 1px rgba(59, 115, 230, 0.35);
   }
   .module-wrapper.resizing {
     user-select: none;
