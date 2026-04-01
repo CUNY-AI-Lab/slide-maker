@@ -7,6 +7,14 @@
 
   let open = $state(false)
   let adding = $state(false)
+  let triggerEl: HTMLButtonElement | undefined = $state()
+  let dropdownStyle = $state('')
+
+  function positionDropdown() {
+    if (!triggerEl) return
+    const rect = triggerEl.getBoundingClientRect()
+    dropdownStyle = `position:fixed;top:${rect.bottom + 4}px;right:${window.innerWidth - rect.right}px;`
+  }
 
   const layouts = [
     { layout: 'title-slide', label: 'Title Slide', icon: '🎯', desc: 'Cover with title + subtitle' },
@@ -20,6 +28,7 @@
 
   function toggle() {
     open = !open
+    if (open) positionDropdown()
   }
 
   function handleClickOutside(e: MouseEvent) {
@@ -65,9 +74,9 @@
 </script>
 
 <div class="add-slide-menu">
-  <button class="add-btn" onclick={toggle}>+</button>
+  <button class="add-btn" bind:this={triggerEl} onclick={toggle}>+</button>
   {#if open}
-    <div class="dropdown">
+    <div class="dropdown" style={dropdownStyle}>
       {#each layouts as l}
         <button class="dropdown-item" onclick={() => addSlide(l.layout)} disabled={adding}>
           <span class="item-icon">{l.icon}</span>
@@ -103,10 +112,6 @@
   }
 
   .dropdown {
-    position: absolute;
-    top: 100%;
-    right: 0;
-    margin-top: 4px;
     background: white;
     border: 1px solid var(--color-border, #e5e7eb);
     border-radius: 6px;

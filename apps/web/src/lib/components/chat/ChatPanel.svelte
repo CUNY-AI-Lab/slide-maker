@@ -19,6 +19,8 @@
   import { streamChat } from '$lib/utils/sse'
   import { extractMutations, applyMutation } from '$lib/utils/mutations'
 
+  let { onCollapse }: { onCollapse?: () => void } = $props()
+
   let messagesContainer: HTMLDivElement | undefined = $state()
   let messages = $state<ChatMsg[]>([])
   let clearing = $state(false)
@@ -55,8 +57,9 @@
     if (!deck) return
 
     // Handle /search command
-    if (text.trim().startsWith('/search ')) {
-      const query = text.trim().slice(8).trim()
+    const trimmed = text.trim()
+    if (trimmed.startsWith('/search ')) {
+      const query = trimmed.slice(8).trim()
       if (!query) return
       addUserMessage(text)
       const searchMsgId = addAssistantMessage()
@@ -250,6 +253,11 @@
           </div>
         {/if}
       </div>
+      {#if onCollapse}
+        <button class="collapse-toggle" onclick={onCollapse} title="Collapse chat" aria-label="Collapse chat">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        </button>
+      {/if}
     </div>
   </div>
 
@@ -284,7 +292,29 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 10px;
+    padding: 5px 8px;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .collapse-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0;
+    flex-shrink: 0;
+    transition: color 0.15s, background 0.15s;
+  }
+
+  .collapse-toggle:hover {
+    color: var(--color-primary);
+    background: var(--color-ghost-bg);
   }
 
   .reset-wrap { position: relative; }

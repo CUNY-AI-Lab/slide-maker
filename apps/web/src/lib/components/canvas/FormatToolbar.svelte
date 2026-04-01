@@ -107,8 +107,8 @@
   .format-toolbar {
     display: flex;
     align-items: center;
-    gap: 2px;
-    padding: 4px 8px;
+    gap: 1px;
+    padding: 2px 6px;
     background: var(--color-bg);
     border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
@@ -128,13 +128,13 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border: none;
     border-radius: 4px;
     background: transparent;
     color: var(--color-text-secondary);
-    font-size: 13px;
+    font-size: 12px;
     cursor: pointer;
     transition: background 0.1s, color 0.1s;
     padding: 0;
@@ -158,8 +158,8 @@
   }
 
   .heading-select {
-    height: 28px;
-    padding: 0 4px;
+    height: 26px;
+    padding: 0 3px;
     border: 1px solid var(--color-border);
     border-radius: 4px;
     background: var(--color-bg);
@@ -176,8 +176,8 @@
   }
 
   .font-size-select {
-    height: 28px;
-    padding: 0 4px;
+    height: 26px;
+    padding: 0 3px;
     border: 1px solid var(--color-border);
     border-radius: 4px;
     background: var(--color-bg);
