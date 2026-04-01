@@ -24,8 +24,6 @@
   let messagesContainer: HTMLDivElement | undefined = $state()
   let messages = $state<ChatMsg[]>([])
   let clearing = $state(false)
-  let showConfirm = $state(false)
-  let confirmText = $state('')
   let controller: AbortController | null = $state(null)
   let currentAssistantId: string | null = $state(null)
 
@@ -212,14 +210,10 @@
     const deck = get(currentDeck)
     if (!deck) return
     if ($chatStreaming) return
-    if (!showConfirm) { showConfirm = true; confirmText = ''; return }
-    // Require typing RESET to proceed
-    if (confirmText.trim().toUpperCase() !== 'RESET') return
     try {
       clearing = true
       await api.resetChatHistory(deck.id)
       chatMessages.set([])
-      showConfirm = false
     } catch (err) {
       console.error('Failed to reset chat:', err)
     } finally {
@@ -243,15 +237,8 @@
           disabled={clearing || $chatStreaming}
           aria-label="Reset chat"
         >
-          {clearing ? '...' : (showConfirm ? 'Confirm' : 'Reset')}
+          {clearing ? '...' : 'Reset'}
         </button>
-        {#if showConfirm}
-          <div class="confirm-pop">
-            <label>Type <b>RESET</b> to confirm</label>
-            <input class="confirm-input" type="text" bind:value={confirmText} placeholder="RESET" />
-            <button class="confirm-cancel" onclick={() => { showConfirm = false; confirmText = '' }}>Cancel</button>
-          </div>
-        {/if}
       </div>
       {#if onCollapse}
         <button class="collapse-toggle" onclick={onCollapse} title="Collapse chat" aria-label="Collapse chat">
@@ -350,23 +337,7 @@
   }
   .reset-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-  .confirm-pop {
-    position: absolute;
-    right: 0;
-    top: 32px;
-    background: var(--color-bg);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    padding: 8px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    z-index: 10;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-    font-size: 12px;
-  }
-  .confirm-input { width: 80px; padding: 3px 6px; font-size: 11px; border: 1px solid var(--color-border); border-radius: 4px; }
-  .confirm-cancel { background: transparent; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 11px; }
+  /* Confirmation UI removed: reset is one-click by design */
 
   .messages {
     flex: 1;
