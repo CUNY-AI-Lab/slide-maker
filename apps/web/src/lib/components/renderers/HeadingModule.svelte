@@ -15,12 +15,19 @@
 
   let containerEl: HTMLElement | undefined = $state(undefined)
   let fittedFontSize: number | undefined = $state(undefined)
+  let focused = $state(false)
+
+  // Set text content via DOM ref — Svelte must NOT manage contenteditable text
+  $effect(() => {
+    if (containerEl && !focused) {
+      containerEl.textContent = text
+    }
+  })
 
   $effect(() => {
     void text
     void level
     if (!containerEl || !text.trim()) { fittedFontSize = undefined; return }
-    // Defer fitText until after first paint so it doesn't block slide transitions
     const raf = requestAnimationFrame(() => {
       if (!containerEl) return
       const w = containerEl.clientWidth
@@ -38,7 +45,6 @@
   function handleInput(e: Event) {
     const target = e.target as HTMLElement
     const newText = target.textContent ?? ''
-    data.text = newText
     clearTimeout(saveTimer)
     saveTimer = setTimeout(() => {
       onchange?.({ ...data, text: newText })
@@ -51,37 +57,45 @@
     bind:this={containerEl}
     class="heading heading-1"
     contenteditable={editable}
+    onfocus={() => focused = true}
     oninput={handleInput}
+    onblur={() => focused = false}
     role={editable ? 'textbox' : undefined}
     style:font-size={fittedFontSize ? `${fittedFontSize}px` : undefined}
-  >{text}</h1>
+  ></h1>
 {:else if level === 2}
   <h2
     bind:this={containerEl}
     class="heading heading-2"
     contenteditable={editable}
+    onfocus={() => focused = true}
     oninput={handleInput}
+    onblur={() => focused = false}
     role={editable ? 'textbox' : undefined}
     style:font-size={fittedFontSize ? `${fittedFontSize}px` : undefined}
-  >{text}</h2>
+  ></h2>
 {:else if level === 3}
   <h3
     bind:this={containerEl}
     class="heading heading-3"
     contenteditable={editable}
+    onfocus={() => focused = true}
     oninput={handleInput}
+    onblur={() => focused = false}
     role={editable ? 'textbox' : undefined}
     style:font-size={fittedFontSize ? `${fittedFontSize}px` : undefined}
-  >{text}</h3>
+  ></h3>
 {:else}
   <h4
     bind:this={containerEl}
     class="heading heading-4"
     contenteditable={editable}
+    onfocus={() => focused = true}
     oninput={handleInput}
+    onblur={() => focused = false}
     role={editable ? 'textbox' : undefined}
     style:font-size={fittedFontSize ? `${fittedFontSize}px` : undefined}
-  >{text}</h4>
+  ></h4>
 {/if}
 
 <style>

@@ -120,6 +120,13 @@ export function buildSystemPrompt(opts: BuildPromptOptions): string {
     })
     .join('\n')
 
+  const activeSlideInfo = (() => {
+    if (!activeSlideId) return 'Active Slide: none'
+    const s = deck.slides.find((sl) => sl.id === activeSlideId)
+    if (!s) return `Active Slide: id="${activeSlideId}" (not found in deck)`
+    return `Active Slide: Slide ${s.order + 1} (id="${s.id}", layout="${s.layout}")`
+  })()
+
   const templatesList = templates?.length
     ? templates.map((t) => {
         const modSummary = ((t.modules ?? []) as any[]).map((m: any) => `${m.type}(${m.zone})`).join(', ')
@@ -136,6 +143,8 @@ export function buildSystemPrompt(opts: BuildPromptOptions): string {
     : ''
 
   return `You are a slide deck authoring assistant for the CUNY AI Lab Slide Wiz. You help create professional presentation slides.
+
+${activeSlideInfo}
 
 ## Your Role
 You help users create, edit, and refine presentation slides through natural conversation. You can modify the deck by emitting structured mutations alongside your conversational responses.

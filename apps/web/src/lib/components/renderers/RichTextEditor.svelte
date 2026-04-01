@@ -25,6 +25,7 @@
   let toolbarEl: HTMLDivElement | undefined = $state(undefined)
   let editor: Editor | null = $state(null)
   let saveTimer: ReturnType<typeof setTimeout> | undefined
+  let lastEmittedHtml = $state('')
   // Toolbar state tracking
 
   // Toolbar active states
@@ -66,7 +67,9 @@
       onUpdate: ({ editor: ed }) => {
         clearTimeout(saveTimer)
         saveTimer = setTimeout(() => {
-          onchange?.(ed.getHTML())
+          const html = ed.getHTML()
+          lastEmittedHtml = html
+          onchange?.(html)
         }, 500)
       },
       onSelectionUpdate: () => {
@@ -92,6 +95,13 @@
   $effect(() => {
     if (editor && editor.isEditable !== editable) {
       editor.setEditable(editable)
+    }
+  })
+
+  // Guard against external content changes (e.g., undo/redo, AI mutations)
+  $effect(() => {
+    if (editor && content !== lastEmittedHtml && content !== editor.getHTML()) {
+      editor.commands.setContent(content, false)
     }
   })
 
