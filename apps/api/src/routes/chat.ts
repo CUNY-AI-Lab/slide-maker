@@ -9,6 +9,9 @@ import { authMiddleware } from '../middleware/auth.js'
 import { chatRateLimit } from '../middleware/rate-limit.js'
 import { getModelStream } from '../providers/index.js'
 import { buildSystemPrompt } from '../prompts/system.js'
+import fs from 'node:fs'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 
 type AuthEnv = {
   Variables: {
@@ -86,12 +89,48 @@ chat.post('/', chatRateLimit, async (c) => {
 
   // Load uploaded files for context
   const deckFiles = await db.select().from(uploadedFiles).where(eq(uploadedFiles.deckId, deckId))
-  const filesList = deckFiles.map((f) => ({
-    id: f.id,
-    filename: f.filename,
-    mimeType: f.mimeType,
-    url: `/api/decks/${deckId}/files/${f.id}`,
-  }))
+  // Attempt to attach short Markdown excerpts for PDFs/DOCX if present
+  const filesList = (() => {
+    const list = deckFiles.map((f) => ({
+      id: f.id,
+      filename: f.filename,
+      mimeType: f.mimeType,
+      url: `/api/decks/${deckId}/files/${f.id}`,
+      path: f.path as string,
+    }))
+
+    // Compute sidecar .md path and load excerpts
+    const MAX_TOTAL = 4000
+    const candidates = list.filter((f) => f.mimeType?.includes('pdf') || f.mimeType?.includes('word'))
+    let perDoc = candidates.length > 0 ? Math.floor(MAX_TOTAL / candidates.length) : 0
+    if (perDoc < 1200) perDoc = 1200
+
+    try {
+      const __dirname = path.dirname(fileURLToPath(import.meta.url))
+      const UPLOADS_DIR = path.resolve(__dirname, '../../uploads')
+
+      for (const f of list) {
+        if (!(f.mimeType?.includes('pdf') || f.mimeType?.includes('word'))) continue
+        let mdPath: string
+        if (f.path && path.isAbsolute(f.path)) {
+          mdPath = path.join(path.dirname(f.path), `${f.id}.md`)
+        } else if (f.path) {
+          mdPath = path.join(UPLOADS_DIR, path.dirname(f.path), `${f.id}.md`)
+        } else {
+          mdPath = path.join(UPLOADS_DIR, deckId, `${f.id}.md`)
+        }
+        try {
+          if (fs.existsSync(mdPath)) {
+            const md = fs.readFileSync(mdPath, 'utf8').trim()
+            ;(f as any).excerpt = md.length > perDoc ? md.slice(0, perDoc) + '\n\n…' : md
+          }
+        } catch {}
+      }
+    } catch {}
+
+    // Strip internal path before returning
+    return list.map(({ path: _p, ...rest }) => rest)
+  })()
 
   // Load templates
   const allTemplates = await db.select().from(templates)
@@ -312,6 +351,21 @@ chat.delete('/:deckId/history', async (c) => {
 
   if (!access) {
     return c.json({ error: 'Not found or no access' }, 404)
+  }
+  if (access.role === 'viewer') {
+    return c.json({ error: 'Forbidden: viewers cannot clear chat' }, 403)
+  }
+
+  // Require a confirmation token in request body (deckId) to reduce accidental clears
+  let confirm = ''
+  try {
+    const body = await c.req.json()
+    confirm = body?.confirm ?? ''
+  } catch {
+    // ignore — body may be empty
+  }
+  if (confirm !== deckId) {
+    return c.json({ error: 'Confirmation required' }, 400)
   }
 
   await db.delete(chatMessages).where(eq(chatMessages.deckId, deckId))

@@ -22,6 +22,8 @@
   let messagesContainer: HTMLDivElement | undefined = $state()
   let messages = $state<ChatMsg[]>([])
   let clearing = $state(false)
+  let showConfirm = $state(false)
+  let confirmText = $state('')
 
   // Subscribe to store
   $effect(() => {
@@ -181,12 +183,15 @@
     if (clearing) return
     const deck = get(currentDeck)
     if (!deck) return
-    const confirmMsg = 'Clear chat history for this deck? This action cannot be undone.'
-    if (!window.confirm(confirmMsg)) return
+    if ($chatStreaming) return
+    if (!showConfirm) { showConfirm = true; confirmText = ''; return }
+    // Require typing RESET to proceed
+    if (confirmText.trim().toUpperCase() !== 'RESET') return
     try {
       clearing = true
       await api.resetChatHistory(deck.id)
       chatMessages.set([])
+      showConfirm = false
     } catch (err) {
       console.error('Failed to reset chat:', err)
     } finally {
@@ -200,9 +205,24 @@
     <span class="chat-title"><span class="brand-slide">Slide</span> <span class="brand-wiz">Wiz</span></span>
     <div class="chat-controls">
       <ModelSelector />
-      <button class="reset-btn" title="Reset chat" onclick={resetChat} disabled={clearing} aria-label="Reset chat">
-        {clearing ? '…' : 'Reset'}
-      </button>
+      <div class="reset-wrap">
+        <button
+          class="reset-btn"
+          title={$chatStreaming ? 'Wait for response to finish' : 'Reset chat'}
+          onclick={resetChat}
+          disabled={clearing || $chatStreaming}
+          aria-label="Reset chat"
+        >
+          {clearing ? '…' : (showConfirm ? 'Confirm' : 'Reset')}
+        </button>
+        {#if showConfirm}
+          <div class="confirm-pop">
+            <label>Type <b>RESET</b> to confirm</label>
+            <input class="confirm-input" type="text" bind:value={confirmText} placeholder="RESET" />
+            <button class="confirm-cancel" onclick={() => { showConfirm = false; confirmText = '' }}>Cancel</button>
+          </div>
+        {/if}
+      </div>
     </div>
   </div>
 
@@ -243,6 +263,8 @@
     padding: 6px 10px 8px;
   }
 
+  .reset-wrap { position: relative; }
+
   .reset-btn {
     padding: 4px 8px;
     font-size: 12px;
@@ -259,6 +281,23 @@
     border-color: var(--color-primary);
   }
   .reset-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .confirm-pop {
+    position: absolute;
+    right: 0;
+    top: 32px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    z-index: 10;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  }
+  .confirm-input { width: 90px; padding: 4px 6px; font-size: 12px; }
+  .confirm-cancel { background: transparent; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 12px; }
 
   .chat-title {
     padding: 8px 10px 4px;
