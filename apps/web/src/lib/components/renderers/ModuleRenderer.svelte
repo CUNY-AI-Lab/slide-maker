@@ -122,13 +122,13 @@
   style:height={customH ? `${customH}px` : undefined}
 >
   {#if editable}
-    <div class="module-controls">
+    <div class="module-controls" role="toolbar" aria-label="Module controls">
       <div class="ctrl-group">
         {#if !isFirst}
-          <button class="ctrl-btn" onclick={() => onmoveup?.()} title="Move up">▲</button>
+          <button class="ctrl-btn" aria-label="Move module up" onclick={() => onmoveup?.()} title="Move up">▲</button>
         {/if}
         {#if !isLast}
-          <button class="ctrl-btn" onclick={() => onmovedown?.()} title="Move down">▼</button>
+          <button class="ctrl-btn" aria-label="Move module down" onclick={() => onmovedown?.()} title="Move down">▼</button>
         {/if}
       </div>
       <select
@@ -136,6 +136,7 @@
         value={module.stepOrder != null ? String(module.stepOrder) : ''}
         onchange={handleStepChange}
         title="Step reveal order"
+        aria-label="Step reveal order"
       >
         <option value="">Step</option>
         <option value="0">1</option>
@@ -149,6 +150,7 @@
         class:confirming={confirmDelete}
         onclick={handleDelete}
         title={confirmDelete ? 'Click again to confirm' : 'Delete module'}
+        aria-label={confirmDelete ? 'Confirm delete module' : 'Delete module'}
       >
         {confirmDelete ? 'Delete?' : '✕'}
       </button>
@@ -219,21 +221,21 @@
   /* Controls — fade in/out */
   .module-controls {
     position: absolute;
-    top: 4px;
-    right: 4px;
+    bottom: 6px;
+    right: 6px;
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
     z-index: 10;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: var(--radius-sm, 6px);
-    padding: 2px 3px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-    backdrop-filter: blur(4px);
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    padding: 3px 5px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+    backdrop-filter: blur(6px);
     opacity: 0;
     pointer-events: none;
-    transform: translateY(-2px);
+    transform: translateY(2px);
     transition: opacity 0.15s ease, transform 0.15s ease;
   }
   .module-wrapper.editable:hover .module-controls,
@@ -249,46 +251,46 @@
   }
 
   .ctrl-btn {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
+    font-size: 12px;
     background: transparent;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     color: var(--color-text-muted, #6b7280);
     padding: 0;
     font-family: var(--font-body);
     line-height: 1;
-    transition: background 0.1s, color 0.1s;
+    transition: background 0.1s, color 0.1s, box-shadow 0.1s;
   }
   .ctrl-btn:hover {
     background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
     color: var(--color-primary, #3B73E6);
   }
+  .ctrl-btn:focus-visible {
+    outline: 2px solid var(--color-primary, #3B73E6);
+    outline-offset: 1px;
+    box-shadow: 0 0 0 2px rgba(59, 115, 230, 0.2);
+  }
   .step-select {
-    height: 26px;
-    font-size: 10px;
-    border: none;
-    border-radius: 4px;
-    background: transparent;
-    color: var(--color-text-muted, #6b7280);
-    padding: 0 2px 0 6px;
+    height: 28px;
+    font-size: 11px;
+    border: 1px solid var(--color-border, #e5e7eb);
+    border-radius: 6px;
+    background: white;
+    color: var(--color-text, #1f2937);
+    padding: 0 6px;
     cursor: pointer;
     font-family: var(--font-body);
     outline: none;
-    transition: background 0.1s;
+    transition: background 0.1s, border-color 0.1s, box-shadow 0.1s, color 0.1s;
   }
-  .step-select:hover {
-    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
-  }
-  .step-select:focus {
-    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
-    color: var(--color-primary, #3B73E6);
-  }
+  .step-select:hover { border-color: var(--color-text-muted, #94a3b8); }
+  .step-select:focus-visible { border-color: var(--color-primary, #3B73E6); box-shadow: 0 0 0 2px rgba(59, 115, 230, 0.15); }
   .delete-btn:hover {
     color: #ef4444;
     background: rgba(239, 68, 68, 0.1);
@@ -299,8 +301,8 @@
     font-weight: 600;
     border-radius: var(--radius-sm, 6px);
     width: auto;
-    padding: 4px 8px;
-    font-size: 12px;
+    padding: 6px 10px;
+    font-size: 13px;
   }
 
   /* Corner resize — fade in on hover */
