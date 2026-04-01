@@ -57,6 +57,7 @@ interface BuildPromptOptions {
   artifacts?: ArtifactInfo[]
   activeArtifacts?: ActiveArtifact[]
   focusedArtifactNames?: string[]
+  allThemes?: { id: string; name: string }[]
 }
 
 const MAX_SLIDES = 60
@@ -120,12 +121,19 @@ export function buildSystemPrompt(opts: BuildPromptOptions): string {
     .join('\n')
 
   const templatesList = templates?.length
-    ? templates.map((t) => `  - "${t.name}" (id="${t.id}", type="${t.layout}")`).join('\n')
+    ? templates.map((t) => {
+        const modSummary = ((t.modules ?? []) as any[]).map((m: any) => `${m.type}(${m.zone})`).join(', ')
+        return `  - "${t.name}" (id="${t.id}", layout="${t.layout}") → [${modSummary}]`
+      }).join('\n')
     : '  (none loaded)'
 
   const themeInfo = theme
     ? `  Theme: "${theme.name}" (id="${theme.id}")\n  Colors: ${JSON.stringify(theme.colors)}\n  Fonts: ${JSON.stringify(theme.fonts)}`
     : '  No theme set'
+
+  const themeList = opts.allThemes?.length
+    ? '\n  Available themes:\n' + opts.allThemes.map((t) => `    - "${t.name}" (id="${t.id}")`).join('\n')
+    : ''
 
   return `You are a slide deck authoring assistant for the CUNY AI Lab Slide Wiz. You help create professional presentation slides.
 
@@ -287,13 +295,24 @@ Change the deck's theme.
 { "action": "setTheme", "payload": { "themeId": "<themeId>" } }
 \`\`\`
 
-### 9. updateMetadata
+### 9. applyTemplate
+Apply a template. Without \`slideId\`, creates a new slide from the template. With \`slideId\`, replaces that slide's layout and modules with the template content.
+\`\`\`json
+{ "action": "applyTemplate", "payload": { "templateId": "<templateId>" } }
+\`\`\`
+To replace an existing slide's content with the template layout and modules:
+\`\`\`json
+{ "action": "applyTemplate", "payload": { "slideId": "<slideId>", "templateId": "<templateId>" } }
+\`\`\`
+Use the template IDs from the Available Templates list above. When the user asks for a specific layout or style (e.g., "make this a comparison slide"), find the matching template and apply it.
+
+### 10. updateMetadata
 Update deck name or metadata.
 \`\`\`json
 { "action": "updateMetadata", "payload": { "name": "New Deck Name" } }
 \`\`\`
 
-### 10. updateArtifactConfig
+### 11. updateArtifactConfig
 Update the configuration of a named artifact across ALL instances in the deck. Only include keys you want to change (partial update, merged with existing config). Target by exact artifact name from the Available Artifacts table. Refer to Deck Artifacts for current config values. Use @artifact:Name in chat to see valid ranges.
 \`\`\`json
 {
@@ -321,7 +340,7 @@ A carousel module with \`syncSteps: true\` advances its images in sync with step
 ## Current Deck State
 
 Deck: "${deck.name}" (id="${deck.id}")
-${themeInfo}
+${themeInfo}${themeList}
 Total slides: ${deck.slides.length}
 
 ${slidesSummary || '  (empty deck)'}
@@ -362,7 +381,7 @@ ARTIFACT RULES:
 
 ## Guidelines
 - ALWAYS include conversational text alongside mutations. Never respond with only mutation blocks.
-- Use ONLY the 12 module types listed above. Do not invent types like "bullets", "table", "divider", "subtitle", "code", or "quote".
+- Use ONLY the 13 module types listed above. Do not invent types like "bullets", "table", "divider", "subtitle", "code", or "quote".
 - Every module MUST have a \`zone\` field matching the layout's available zones.
 - For \`layout-split\`: put text content (heading, label, text, card, tip-box, prompt-block, stream-list) in the \`"content"\` zone; put visuals (image, carousel) in the \`"stage"\` zone.
 - Use \`label\` modules to tag the section category above headings.
@@ -377,6 +396,8 @@ ARTIFACT RULES:
 - Be creative with content suggestions but stay faithful to the user's intent.
 - For multi-slide operations, emit multiple mutation blocks in sequence.
 - Maximum ${MAX_SLIDES} slides per deck. Do not add slides beyond this limit.
+- When the user asks to change a slide's layout or style to match a known template, use \`applyTemplate\` instead of manually recreating the modules.
+- When suggesting templates, mention them by name so the user can confirm before you apply.
 
 ## Common Mistakes to Avoid
 

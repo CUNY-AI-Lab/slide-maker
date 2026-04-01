@@ -159,6 +159,8 @@ chat.post('/', chatRateLimit, async (c) => {
     }
   }
 
+  const allThemesList = await db.select({ id: themes.id, name: themes.name }).from(themes)
+
   // Load available artifacts (include config for tiered prompt)
   const allArtifacts = await db.select().from(artifacts)
   const artifactsList = allArtifacts.map((a) => {
@@ -216,6 +218,7 @@ chat.post('/', chatRateLimit, async (c) => {
     artifacts: artifactsList,
     activeArtifacts: activeArtifactsList,
     focusedArtifactNames: atRefs.length > 0 ? atRefs : undefined,
+    allThemes: allThemesList,
   })
 
   // Prepare messages for the LLM
