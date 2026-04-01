@@ -12,6 +12,7 @@
 
   let containerEl: HTMLDivElement | undefined = $state(undefined)
   let fittedFontSize: number | undefined = $state(undefined)
+  let editorActive = $state(false)
 
   const BASE_SIZE = 17
   const MIN_SIZE = 12
@@ -23,14 +24,19 @@
       fittedFontSize = undefined
       return
     }
-    const w = containerEl.clientWidth
-    const h = containerEl.clientHeight
-    if (w <= 0 || h <= 0) {
-      fittedFontSize = undefined
-      return
-    }
-    const size = fitText(text, 'Inter', BASE_SIZE, '400', w, h, LINE_HEIGHT, MIN_SIZE)
-    fittedFontSize = size < BASE_SIZE ? size : undefined
+    // Defer fitText until after first paint so it doesn't block slide transitions
+    const raf = requestAnimationFrame(() => {
+      if (!containerEl) return
+      const w = containerEl.clientWidth
+      const h = containerEl.clientHeight
+      if (w <= 0 || h <= 0) {
+        fittedFontSize = undefined
+        return
+      }
+      const size = fitText(text, 'Inter', BASE_SIZE, '400', w, h, LINE_HEIGHT, MIN_SIZE)
+      fittedFontSize = size < BASE_SIZE ? size : undefined
+    })
+    return () => cancelAnimationFrame(raf)
   })
 
   let renderedHtml = $derived(
@@ -49,7 +55,7 @@
   class:column-right={column === 'right'}
   style:font-size={fittedFontSize ? `${fittedFontSize}px` : undefined}
 >
-  {#if editable}
+  {#if editable && editorActive}
     <RichTextEditor
       content={renderedHtml}
       {editable}
@@ -58,7 +64,17 @@
       {oneditorready}
     />
   {:else}
-    {@html renderedHtml}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="text-preview"
+      class:editable
+      onclick={() => { if (editable) editorActive = true }}
+      onkeydown={(e) => { if (editable && e.key === 'Enter') editorActive = true }}
+      role={editable ? 'button' : undefined}
+      tabindex={editable ? 0 : undefined}
+    >
+      {@html renderedHtml}
+    </div>
   {/if}
 </div>
 
@@ -100,4 +116,12 @@
   }
   .column-left { text-align: left; }
   .column-right { text-align: right; }
+  .text-preview.editable {
+    cursor: text;
+    border-radius: var(--radius-sm, 4px);
+  }
+  .text-preview.editable:hover {
+    outline: 1px dashed rgba(59, 115, 230, 0.25);
+    outline-offset: 2px;
+  }
 </style>

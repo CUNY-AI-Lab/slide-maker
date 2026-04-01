@@ -20,12 +20,17 @@
     void text
     void level
     if (!containerEl || !text.trim()) { fittedFontSize = undefined; return }
-    const w = containerEl.clientWidth
-    const h = containerEl.clientHeight
-    if (w <= 0 || h <= 0) { fittedFontSize = undefined; return }
-    const cfg = LEVEL_CONFIG[level] ?? LEVEL_CONFIG[1]
-    const size = fitText(text, 'Outfit', cfg.base, cfg.weight, w, h, 1.2, cfg.min)
-    fittedFontSize = size < cfg.base ? size : undefined
+    // Defer fitText until after first paint so it doesn't block slide transitions
+    const raf = requestAnimationFrame(() => {
+      if (!containerEl) return
+      const w = containerEl.clientWidth
+      const h = containerEl.clientHeight
+      if (w <= 0 || h <= 0) { fittedFontSize = undefined; return }
+      const cfg = LEVEL_CONFIG[level] ?? LEVEL_CONFIG[1]
+      const size = fitText(text, 'Outfit', cfg.base, cfg.weight, w, h, 1.2, cfg.min)
+      fittedFontSize = size < cfg.base ? size : undefined
+    })
+    return () => cancelAnimationFrame(raf)
   })
 
   let saveTimer: ReturnType<typeof setTimeout> | undefined
