@@ -105,6 +105,9 @@
     margin: 0;
     outline: none;
   }
+  .heading[contenteditable="true"] {
+    padding-inline: 12px;
+  }
   .heading-1 {
     font-size: clamp(2rem, 5cqi, 3.5rem);
     font-weight: 800;
