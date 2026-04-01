@@ -27,11 +27,13 @@
 </script>
 
 <div class="resource-panel">
-  <div class="tab-bar">
+  <div class="tab-bar" role="tablist" aria-label="Resources">
     {#each tabs as tab}
       <button
         class="tab-btn"
         class:active={activeTab === tab.key}
+        role="tab"
+        aria-selected={activeTab === tab.key}
         onclick={() => setTab(tab.key)}
       >
         {tab.label}
@@ -62,14 +64,16 @@
 
   .tab-bar {
     display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    padding: 0 8px;
     border-bottom: 1px solid var(--color-bg-tertiary, #f1f5f9);
     flex-shrink: 0;
   }
 
   .tab-btn {
-    flex: 1;
-    padding: 8px 2px;
-    font-size: 11px;
+    padding: 8px 6px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--color-text-muted, #6b7280);
     background: none;
@@ -79,7 +83,7 @@
     transition: color 0.15s, border-color 0.15s;
     text-align: center;
     white-space: nowrap;
-    min-width: 0;
+    min-width: max-content;
   }
 
   .tab-btn:hover {
