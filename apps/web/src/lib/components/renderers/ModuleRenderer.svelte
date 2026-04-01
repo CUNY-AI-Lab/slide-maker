@@ -247,7 +247,7 @@
   .module-wrapper {
     position: relative;
     width: 100%;
-    overflow: hidden;
+    overflow: visible;
   }
   .module-wrapper.editable {
     border-radius: var(--radius-sm, 6px);

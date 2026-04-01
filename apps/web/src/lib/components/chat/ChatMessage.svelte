@@ -10,12 +10,18 @@
 
   const isUser = $derived(message.role === 'user')
 
-  /** Minimal markdown-like rendering: code blocks, inline code, bold, newlines */
+  /** Markdown-like rendering for chat messages */
   function renderContent(text: string): string {
-    // Strip mutation blocks — these are applied to the canvas, not shown in chat
+    // Strip mutation blocks — applied to canvas, not shown in chat
     let cleaned = text.replace(/```mutation\s*\n[\s\S]*?```/g, '').trim()
 
-    // Collapse multiple blank lines left by stripped mutations
+    // Strip large HTML/artifact source blocks (>500 chars) — replace with compact indicator
+    cleaned = cleaned.replace(/```(?:html?|xml)?\s*\n([\s\S]{500,}?)```/g, (_m, code) => {
+      const lines = code.trim().split('\n').length
+      return `\`[embedded HTML — ${lines} lines]\``
+    })
+
+    // Collapse multiple blank lines
     cleaned = cleaned.replace(/\n{3,}/g, '\n\n')
 
     // Escape HTML
@@ -24,7 +30,7 @@
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
 
-    // Code blocks (``` ... ```)
+    // Fenced code blocks (``` ... ```)
     html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_match, lang, code) => {
       const langLabel = lang ? `<span class="code-lang">${lang}</span>` : ''
       return `<div class="code-block">${langLabel}<pre><code>${code.trim()}</code></pre></div>`
@@ -33,10 +39,33 @@
     // Inline code
     html = html.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>')
 
-    // Bold
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    // Headings (## text) — only at line start
+    html = html.replace(/^(#{1,4})\s+(.+)$/gm, (_m, hashes, text) => {
+      const level = hashes.length
+      return `<strong class="md-h${level}">${text}</strong>`
+    })
 
-    // Newlines (outside code blocks)
+    // Bold + italic
+    html = html.replace(/\*\*\*([^*]+)\*\*\*/g, '<strong><em>$1</em></strong>')
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    html = html.replace(/(?<!\w)\*([^*]+)\*(?!\w)/g, '<em>$1</em>')
+    html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>')
+    html = html.replace(/(?<!\w)_([^_]+)_(?!\w)/g, '<em>$1</em>')
+
+    // Links [text](url)
+    html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener" class="md-link">$1</a>')
+
+    // Unordered lists (- item)
+    html = html.replace(/^- (.+)$/gm, '<span class="md-li">• $1</span>')
+
+    // Ordered lists (1. item)
+    html = html.replace(/^\d+\.\s+(.+)$/gm, '<span class="md-li md-ol">$1</span>')
+
+    // Horizontal rule
+    html = html.replace(/^---+$/gm, '<hr class="md-hr">')
+
+    // Newlines
     html = html.replace(/\n/g, '<br>')
 
     return html
@@ -100,6 +129,7 @@
     border-radius: 4px;
     overflow-x: auto;
     position: relative;
+    max-height: 200px;
   }
 
   .message-content :global(.code-block pre) {
@@ -128,6 +158,41 @@
     border-radius: 3px;
     font-size: 12px;
     font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  .message-content :global(.md-h1) { font-size: 16px; display: block; margin: 4px 0; }
+  .message-content :global(.md-h2) { font-size: 14px; display: block; margin: 4px 0; }
+  .message-content :global(.md-h3) { font-size: 13px; display: block; margin: 3px 0; }
+  .message-content :global(.md-h4) { font-size: 13px; display: block; margin: 2px 0; }
+
+  .message-content :global(.md-li) {
+    display: block;
+    padding-left: 12px;
+    text-indent: -8px;
+    margin: 1px 0;
+  }
+
+  .message-content :global(.md-ol) {
+    counter-increment: md-ol;
+    text-indent: 0;
+    padding-left: 16px;
+  }
+  .message-content :global(.md-ol::before) {
+    content: counter(md-ol) ". ";
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+
+  .message-content :global(.md-link) {
+    color: var(--color-primary, #3B73E6);
+    text-decoration: none;
+  }
+  .message-content :global(.md-link:hover) { text-decoration: underline; }
+
+  .message-content :global(.md-hr) {
+    border: none;
+    border-top: 1px solid var(--color-border, #e5e7eb);
+    margin: 6px 0;
   }
 
   .cursor-blink {
