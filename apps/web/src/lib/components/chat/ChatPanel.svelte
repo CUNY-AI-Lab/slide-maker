@@ -21,6 +21,7 @@
 
   let messagesContainer: HTMLDivElement | undefined = $state()
   let messages = $state<ChatMsg[]>([])
+  let clearing = $state(false)
 
   // Subscribe to store
   $effect(() => {
@@ -175,12 +176,34 @@
       },
     )
   }
+
+  async function resetChat() {
+    if (clearing) return
+    const deck = get(currentDeck)
+    if (!deck) return
+    const confirmMsg = 'Clear chat history for this deck? This action cannot be undone.'
+    if (!window.confirm(confirmMsg)) return
+    try {
+      clearing = true
+      await api.resetChatHistory(deck.id)
+      chatMessages.set([])
+    } catch (err) {
+      console.error('Failed to reset chat:', err)
+    } finally {
+      clearing = false
+    }
+  }
 </script>
 
 <div class="chat-panel">
   <div class="chat-header">
     <span class="chat-title"><span class="brand-slide">Slide</span> <span class="brand-wiz">Wiz</span></span>
-    <ModelSelector />
+    <div class="chat-controls">
+      <ModelSelector />
+      <button class="reset-btn" title="Reset chat" onclick={resetChat} disabled={clearing} aria-label="Reset chat">
+        {clearing ? '…' : 'Reset'}
+      </button>
+    </div>
   </div>
 
   <div class="messages" bind:this={messagesContainer}>
@@ -212,6 +235,30 @@
     border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
   }
+
+  .chat-controls {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px 8px;
+  }
+
+  .reset-btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .reset-btn:hover:not(:disabled) {
+    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+  .reset-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
   .chat-title {
     padding: 8px 10px 4px;
