@@ -60,14 +60,19 @@
     persistData({ [field]: field === 'level' ? Number(val) : val })
   }
 
+  /** Strip markdown syntax for plain-text preview */
+  function stripMd(s: string): string {
+    return s.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1').replace(/`(.+?)`/g, '$1').replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/^#+\s*/gm, '').replace(/<[^>]+>/g, '')
+  }
+
   // Derive a preview string from the data
   let preview = $derived.by(() => {
     const d = block.data
     if (block.type === 'heading') return String(d.text || '').slice(0, 40) || 'Untitled'
     if (block.type === 'label') return String(d.text || '').slice(0, 30) || 'Label'
-    if (block.type === 'text') return String(d.markdown || d.text || d.html || '').slice(0, 40) || 'Empty text'
+    if (block.type === 'text') return stripMd(String(d.markdown || d.text || d.html || '')).slice(0, 40) || 'Empty text'
     if (block.type === 'image') return String(d.alt || d.src || '').slice(0, 30) || 'Image'
-    if (block.type === 'card') return String(d.title || '').slice(0, 30) || 'Card'
+    if (block.type === 'card') return stripMd(String(d.content || d.title || '')).slice(0, 30) || 'Card'
     if (block.type === 'artifact') return String(d.alt || d.name || '').slice(0, 30) || 'Visualization'
     return ''
   })
@@ -195,7 +200,7 @@
   .block-item {
     display: flex;
     flex-direction: column;
-    padding: 0 8px 0 20px;
+    padding: 0 8px 0 16px;
     font-size: 12px;
     color: var(--color-text-muted, #6b7280);
     line-height: 1.35;
@@ -208,7 +213,7 @@
     background: none;
     border: none;
     cursor: pointer;
-    padding: 2px 0;
+    padding: 1px 0;
     text-align: left;
     width: 100%;
     color: inherit;
@@ -236,7 +241,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding: 4px 0 6px 18px;
+    padding: 2px 0 4px 14px;
   }
 
   .field-input,

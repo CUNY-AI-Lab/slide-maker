@@ -92,98 +92,78 @@
 </script>
 
 <div class="canvas-toolbar">
-  <div class="toolbar-left">
-    <button class="back-btn" onclick={() => goto(`${base}/`)} title="Back to decks">← Decks</button>
-    <div class="sep"></div>
-    <button class="nav-btn" onclick={goToPrev} disabled={currentIndex <= 0} aria-label="Previous slide">
-      &#8592;
-    </button>
-    <span class="slide-counter">
-      {total > 0 ? `${currentIndex + 1} / ${total}` : 'No slides'}
-    </span>
-    <button class="nav-btn" onclick={goToNext} disabled={currentIndex >= total - 1} aria-label="Next slide">
-      &#8594;
-    </button>
-  </div>
-  <div class="toolbar-right">
-    <div class="mode-switcher">
-      <button
-        class="mode-btn"
-        class:active={canvasMode === 'edit'}
-        onclick={() => onSetMode?.('edit')}
-        title="Edit slide content"
-      >
-        Edit
-      </button>
-      <button
-        class="mode-btn"
-        class:active={canvasMode === 'view'}
-        onclick={() => onSetMode?.('view')}
-        title="View slide"
-      >
-        View
-      </button>
-      <button
-        class="mode-btn"
-        onclick={() => onPreview?.()}
-        title="Preview full deck in new tab"
-      >
-        Preview
-      </button>
-    </div>
-    <div class="branding-wrapper">
-      <button class="branding-btn" onclick={() => { showBranding = !showBranding }} title="Branding / Logo">
-        Logo
-      </button>
-      {#if showBranding}
-        <div class="branding-panel">
-          <label class="branding-field">
-            <span>Logo URL</span>
-            <input type="text" bind:value={brandingLogo} placeholder="https://..." />
-          </label>
-          <label class="branding-field">
-            <span>Position</span>
-            <select bind:value={brandingPosition}>
-              <option value="top-left">Top Left</option>
-              <option value="top-right">Top Right</option>
-              <option value="bottom-left">Bottom Left</option>
-            </select>
-          </label>
-          <button class="branding-save" onclick={saveBranding}>Save</button>
-        </div>
-      {/if}
-    </div>
-    <button class="export-btn" onclick={handleExport} disabled={exporting || !$currentDeck}>
-      {exporting ? '...' : 'Export'}
+  <button class="back-btn" onclick={() => goto(`${base}/`)} title="Back to decks">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  </button>
+  <div class="sep"></div>
+  <button class="nav-btn" onclick={goToPrev} disabled={currentIndex <= 0} aria-label="Previous slide">&#8592;</button>
+  <span class="slide-counter">{total > 0 ? `${currentIndex + 1}/${total}` : '—'}</span>
+  <button class="nav-btn" onclick={goToNext} disabled={currentIndex >= total - 1} aria-label="Next slide">&#8594;</button>
+  <div class="sep"></div>
+  <div class="mode-switcher">
+    <button class="mode-btn" class:active={canvasMode === 'edit'} onclick={() => onSetMode?.('edit')} title="Edit slide content">Edit</button>
+    <button class="mode-btn" class:active={canvasMode === 'view'} onclick={() => onSetMode?.('view')} title="View slide">View</button>
+    <button class="mode-btn" onclick={() => onPreview?.()} title="Preview full deck in new tab">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
     </button>
   </div>
+  <div class="toolbar-spacer"></div>
+  <div class="branding-wrapper">
+    <button class="icon-btn" onclick={() => { showBranding = !showBranding }} title="Branding / Logo">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    </button>
+    {#if showBranding}
+      <div class="branding-panel">
+        <label class="branding-field">
+          <span>Logo URL</span>
+          <input type="text" bind:value={brandingLogo} placeholder="https://..." />
+        </label>
+        <label class="branding-field">
+          <span>Position</span>
+          <select bind:value={brandingPosition}>
+            <option value="top-left">Top Left</option>
+            <option value="top-right">Top Right</option>
+            <option value="bottom-left">Bottom Left</option>
+          </select>
+        </label>
+        <button class="branding-save" onclick={saveBranding}>Save</button>
+      </div>
+    {/if}
+  </div>
+  <button class="icon-btn" onclick={handleExport} disabled={exporting || !$currentDeck} title="Export deck">
+    {#if exporting}
+      ...
+    {:else}
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    {/if}
+  </button>
 </div>
 
 <style>
   .canvas-toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem 0.75rem;
+    padding: 3px 6px;
     border-bottom: 1px solid var(--color-border);
     background: var(--color-bg);
     flex-shrink: 0;
-    gap: 0.25rem;
-    flex-wrap: wrap;
+    gap: 2px;
     min-width: 0;
   }
   .back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
     background: none;
     border: none;
-    color: var(--color-text-secondary);
-    font-size: 13px;
-    font-family: var(--font-body);
+    color: var(--color-text-muted);
     cursor: pointer;
-    padding: 4px 8px;
     border-radius: 4px;
-    transition: background 0.15s, color 0.15s;
+    padding: 0;
     flex-shrink: 0;
-    white-space: nowrap;
+    transition: background 0.15s, color 0.15s;
   }
   .back-btn:hover {
     background: var(--color-bg-tertiary);
@@ -191,68 +171,97 @@
   }
   .sep {
     width: 1px;
-    height: 18px;
+    height: 16px;
     background: var(--color-border);
-    margin: 0 4px;
-  }
-  .toolbar-left {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-width: 0;
+    margin: 0 3px;
     flex-shrink: 0;
   }
   .nav-btn {
     background: transparent;
     border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    padding: 0.25rem 0.5rem;
-    font-size: 0.9375rem;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 13px;
     cursor: pointer;
     color: var(--color-text);
-    transition: background 0.15s, border-color 0.15s;
+    transition: background 0.12s, border-color 0.12s;
+    flex-shrink: 0;
   }
   .nav-btn:hover:not(:disabled) {
     background: var(--color-bg-tertiary);
     border-color: var(--color-text-muted);
   }
   .nav-btn:disabled {
-    opacity: 0.4;
+    opacity: 0.35;
     cursor: default;
   }
   .slide-counter {
-    font-size: 1.05rem;
+    font-size: 12px;
     font-weight: 600;
     color: var(--color-text);
     font-variant-numeric: tabular-nums;
-    min-width: 4em;
+    min-width: 2.5em;
     text-align: center;
+    flex-shrink: 0;
   }
-  .toolbar-right {
+  .toolbar-spacer {
+    flex: 1;
+    min-width: 4px;
+  }
+  .mode-switcher {
+    display: flex;
+    gap: 1px;
+    flex-shrink: 0;
+  }
+  .mode-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    min-width: 0;
-    flex-shrink: 1;
-    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .mode-btn:hover:not(.active) {
+    background: var(--color-ghost-bg);
+    color: var(--color-text-secondary);
+  }
+  .mode-btn.active {
+    background: var(--color-ghost-bg);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+  .icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: background 0.12s, color 0.12s, border-color 0.12s;
+  }
+  .icon-btn:hover:not(:disabled) {
+    background: var(--color-ghost-bg);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+  }
+  .icon-btn:disabled {
+    opacity: 0.4;
+    cursor: default;
   }
   .branding-wrapper {
     position: relative;
-  }
-  .branding-btn {
-    background: transparent;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    padding: 0.4rem 0.85rem;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    cursor: pointer;
-    color: var(--color-text-secondary);
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .branding-btn:hover {
-    background: var(--color-bg-tertiary);
-    border-color: var(--color-text-muted);
   }
   .branding-panel {
     position: absolute;
@@ -305,52 +314,5 @@
   }
   .branding-save:hover {
     background: var(--color-ghost-bg);
-  }
-  .export-btn {
-    background: transparent;
-    color: var(--color-text-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-sm);
-    padding: 0.4rem 0.85rem;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
-  }
-  .export-btn:hover:not(:disabled) {
-    color: var(--color-primary);
-    border-color: var(--color-primary);
-    background: var(--color-ghost-bg);
-  }
-  .export-btn:disabled {
-    opacity: 0.5;
-    cursor: default;
-  }
-  .mode-switcher {
-    display: flex;
-    border: none;
-    border-radius: 0;
-    overflow: visible;
-    gap: 4px;
-  }
-  .mode-btn {
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: var(--radius-sm);
-    padding: 0.4rem 0.85rem;
-    font-size: 0.9375rem;
-    font-weight: 500;
-    cursor: pointer;
-    color: var(--color-text-muted);
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
-  }
-  .mode-btn:hover:not(.active) {
-    background: var(--color-ghost-bg);
-    color: var(--color-text-secondary);
-  }
-  .mode-btn.active {
-    background: var(--color-ghost-bg);
-    color: var(--color-primary);
-    border-color: var(--color-primary);
   }
 </style>

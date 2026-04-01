@@ -10,6 +10,8 @@
   import { history } from '$lib/stores/history'
   import { undo, redo } from '$lib/utils/mutations'
 
+  let { onCollapse }: { onCollapse?: () => void } = $props()
+
   const canUndo = history.canUndo
   const canRedo = history.canRedo
   const flipDurationMs = 200
@@ -85,6 +87,11 @@
       {#if $currentDeck}
         <AddSlideMenu deckId={$currentDeck.id} />
       {/if}
+      {#if onCollapse}
+        <button class="collapse-toggle" onclick={onCollapse} title="Collapse slides" aria-label="Collapse slides">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        </button>
+      {/if}
     </div>
   </div>
 
@@ -120,7 +127,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 10px;
+    padding: 6px 8px;
     border-bottom: 1px solid var(--color-border, #e5e7eb);
     flex-shrink: 0;
   }
@@ -133,9 +140,27 @@
     color: var(--color-text-muted, #6b7280);
   }
 
-  .header-actions { display: flex; align-items: center; gap: 6px; }
+  .header-actions { display: flex; align-items: center; gap: 4px; }
+  .collapse-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    background: transparent;
+    border: none;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    border-radius: 4px;
+    padding: 0;
+    transition: color 0.12s, background 0.12s;
+  }
+  .collapse-toggle:hover {
+    color: var(--color-primary);
+    background: var(--color-ghost-bg);
+  }
   .history-btn {
-    width: 24px; height: 24px;
+    width: 22px; height: 22px;
     display: inline-flex; align-items: center; justify-content: center;
     background: transparent; border: 1px solid var(--color-border);
     border-radius: 6px; color: var(--color-text-muted);

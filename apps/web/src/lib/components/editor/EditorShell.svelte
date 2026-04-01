@@ -133,22 +133,10 @@
     <div class="left-panel" style:width="{leftWidth}px" style:min-width="{leftWidth}px">
       {#if !chatCollapsed && !outlineCollapsed}
         <div class="chat-section">
-          <div class="section-header">
-            <span class="section-label">Chat</span>
-            <button class="section-toggle" onclick={collapseChat} title="Collapse chat" aria-label="Collapse chat">
-              {@render collapseIcon()}
-            </button>
-          </div>
-          <ChatPanel />
+          <ChatPanel onCollapse={collapseChat} />
         </div>
         <div class="outline-section">
-          <div class="section-header">
-            <span class="section-label">Slides</span>
-            <button class="section-toggle" onclick={collapseOutline} title="Collapse outline" aria-label="Collapse outline">
-              {@render collapseIcon()}
-            </button>
-          </div>
-          <SlideOutline />
+          <SlideOutline onCollapse={collapseOutline} />
         </div>
       {:else if chatCollapsed}
         <div class="collapsed-tab top">
@@ -158,23 +146,11 @@
           </button>
         </div>
         <div class="outline-section full">
-          <div class="section-header">
-            <span class="section-label">Slides</span>
-            <button class="section-toggle" onclick={collapseOutline} title="Collapse outline" aria-label="Collapse outline">
-              {@render collapseIcon()}
-            </button>
-          </div>
-          <SlideOutline />
+          <SlideOutline onCollapse={collapseOutline} />
         </div>
       {:else if outlineCollapsed}
         <div class="chat-section full">
-          <div class="section-header">
-            <span class="section-label">Chat</span>
-            <button class="section-toggle" onclick={collapseChat} title="Collapse chat" aria-label="Collapse chat">
-              {@render collapseIcon()}
-            </button>
-          </div>
-          <ChatPanel />
+          <ChatPanel onCollapse={collapseChat} />
         </div>
         <div class="collapsed-tab bottom">
           <button class="tab-restore" onclick={() => outlineCollapsed = false} title="Expand outline" aria-label="Expand outline">
@@ -213,11 +189,8 @@
 <footer class="app-footer">
   <div class="footer-divider"></div>
   <div class="footer-content">
-    <div class="footer-left">
-      <img src="{base}/cuny-ai-lab-logo.png" alt="CUNY AI Lab" class="footer-logo" />
-      <a href="https://tools.ailab.gc.cuny.edu" target="_blank" rel="noopener" class="footer-link">tools.ailab.gc.cuny.edu</a>
-    </div>
     <a href="https://ailab.gc.cuny.edu" target="_blank" rel="noopener" class="footer-link-main">ailab.gc.cuny.edu</a>
+    <img src="{base}/cuny-ai-lab-logo.png" alt="CUNY AI Lab" class="footer-logo" />
   </div>
 </footer>
 </div>
@@ -251,45 +224,8 @@
     overflow: hidden;
   }
 
-  .section-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 10px;
-    flex-shrink: 0;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .section-label {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--color-text-muted);
-  }
-
-  .section-toggle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 22px;
-    height: 22px;
-    background: transparent;
-    border: none;
-    color: var(--color-text-muted);
-    cursor: pointer;
-    border-radius: 4px;
-    padding: 0;
-    transition: color 0.15s, background 0.15s;
-  }
-
-  .section-toggle:hover {
-    color: var(--color-primary);
-    background: var(--color-ghost-bg);
-  }
-
   .chat-section {
-    flex: 1;
+    flex: 3;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -302,8 +238,8 @@
   }
 
   .outline-section {
-    height: 260px;
-    min-height: 200px;
+    flex: 1;
+    min-height: 120px;
     overflow-y: auto;
     border-top: 1px solid var(--color-border);
   }
@@ -444,15 +380,15 @@
   /* App footer */
   .app-footer {
     flex-shrink: 0;
-    padding: 0 28px 12px;
+    padding: 0 16px 4px;
     background: var(--color-bg);
   }
 
   .footer-divider {
     height: 1px;
     background: var(--color-border, #e5e7eb);
-    opacity: 0.3;
-    margin-bottom: 10px;
+    opacity: 0.2;
+    margin-bottom: 3px;
   }
 
   .footer-content {
@@ -461,36 +397,25 @@
     justify-content: space-between;
   }
 
-  .footer-left {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-  }
-
   .footer-logo {
-    width: 48px;
-    height: 48px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
     flex-shrink: 0;
+    opacity: 0.6;
+    transition: opacity 0.15s;
   }
 
-  .footer-link {
-    font-size: 13px;
-    color: var(--color-text-muted, #9ca3af);
-    text-decoration: none;
-    transition: color 0.15s;
-  }
-
-  .footer-link:hover {
-    color: var(--color-primary, #3B73E6);
+  .footer-logo:hover {
+    opacity: 1;
   }
 
   .footer-link-main {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--color-text-muted, #6b7280);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--color-text-muted, #9ca3af);
     text-decoration: none;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
     transition: color 0.15s;
   }
 
@@ -512,8 +437,7 @@
       max-width: 220px;
     }
     .outline-section:not(.full) {
-      height: 200px;
-      min-height: 160px;
+      min-height: 100px;
     }
   }
 
