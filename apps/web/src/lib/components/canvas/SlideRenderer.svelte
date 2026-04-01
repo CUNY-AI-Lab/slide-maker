@@ -1,7 +1,8 @@
 <script lang="ts">
   import ZoneDrop from './ZoneDrop.svelte'
   import SplitHandle from './SplitHandle.svelte'
-  import { currentDeck, updateSlideInDeck } from '$lib/stores/deck'
+import { currentDeck, updateSlideInDeck } from '$lib/stores/deck'
+import { applyMutation } from '$lib/utils/mutations'
   import { get } from 'svelte/store'
   import type { Editor } from '@tiptap/core'
   import { API_URL } from '$lib/api'
@@ -66,24 +67,9 @@
     return b
   })
 
-  function handleReorder(zone: string, items: Module[]) {
-    const reordered = items.map((item, i) => ({ ...item, order: i, zone }))
-    updateSlideInDeck(slide.id, (s) => ({
-      ...s,
-      blocks: [
-        ...s.blocks.filter((b) => b.zone !== zone),
-        ...reordered,
-      ] as typeof s.blocks,
-    }))
-    // Persist order to API
-    for (const item of reordered) {
-      fetch(`${API_URL}/api/decks/${slide.deckId}/slides/${slide.id}/blocks/${item.id}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order: item.order }),
-      }).catch(console.error)
-    }
+  async function handleReorder(zone: string, items: Module[]) {
+    const order = items.map((m) => m.id)
+    await applyMutation({ action: 'reorderBlocks', payload: { slideId: slide.id, zone, order } })
   }
 
   function handleModuleDataChange(moduleId: string, newData: Record<string, unknown>) {
@@ -101,33 +87,18 @@
     }).catch(console.error)
   }
 
-  function handleModuleStepChange(moduleId: string, stepOrder: number | null) {
+  async function handleModuleStepChange(moduleId: string, stepOrder: number | null) {
     // Harden: clamp step values to a safe range [0, 8]
     const MAX_STEP = 8
     const normalized = stepOrder == null ? null : Math.max(0, Math.min(MAX_STEP, Number(stepOrder)))
-    updateSlideInDeck(slide.id, (s) => ({
-      ...s,
-      blocks: s.blocks.map((b) =>
-        b.id === moduleId ? { ...b, stepOrder: normalized } : b
-      ),
-    }))
-    fetch(`${API_URL}/api/decks/${slide.deckId}/slides/${slide.id}/blocks/${moduleId}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ stepOrder: normalized }),
-    }).catch(console.error)
+    await applyMutation({
+      action: 'updateBlockStep',
+      payload: { slideId: slide.id, blockId: moduleId, stepOrder: normalized },
+    })
   }
 
-  function handleModuleDelete(moduleId: string) {
-    updateSlideInDeck(slide.id, (s) => ({
-      ...s,
-      blocks: s.blocks.filter((b) => b.id !== moduleId),
-    }))
-    fetch(`${API_URL}/api/decks/${slide.deckId}/slides/${slide.id}/blocks/${moduleId}`, {
-      method: 'DELETE',
-      credentials: 'include',
-    }).catch(console.error)
+  async function handleModuleDelete(moduleId: string) {
+    await applyMutation({ action: 'removeBlock', payload: { slideId: slide.id, blockId: moduleId } })
   }
 
   function handleRatioChange(newRatio: number) {

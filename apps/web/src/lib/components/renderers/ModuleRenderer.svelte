@@ -14,6 +14,7 @@
   import ArtifactModule from './ArtifactModule.svelte'
 
   import type { Editor } from '@tiptap/core'
+  import { activeModuleControls } from '$lib/stores/ui'
 
   let { module, editable = false, onchange, oneditorready, ondelete, onmoveup, onmovedown, onstepchange, isFirst = false, isLast = false }: {
     module: { id: string; type: string; data: Record<string, unknown>; stepOrder?: number | null };
@@ -33,6 +34,47 @@
     const step = val === '' ? null : Number(val)
     onstepchange?.(step)
   }
+
+  // Popover controls state
+  let triggerEl: HTMLButtonElement | undefined = $state()
+  let popX = $state(0)
+  let popY = $state(0)
+  let isActive = $derived($activeModuleControls === module.id)
+
+  function toggleControls(e: MouseEvent) {
+    e.stopPropagation()
+    if (isActive) {
+      activeModuleControls.set(null)
+    } else {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+      popX = rect.right + 4
+      popY = rect.top
+      // Clamp so popover doesn't go off-screen
+      if (popX + 160 > window.innerWidth) popX = rect.left - 164
+      if (popY + 140 > window.innerHeight) popY = window.innerHeight - 144
+      activeModuleControls.set(module.id)
+    }
+  }
+
+  // Close on Escape or outside click
+  $effect(() => {
+    if (!isActive) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') activeModuleControls.set(null)
+    }
+    function onClick(e: MouseEvent) {
+      const target = e.target as HTMLElement
+      if (!target.closest('.module-popover') && !target.closest('.module-trigger')) {
+        activeModuleControls.set(null)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('click', onClick, true)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('click', onClick, true)
+    }
+  })
 
   const rendererMap: Record<string, any> = {
     heading: HeadingModule,
@@ -92,10 +134,10 @@
       customW = newW
       customH = newH
       resizeLabel = `${Math.round(newW)} × ${Math.round(newH)}`
-      // Scale content proportionally — both up and down
+      // Scale content down only — enlarging gives more reflow space instead of zooming
       const scaleX = newW / Math.max(naturalW, 1)
       const scaleY = newH / Math.max(naturalH, 1)
-      scaleFactor = Math.min(scaleX, scaleY)
+      scaleFactor = Math.min(scaleX, scaleY, 1)
     }
     function onUp() {
       resizing = false
@@ -122,41 +164,60 @@
   style:height={customH ? `${customH}px` : undefined}
 >
   {#if editable}
-    <div class="module-controls" role="toolbar" aria-label="Module controls">
-      <div class="ctrl-group">
-        {#if !isFirst}
-          <button class="ctrl-btn" aria-label="Move module up" onclick={() => onmoveup?.()} title="Move up">▲</button>
-        {/if}
-        {#if !isLast}
-          <button class="ctrl-btn" aria-label="Move module down" onclick={() => onmovedown?.()} title="Move down">▼</button>
-        {/if}
+    <button
+      class="module-trigger"
+      class:active={isActive}
+      bind:this={triggerEl}
+      onclick={toggleControls}
+      title="Module actions"
+      aria-label="Module actions"
+      aria-expanded={isActive}
+    >⋯</button>
+  {/if}
+
+  {#if isActive}
+    <div class="module-popover" role="toolbar" aria-label="Module controls" style="left: {popX}px; top: {popY}px;">
+      <div class="pop-section">
+        <span class="pop-label">Move</span>
+        <div class="pop-row">
+          <button class="pop-btn" aria-label="Move up" onclick={() => onmoveup?.()} disabled={isFirst} title="Move up">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+          </button>
+          <button class="pop-btn" aria-label="Move down" onclick={() => onmovedown?.()} disabled={isLast} title="Move down">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </button>
+        </div>
       </div>
-      <select
-        class="step-select"
-        value={module.stepOrder != null ? String(module.stepOrder) : ''}
-        onchange={handleStepChange}
-        title="Step reveal order"
-        aria-label="Step reveal order"
-      >
-        <option value="">Step</option>
-        <option value="0">1</option>
-        <option value="1">2</option>
-        <option value="2">3</option>
-        <option value="3">4</option>
-        <option value="4">5</option>
-        <option value="5">6</option>
-        <option value="6">7</option>
-        <option value="7">8</option>
-        <option value="8">9</option>
-      </select>
+      <div class="pop-divider"></div>
+      <div class="pop-section">
+        <span class="pop-label">Step reveal</span>
+        <select
+          class="pop-select"
+          value={module.stepOrder != null ? String(module.stepOrder) : ''}
+          onchange={handleStepChange}
+          aria-label="Step reveal order"
+        >
+          <option value="">None</option>
+          <option value="0">1</option>
+          <option value="1">2</option>
+          <option value="2">3</option>
+          <option value="3">4</option>
+          <option value="4">5</option>
+          <option value="5">6</option>
+          <option value="6">7</option>
+          <option value="7">8</option>
+          <option value="8">9</option>
+        </select>
+      </div>
+      <div class="pop-divider"></div>
       <button
-        class="ctrl-btn delete-btn"
+        class="pop-btn pop-delete"
         class:confirming={confirmDelete}
         onclick={handleDelete}
         title={confirmDelete ? 'Click again to confirm' : 'Delete module'}
-        aria-label={confirmDelete ? 'Confirm delete module' : 'Delete module'}
+        aria-label={confirmDelete ? 'Confirm delete' : 'Delete module'}
       >
-        {confirmDelete ? 'Delete?' : '✕'}
+        {confirmDelete ? 'Confirm delete' : 'Delete'}
       </button>
     </div>
   {/if}
@@ -188,10 +249,12 @@
     width: 100%;
     overflow: hidden;
   }
-  .module-wrapper.editable:hover {
-    outline: 1px dashed rgba(59, 115, 230, 0.3);
-    outline-offset: 3px;
+  .module-wrapper.editable {
+    outline: 1px dashed rgba(255, 255, 255, 0.12);
     border-radius: var(--radius-sm);
+  }
+  .module-wrapper.editable:hover {
+    outline-color: rgba(59, 115, 230, 0.4);
     transition: outline-color 0.15s ease;
   }
   .module-wrapper.resizing {
@@ -222,91 +285,145 @@
     width: 100%;
   }
 
-  /* Controls — fade in/out */
-  .module-controls {
+  /* Trigger dot — top-right, appears on hover */
+  .module-trigger {
     position: absolute;
-    bottom: 6px;
-    right: 6px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    z-index: 10;
-    background: rgba(255, 255, 255, 0.98);
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    border-radius: 8px;
-    padding: 3px 5px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-    backdrop-filter: blur(6px);
-    opacity: 0;
-    pointer-events: none;
-    transform: translateY(2px);
-    transition: opacity 0.15s ease, transform 0.15s ease;
-  }
-  .module-wrapper.editable:hover .module-controls,
-  .module-wrapper.editable:focus-within .module-controls {
-    opacity: 1;
-    pointer-events: auto;
-    transform: translateY(0);
-  }
-
-  .ctrl-group {
-    display: flex;
-    gap: 1px;
-  }
-
-  .ctrl-btn {
-    width: 28px;
-    height: 28px;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: 1px;
+    background: rgba(20, 30, 50, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 5px;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s, background 0.12s, color 0.12s;
+    padding: 0;
+    backdrop-filter: blur(6px);
+  }
+  .module-trigger.active {
+    opacity: 1;
+    pointer-events: auto;
+    background: rgba(59, 115, 230, 0.9);
+    color: white;
+    border-color: rgba(59, 115, 230, 0.6);
+  }
+  .module-wrapper.editable:hover .module-trigger {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .module-trigger:hover:not(.active) {
+    background: rgba(40, 55, 85, 0.95);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* Popover — fixed, escapes all overflow */
+  .module-popover {
+    position: fixed;
+    z-index: 1000;
+    background: rgba(18, 25, 42, 0.97);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 6px;
+    min-width: 140px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(12px);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .pop-section {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 2px 4px;
+  }
+
+  .pop-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .pop-row {
+    display: flex;
+    gap: 2px;
+  }
+
+  .pop-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
     background: transparent;
     border: none;
-    border-radius: 6px;
+    border-radius: 5px;
+    color: rgba(255, 255, 255, 0.7);
     cursor: pointer;
-    color: var(--color-text-muted, #6b7280);
     padding: 0;
-    font-family: var(--font-body);
-    line-height: 1;
-    transition: background 0.1s, color 0.1s, box-shadow 0.1s;
+    transition: background 0.1s, color 0.1s;
   }
-  .ctrl-btn:hover {
-    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
-    color: var(--color-primary, #3B73E6);
+  .pop-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
   }
-  .ctrl-btn:focus-visible {
-    outline: 2px solid var(--color-primary, #3B73E6);
-    outline-offset: 1px;
-    box-shadow: 0 0 0 2px rgba(59, 115, 230, 0.2);
+  .pop-btn:disabled {
+    opacity: 0.25;
+    cursor: default;
   }
-  .step-select {
-    height: 28px;
+
+  .pop-select {
+    height: 26px;
     font-size: 11px;
-    border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: 6px;
-    background: white;
-    color: var(--color-text, #1f2937);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.8);
     padding: 0 6px;
     cursor: pointer;
     font-family: var(--font-body);
     outline: none;
-    transition: background 0.1s, border-color 0.1s, box-shadow 0.1s, color 0.1s;
   }
-  .step-select:hover { border-color: var(--color-text-muted, #94a3b8); }
-  .step-select:focus-visible { border-color: var(--color-primary, #3B73E6); box-shadow: 0 0 0 2px rgba(59, 115, 230, 0.15); }
-  .delete-btn:hover {
-    color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+  .pop-select:hover { border-color: rgba(255, 255, 255, 0.25); }
+  .pop-select:focus-visible { border-color: rgba(59, 115, 230, 0.6); }
+
+  .pop-divider {
+    height: 1px;
+    background: rgba(255, 255, 255, 0.08);
+    margin: 2px 0;
   }
-  .delete-btn.confirming {
-    color: white;
+
+  .pop-delete {
+    width: 100%;
+    height: auto;
+    padding: 5px 8px;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255, 120, 120, 0.85);
+    justify-content: center;
+  }
+  .pop-delete:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.15);
+    color: #ff6b6b;
+  }
+  .pop-delete.confirming {
     background: #ef4444;
+    color: white;
     font-weight: 600;
-    border-radius: var(--radius-sm, 6px);
-    width: auto;
-    padding: 6px 10px;
-    font-size: 13px;
   }
 
   /* Corner resize — fade in on hover */

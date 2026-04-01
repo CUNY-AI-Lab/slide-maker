@@ -31,27 +31,27 @@
   function getDefaultData(type: string): Record<string, unknown> {
     switch (type) {
       case 'heading':
-        return { text: '', level: 2 }
+        return { text: 'New heading', level: 2 }
       case 'text':
-        return { body: '' }
+        return { text: '' }
       case 'card':
-        return { title: '', body: '', accent: '' }
+        return { content: 'New card' }
       case 'label':
-        return { text: '', color: '' }
+        return { text: 'Label', color: 'cyan' }
       case 'tip-box':
-        return { title: '', body: '', variant: 'info' }
+        return { content: '', title: 'Note' }
       case 'prompt-block':
-        return { code: '', language: '' }
+        return { content: '', language: '' }
       case 'image':
         return { src: '', alt: '', caption: '' }
       case 'carousel':
         return { items: [] }
       case 'comparison':
-        return { left: { title: '', items: [] }, right: { title: '', items: [] } }
+        return { panels: [{ title: 'Left', content: '' }, { title: 'Right', content: '' }] }
       case 'card-grid':
         return { cards: [] }
       case 'flow':
-        return { steps: [] }
+        return { nodes: [] }
       case 'stream-list':
         return { items: [] }
       default:
@@ -59,32 +59,18 @@
     }
   }
 
-  import { updateSlideInDeck } from '$lib/stores/deck'
-  import { api, API_URL } from '$lib/api'
+  import { applyMutation } from '$lib/utils/mutations'
 
   async function addModule(type: string) {
     if (adding) return
     adding = true
 
     try {
-      const res = await fetch(`${API_URL}/api/decks/${deckId}/slides/${slideId}/blocks`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type, zone, data: getDefaultData(type) }),
+      await applyMutation({
+        action: 'addBlock',
+        payload: { slideId, block: { type, zone, data: getDefaultData(type) } },
       })
-
-      if (res.ok) {
-        const result = await res.json()
-        const block = result.block ?? result
-        if (block?.id) {
-          updateSlideInDeck(slideId, (s) => ({
-            ...s,
-            blocks: [...s.blocks, block],
-          }))
-        }
-        onAdd()
-      }
+      onAdd()
     } catch (err) {
       console.error('Failed to add module:', err)
     } finally {

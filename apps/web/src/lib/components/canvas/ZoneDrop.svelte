@@ -159,6 +159,7 @@
     min-height: 2rem;
     flex: 1;
     padding: 0;
+    container-type: inline-size;
   }
 
   .empty-zone {
@@ -196,6 +197,13 @@
     overflow-wrap: anywhere;
     hyphens: auto;
     transition: background 0.15s ease;
+  }
+
+  /* When editing, prefer caret-stable wrapping rules inside contenteditable
+     to avoid cursor jumps back to the first breakable space. */
+  .zone-drop.editable .module-item {
+    overflow-wrap: break-word;  /* break long tokens only when needed */
+    hyphens: manual;            /* do not auto-hyphenate contenteditable */
   }
 
   .module-item:hover {

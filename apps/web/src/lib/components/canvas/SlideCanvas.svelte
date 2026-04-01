@@ -3,7 +3,7 @@
   import '$lib/framework-preview.css'
   import { API_URL } from '$lib/api'
   import { currentDeck } from '$lib/stores/deck'
-  import { activeSlideId } from '$lib/stores/ui'
+  import { activeSlideId, activeModuleControls } from '$lib/stores/ui'
   import { activeTheme, ensureThemesLoaded, isDark } from '$lib/stores/themes'
   import CanvasToolbar from './CanvasToolbar.svelte'
   import FormatToolbar from './FormatToolbar.svelte'
@@ -49,6 +49,7 @@
     $activeSlideId
     untrack(() => {
       activeEditor = null
+      activeModuleControls.set(null)
     })
   })
 

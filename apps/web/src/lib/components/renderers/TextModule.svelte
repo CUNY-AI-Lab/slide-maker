@@ -13,6 +13,7 @@
   let containerEl: HTMLDivElement | undefined = $state(undefined)
   let fittedFontSize: number | undefined = $state(undefined)
   let editorActive = $state(false)
+  let editContent = $state('')
 
   const BASE_SIZE = 17
   const MIN_SIZE = 12
@@ -44,6 +45,7 @@
   )
 
   function handleRichTextChange(html: string) {
+    editContent = html
     onchange?.({ ...data, html })
   }
 </script>
@@ -57,7 +59,7 @@
 >
   {#if editable && editorActive}
     <RichTextEditor
-      content={renderedHtml}
+      content={editContent}
       {editable}
       placeholder="Type text here..."
       onchange={handleRichTextChange}
@@ -68,8 +70,8 @@
     <div
       class="text-preview"
       class:editable
-      onclick={() => { if (editable) editorActive = true }}
-      onkeydown={(e) => { if (editable && e.key === 'Enter') editorActive = true }}
+      onclick={() => { if (editable) { editContent = renderedHtml; editorActive = true } }}
+      onkeydown={(e) => { if (editable && e.key === 'Enter') { editContent = renderedHtml; editorActive = true } }}
       role={editable ? 'button' : undefined}
       tabindex={editable ? 0 : undefined}
     >
