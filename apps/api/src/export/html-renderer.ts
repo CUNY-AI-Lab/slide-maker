@@ -71,7 +71,9 @@ function markdownToHtml(md: string): string {
 function inlineMd(text: string): string {
   let html = esc(text)
   html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  html = html.replace(/__(.+?)__/g, '<strong>$1</strong>')
   html = html.replace(/\*(.+?)\*/g, '<em>$1</em>')
+  html = html.replace(/(?<!\w)_(.+?)_(?!\w)/g, '<em>$1</em>')
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_m, label, url) => {
     const safe = /^https?:\/\//i.test(url) ? url : '#'
     return `<a href="${safe}" target="_blank" rel="noopener">${label}</a>`
