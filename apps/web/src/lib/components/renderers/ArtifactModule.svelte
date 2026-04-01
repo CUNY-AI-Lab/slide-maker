@@ -123,8 +123,8 @@
     width: 100%;
     flex: 1;
     min-height: 0;
-    /* Default to a square aspect like exports */
-    aspect-ratio: 1;
+    /* Default to 16:9 aspect */
+    aspect-ratio: 16 / 9;
   }
   /* When an explicit height is provided on the wrapper, drop square aspect */
   .artifact-wrapper.custom-sized .artifact-iframe { aspect-ratio: auto; }

@@ -46,7 +46,11 @@ export function markdownToHtml(md: string): string {
         inList = false
         listType = ''
       }
-      if (line.trim() === '') {
+      const headingMatch = line.match(/^(#{1,4})\s+(.+)/)
+      if (headingMatch) {
+        const level = headingMatch[1].length
+        out.push(`<h${level}>${inlineMarkdown(headingMatch[2])}</h${level}>`)
+      } else if (line.trim() === '') {
         out.push('<br>')
       } else {
         out.push(`<p>${inlineMarkdown(line)}</p>`)
