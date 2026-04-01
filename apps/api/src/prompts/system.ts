@@ -30,6 +30,7 @@ interface UploadedFile {
   filename: string
   mimeType: string
   url: string
+  excerpt?: string
 }
 
 interface ArtifactInfo {
@@ -330,6 +331,16 @@ ${templatesList}
 
 ## Uploaded Files
 ${files?.length ? files.map((f) => `- "${f.filename}" (${f.mimeType}) → use src: "${f.url}" in image modules`).join('\n') : '(no files uploaded)'}
+
+${(() => {
+  const docs = (files ?? []).filter((f) => f.excerpt && (f.mimeType?.includes('pdf') || f.mimeType?.includes('word')))
+  if (!docs.length) return ''
+  let section = '\n## Uploaded Documents (text excerpts)\n'
+  for (const d of docs) {
+    section += `\n### ${d.filename} (${d.mimeType})\n` + (d.excerpt || '') + '\n'
+  }
+  return section
+})()}
 
 IMAGE RULES:
 - For uploaded files: use the EXACT url from the list above as the image src.

@@ -90,13 +90,27 @@
   function handleModuleAdded() {
     showPicker = false
   }
+
+  // Accessibility: close picker with Escape and return focus
+  let lastTrigger: HTMLElement | null = null
+  $effect(() => {
+    if (!showPicker) return
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        showPicker = false
+        lastTrigger?.focus?.()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  })
 </script>
 
 <div class="zone-drop" class:editable>
   {#if items.length === 0}
     <div class="empty-zone">
       {#if editable && deckId && slideId}
-        <button class="add-module-btn empty-add" onclick={togglePicker}>+ Module</button>
+        <button class="add-module-btn empty-add" onclick={(e) => { lastTrigger = e.currentTarget as HTMLElement; togglePicker(e) }} aria-haspopup="dialog" aria-expanded={showPicker}>+ Module</button>
       {:else}
         <div class="empty-hint">+ Add module</div>
       {/if}
@@ -120,7 +134,7 @@
     {/each}
     {#if editable && deckId && slideId}
       <div class="add-module-row">
-        <button class="add-module-btn" onclick={togglePicker}>+ Module</button>
+        <button class="add-module-btn" onclick={(e) => { lastTrigger = e.currentTarget as HTMLElement; togglePicker(e) }} aria-haspopup="dialog" aria-expanded={showPicker}>+ Module</button>
       </div>
     {/if}
   {/if}
@@ -130,7 +144,7 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div class="picker-overlay" onclick={() => showPicker = false}>
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="picker-floating" style="left: {pickerX}px; top: {pickerY}px;" onclick={(e) => e.stopPropagation()}>
+    <div class="picker-floating" role="dialog" aria-label="Add module" style="left: {pickerX}px; top: {pickerY}px;" onclick={(e) => e.stopPropagation()}>
       <ModulePicker {deckId} {slideId} {zone} onAdd={handleModuleAdded} />
     </div>
   </div>
@@ -177,7 +191,10 @@
     border-radius: var(--radius-sm, 4px);
     font-size: 0.875rem;
     color: inherit;
-    word-break: break-all;
+    /* Avoid splitting words mid‑letters; allow long URLs/text to wrap */
+    word-break: normal;
+    overflow-wrap: anywhere;
+    hyphens: auto;
     transition: background 0.15s ease;
   }
 
@@ -226,7 +243,7 @@
     position: fixed;
     inset: 0;
     z-index: 1000;
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(0, 0, 0, 0.25);
   }
 
   .picker-floating {
@@ -234,9 +251,9 @@
     z-index: 1001;
     background: var(--color-bg, white);
     border: 1px solid var(--color-border);
-    border-radius: 8px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    padding: 4px;
-    max-width: 320px;
+    border-radius: 10px;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.28);
+    padding: 8px;
+    max-width: 360px;
   }
 </style>

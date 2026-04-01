@@ -112,3 +112,34 @@ The design is fully specified in the plan file above. Key decisions:
 - Real-time config preview while editing textarea
 - Artifact source hosting / CDN
 - Config versioning beyond undo/redo
+
+---
+
+## Audit Outcomes (2026-03-31)
+
+What’s implemented since the initial design:
+
+- Undo/Redo UI: Added top-center toolbar with Undo and Redo buttons in the editor shell, plus platform-aware tooltips. Keyboard shortcuts wired: Cmd/Ctrl+Z, Shift+Cmd/Ctrl+Z and Ctrl+Y. History stacks exposed via `history.canUndo/canRedo` stores.
+- Size controls via chat: `updateArtifactConfig` now applies `width`/`height` when provided in the config payload, updating block data fields alongside the config merge.
+- Config utilities and renderer: Confirmed `buildSourceWithConfig` injects `data-config` into raw HTML; `ArtifactModule` enforces CSP and sandbox.
+- Tiered prompt and @refs: Available, active, and focused artifact tiers in system prompt; `@artifact:` detection in API route.
+
+Known gaps and targeted follow‑ups:
+
+- Schema coverage: Ensure all 12 primitives in `templates/artifacts/*.json` include typed config schemas and that each HTML source reads `data-config` consistently.
+- Grouped undo for bulk updates: Consider grouping multi‑block `updateArtifactConfig` into a single composite history entry to enable one‑step undo for deck‑wide tweaks.
+- Tests robustness: Shell test currently expects inline `export interface ArtifactConfigField`; update to accept re‑exports from shared. Treat benign vitest EPERM shutdown as pass (or run with `--pool=forks`).
+- Repo hygiene: Add `.playwright-mcp/` and `.env.development` to `.gitignore`, and untrack any committed instances.
+- Outline UX polish: Optional: add a brief fade‑out on delete and an “Undo” toast action to align with familiar editors.
+
+Verification checklist:
+
+- Unit tests: `pnpm vitest run tests/artifact-config.test.ts` (or `--pool=forks` if EPERM on shutdown).
+- Shell tests: `bash tests/test_artifact_config.sh` after updating its export checks.
+- Manual: Insert Boids, Lorenz, Truchet, Tenprint; tweak 2–3 schema fields each; verify iframe updates; copy/@ inject produce meaningful JSON (not `{}`); test `width`/`height` via chat mutation.
+
+Suggested quick PRs:
+
+- Tests: relax shell greps for type exports; add a unit for `width/height` passthrough in `updateArtifactConfig`.
+- Hygiene: ignore `.playwright-mcp/`, `.env.development`; `git rm --cached` for any previously tracked.
+- UX: optional “Undo last action” toast with action to run `undo()`.

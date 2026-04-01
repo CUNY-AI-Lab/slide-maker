@@ -93,7 +93,7 @@
   }
 </script>
 
-<div class="module-picker">
+<div class="module-picker" aria-live="polite">
   <div class="picker-grid">
     {#each moduleTypes as mod}
       <button
@@ -113,37 +113,36 @@
   .module-picker {
     background: white;
     border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: 8px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-    padding: 8px;
+    border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.22);
+    padding: 10px;
     z-index: 50;
-    min-width: 220px;
+    min-width: 260px;
   }
 
   .picker-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
+    gap: 6px;
   }
 
   .picker-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    padding: 8px 4px;
+    gap: 4px;
+    padding: 10px 6px;
     border: 1px solid transparent;
-    border-radius: 6px;
+    border-radius: 8px;
     background: none;
     cursor: pointer;
     transition: background 0.1s, border-color 0.1s;
     color: var(--color-text, #1f2937);
+    min-height: 48px; /* Larger tap target */
   }
 
-  .picker-item:hover {
-    background: #f3f4f6;
-    border-color: var(--color-border, #e5e7eb);
-  }
+  .picker-item:hover { background: #f3f4f6; border-color: var(--color-border, #e5e7eb); }
+  .picker-item:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 2px; }
 
   .picker-item:disabled {
     opacity: 0.5;
@@ -151,12 +150,12 @@
   }
 
   .picker-icon {
-    font-size: 16px;
+    font-size: 18px;
     line-height: 1.2;
   }
 
   .picker-label {
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 500;
     line-height: 1.2;
     text-align: center;

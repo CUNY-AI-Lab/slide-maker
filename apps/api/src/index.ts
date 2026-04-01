@@ -24,9 +24,18 @@ app.use('/*', cors({
 }))
 
 app.use('/*', csrf({ origin: env.publicUrl }))
-// 11MB for file upload routes (10MB file + overhead), 2MB for everything else
+// 11MB for file upload routes (10MB file + overhead)
 app.use('/api/decks/:id/files', bodyLimit({ maxSize: 11 * 1024 * 1024 }))
-app.use('/*', bodyLimit({ maxSize: 2 * 1024 * 1024 }))
+// Apply a 2MB limit to all other routes, but explicitly skip the upload endpoint
+const smallBodyLimit = bodyLimit({ maxSize: 2 * 1024 * 1024 })
+app.use('*', async (c, next) => {
+  const { pathname } = new URL(c.req.url)
+  // Skip when path matches /api/decks/:deckId/files exactly
+  if (/^\/api\/decks\/[^/]+\/files$/.test(pathname)) {
+    return next()
+  }
+  return smallBodyLimit(c, next)
+})
 
 app.get('/', (c) => c.json({ name: 'slide-wiz-dev', status: 'ok' }))
 app.get('/api/health', (c) => c.json({ status: 'ok' }))

@@ -214,6 +214,7 @@
     padding: 12px;
     position: relative;
     gap: 12px;
+    overflow-x: hidden;
   }
 
   .files-tab.dragging {

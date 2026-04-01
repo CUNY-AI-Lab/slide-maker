@@ -29,6 +29,8 @@ const ALLOWED_TYPES = new Set([
   'image/svg+xml',
   'image/webp',
   'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/msword',
   'text/csv',
   'application/json',
   'application/geo+json',
@@ -41,6 +43,8 @@ const MIME_TO_EXT: Record<string, string> = {
   'image/svg+xml': '.svg',
   'image/webp': '.webp',
   'application/pdf': '.pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+  'application/msword': '.doc',
   'text/csv': '.csv',
   'application/json': '.json',
   'application/geo+json': '.geojson',
@@ -106,6 +110,21 @@ filesRouter.post('/:deckId/files', authMiddleware, async (c) => {
   const buffer = Buffer.from(await file.arrayBuffer())
   fs.writeFileSync(filePath, buffer)
 
+  // For PDFs and Word docs, extract Markdown sidecar for LLM context
+  let extractedMarkdown: string | null = null
+  try {
+    if (file.type === 'application/pdf' || file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || file.type === 'application/msword') {
+      const { extractMarkdownFromFile } = await import('../utils/file-text.js')
+      extractedMarkdown = await extractMarkdownFromFile(filePath, file.type)
+      if (extractedMarkdown && extractedMarkdown.trim()) {
+        const mdPath = path.join(deckDir, `${fileId}.md`)
+        fs.writeFileSync(mdPath, extractedMarkdown, 'utf8')
+      }
+    }
+  } catch (err) {
+    console.warn('Failed to extract text from upload:', (err as Error)?.message)
+  }
+
   // Record in DB
   await db.insert(uploadedFiles).values({
     id: fileId,
@@ -123,6 +142,7 @@ filesRouter.post('/:deckId/files', authMiddleware, async (c) => {
       filename: file.name,
       mimeType: file.type,
       url: `/api/decks/${deckId}/files/${fileId}`,
+      textExtracted: Boolean(extractedMarkdown && extractedMarkdown.trim()),
     },
   })
 })

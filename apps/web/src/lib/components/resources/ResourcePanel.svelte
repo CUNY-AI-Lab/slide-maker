@@ -98,6 +98,7 @@
   .tab-content {
     flex: 1;
     overflow-y: auto;
+    overflow-x: hidden;
     min-height: 0;
   }
 </style>

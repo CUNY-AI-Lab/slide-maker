@@ -145,16 +145,8 @@
     justify-content: center;
     padding: 1rem;
     overflow: auto;
-    /* Ensure the vertical viewport for the slide never shrinks too small */
-    min-height: 560px;
-  }
-
-  /* Desktop: enforce a taller minimum for comfortable editing */
-  @media (min-width: 1200px) {
-    .canvas-area { min-height: 720px; }
-  }
-  @media (min-width: 1440px) {
-    .canvas-area { min-height: 800px; }
+    /* Keep a sensible edit viewport: never too small, never exceed 100vh minus header/toolbars */
+    min-height: clamp(420px, calc(100vh - 220px), 800px);
   }
   .slide-frame.view-mode {
     cursor: pointer;

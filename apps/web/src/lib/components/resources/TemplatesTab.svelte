@@ -261,6 +261,7 @@
 <style>
   .templates-tab {
     padding: 8px;
+    overflow-x: hidden;
   }
 
   .mode-toggle { display: inline-flex; gap: 2px; margin: 2px 4px 8px; border: 1px solid var(--color-border, #e5e7eb); border-radius: 999px; padding: 2px; }
@@ -300,7 +301,7 @@
 
   .template-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 6px;
   }
 
@@ -311,6 +312,7 @@
     border: none;
     border-radius: var(--radius-sm);
     overflow: hidden;
+    min-width: 0; /* prevent grid min-content overflow */
     cursor: pointer;
     text-align: left;
     padding: 0;

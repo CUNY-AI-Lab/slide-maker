@@ -316,6 +316,7 @@
 <style>
   .artifacts-tab {
     padding: 6px;
+    overflow-x: hidden;
   }
 
   .center-msg {
