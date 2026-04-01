@@ -119,16 +119,16 @@
   <textarea
     bind:this={textarea}
     bind:value={text}
-    placeholder="Ask AI, /add module, /search images..."
+    placeholder="Ask AI to edit slides + resources"
     onkeydown={handleKeydown}
     disabled={$chatStreaming || uploading}
     rows={2}
   ></textarea>
-  <button onclick={handleSubmit} disabled={$chatStreaming || uploading || !text.trim()}>
+  <button class="send-btn" onclick={handleSubmit} disabled={$chatStreaming || uploading || !text.trim()} title="Send (Enter)">
     {#if $chatStreaming || uploading}
       <span class="spinner"></span>
     {:else}
-      Send
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
     {/if}
   </button>
 </div>
@@ -167,15 +167,15 @@
   textarea {
     flex: 1;
     resize: none;
-    padding: 8px 10px;
-    font-size: 13px;
+    padding: 10px 12px;
+    font-size: 12px;
     font-family: inherit;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     background: var(--color-bg);
     color: var(--color-text);
     outline: none;
-    line-height: 1.45;
+    line-height: 1.4;
     transition: border-color 0.15s;
   }
 
@@ -187,28 +187,28 @@
     opacity: 0.5;
   }
 
-  button {
-    padding: 8px 14px;
-    font-size: 13px;
-    font-weight: 500;
-    border: 1px solid var(--color-primary);
+  .send-btn {
+    padding: 0 12px;
+    border: 1px solid transparent;
     border-radius: var(--radius-sm);
     background: transparent;
-    color: var(--color-primary);
+    color: var(--color-text-secondary);
     cursor: pointer;
-    align-self: flex-end;
-    min-width: 48px;
-    display: flex;
+    align-self: stretch;
+    min-width: 40px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.15s;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
 
-  button:hover:not(:disabled) {
+  .send-btn:hover:not(:disabled) {
     background: var(--color-ghost-bg);
+    color: var(--color-primary);
+    border-color: var(--color-primary);
   }
 
-  button:disabled {
+  .send-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
   }
