@@ -145,6 +145,8 @@
     justify-content: center;
     padding: 1rem;
     overflow: auto;
+    /* Ensure the vertical viewport for the slide never shrinks too small */
+    min-height: 640px;
   }
   .slide-frame.view-mode {
     cursor: pointer;
@@ -176,7 +178,7 @@
   }
   .slide-frame {
     width: 100%;
-    height: 100%;
+    height: auto;
     max-height: 100%;
     aspect-ratio: 16 / 9;
     background: white;
