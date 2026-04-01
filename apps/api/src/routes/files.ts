@@ -31,6 +31,9 @@ const ALLOWED_TYPES = new Set([
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/msword',
+  'text/plain',
+  'text/markdown',
+  'text/x-markdown',
   'text/csv',
   'application/json',
   'application/geo+json',
@@ -45,9 +48,25 @@ const MIME_TO_EXT: Record<string, string> = {
   'application/pdf': '.pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
   'application/msword': '.doc',
+  'text/plain': '.txt',
+  'text/markdown': '.md',
+  'text/x-markdown': '.md',
   'text/csv': '.csv',
   'application/json': '.json',
   'application/geo+json': '.geojson',
+}
+
+function guessMimeFromFilename(name: string): string | null {
+  const lower = name.toLowerCase()
+  if (lower.endsWith('.md') || lower.endsWith('.markdown')) return 'text/markdown'
+  if (lower.endsWith('.txt')) return 'text/plain'
+  if (lower.endsWith('.csv')) return 'text/csv'
+  if (lower.endsWith('.json')) return 'application/json'
+  if (lower.endsWith('.geojson')) return 'application/geo+json'
+  if (lower.endsWith('.pdf')) return 'application/pdf'
+  if (lower.endsWith('.docx')) return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  if (lower.endsWith('.doc')) return 'application/msword'
+  return null
 }
 
 const filesRouter = new Hono<AuthEnv>()
@@ -94,12 +113,15 @@ filesRouter.post('/:deckId/files', authMiddleware, async (c) => {
     return c.json({ error: `Upload limit reached (${usedMB}MB / 50MB used). Delete some files first.` }, 400)
   }
 
-  if (!ALLOWED_TYPES.has(file.type)) {
-    return c.json({ error: `File type not allowed: ${file.type}` }, 400)
+  // Derive a sensible MIME type
+  const detectedType = file.type || guessMimeFromFilename(file.name) || 'application/octet-stream'
+  const allowedByExt = ['.md', '.markdown', '.txt'].some((ext) => file.name.toLowerCase().endsWith(ext))
+  if (!ALLOWED_TYPES.has(detectedType) && !allowedByExt) {
+    return c.json({ error: `File type not allowed: ${file.type || 'unknown'}` }, 400)
   }
 
   const fileId = createId()
-  const ext = MIME_TO_EXT[file.type] ?? ''
+  const ext = MIME_TO_EXT[detectedType] ?? path.extname(file.name) ?? ''
   const diskFilename = `${fileId}${ext}`
   const filePath = path.join(deckDir, diskFilename)
 
@@ -130,7 +152,7 @@ filesRouter.post('/:deckId/files', authMiddleware, async (c) => {
     id: fileId,
     deckId,
     filename: file.name,
-    mimeType: file.type,
+    mimeType: detectedType,
     path: filePath,
     uploadedBy: user.id,
     createdAt: new Date(),
@@ -140,7 +162,7 @@ filesRouter.post('/:deckId/files', authMiddleware, async (c) => {
     file: {
       id: fileId,
       filename: file.name,
-      mimeType: file.type,
+      mimeType: detectedType,
       url: `/api/decks/${deckId}/files/${fileId}`,
       textExtracted: Boolean(extractedMarkdown && extractedMarkdown.trim()),
     },

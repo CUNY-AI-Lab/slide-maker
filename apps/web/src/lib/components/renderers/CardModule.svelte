@@ -35,12 +35,13 @@
 <style>
   .card {
     border-left: 4px solid var(--teal, #2FB8D6);
-    padding: clamp(0.75rem, 1.5cqi, 1.25rem);
+    padding: clamp(1rem, 2.5cqi, 1.75rem);
     background: rgba(47, 184, 214, 0.06);
-    border-radius: 0 6px 6px 0;
-    font-size: clamp(0.8rem, 1.3cqi, 1rem);
-    line-height: 1.6;
+    border-radius: 0 8px 8px 0;
+    font-size: clamp(0.95rem, 1.8cqi, 1.15rem);
+    line-height: 1.65;
     font-family: var(--font-body);
+    min-height: clamp(120px, 16cqi, 220px);
   }
   .card-navy {
     border-left-color: var(--navy, #1D3A83);

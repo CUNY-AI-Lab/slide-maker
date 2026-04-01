@@ -6,6 +6,13 @@ import fs from 'node:fs'
 
 export async function extractMarkdownFromFile(filePath: string, mimeType: string): Promise<string | null> {
   try {
+    if (mimeType?.startsWith('text/')) {
+      // Plain text or Markdown — read and normalize as Markdown
+      const raw = fs.readFileSync(filePath, 'utf8')
+      const normalized = raw.replace(/\r/g, '').replace(/\n{3,}/g, '\n\n').trim()
+      return normalized || null
+    }
+
     if (mimeType === 'application/pdf') {
       // Lazy import to avoid loading when not needed
       let pdfParse: any
@@ -52,4 +59,3 @@ export async function extractMarkdownFromFile(filePath: string, mimeType: string
   }
   return null
 }
-

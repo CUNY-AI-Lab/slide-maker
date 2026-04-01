@@ -333,7 +333,7 @@ ${templatesList}
 ${files?.length ? files.map((f) => `- "${f.filename}" (${f.mimeType}) → use src: "${f.url}" in image modules`).join('\n') : '(no files uploaded)'}
 
 ${(() => {
-  const docs = (files ?? []).filter((f) => f.excerpt && (f.mimeType?.includes('pdf') || f.mimeType?.includes('word')))
+  const docs = (files ?? []).filter((f) => f.excerpt && (f.mimeType?.includes('pdf') || f.mimeType?.includes('word') || f.mimeType?.includes('markdown') || f.mimeType === 'text/plain'))
   if (!docs.length) return ''
   let section = '\n## Uploaded Documents (text excerpts)\n'
   for (const d of docs) {

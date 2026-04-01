@@ -39,26 +39,27 @@
 <style>
   .card-grid {
     display: grid;
-    gap: clamp(0.5rem, 1.2cqi, 1rem);
+    gap: clamp(0.75rem, 1.8cqi, 1.25rem);
     width: 100%;
   }
   .card {
     background: var(--color-bg-secondary, rgba(0, 0, 0, 0.03));
     border: 1px solid var(--color-border);
-    border-radius: 6px;
-    padding: clamp(0.75rem, 1.5cqi, 1.25rem);
+    border-radius: 8px;
+    padding: clamp(1rem, 2.2cqi, 1.5rem);
+    min-height: clamp(130px, 15cqi, 220px);
   }
   .card-title {
     font-family: var(--font-display);
-    font-size: clamp(0.85rem, 1.3cqi, 1.05rem);
-    font-weight: 600;
+    font-size: clamp(1rem, 1.8cqi, 1.25rem);
+    font-weight: 650;
     display: block;
-    margin-bottom: 0.35rem;
+    margin-bottom: 0.5rem;
   }
   .card-content {
     margin: 0;
-    font-size: clamp(0.75rem, 1.1cqi, 0.9rem);
-    line-height: 1.5;
+    font-size: clamp(0.9rem, 1.4cqi, 1.05rem);
+    line-height: 1.6;
     color: var(--color-text-secondary);
     font-family: var(--font-body);
   }

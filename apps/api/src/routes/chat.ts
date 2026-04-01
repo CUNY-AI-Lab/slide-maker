@@ -101,7 +101,10 @@ chat.post('/', chatRateLimit, async (c) => {
 
     // Compute sidecar .md path and load excerpts
     const MAX_TOTAL = 4000
-    const candidates = list.filter((f) => f.mimeType?.includes('pdf') || f.mimeType?.includes('word'))
+    const candidates = list.filter((f) => {
+      const mt = (f.mimeType || '').toLowerCase()
+      return mt.includes('pdf') || mt.includes('word') || mt.includes('markdown') || mt === 'text/plain'
+    })
     let perDoc = candidates.length > 0 ? Math.floor(MAX_TOTAL / candidates.length) : 0
     if (perDoc < 1200) perDoc = 1200
 
@@ -110,7 +113,8 @@ chat.post('/', chatRateLimit, async (c) => {
       const UPLOADS_DIR = path.resolve(__dirname, '../../uploads')
 
       for (const f of list) {
-        if (!(f.mimeType?.includes('pdf') || f.mimeType?.includes('word'))) continue
+        const mt = (f.mimeType || '').toLowerCase()
+        if (!(mt.includes('pdf') || mt.includes('word') || mt.includes('markdown') || mt === 'text/plain')) continue
         let mdPath: string
         if (f.path && path.isAbsolute(f.path)) {
           mdPath = path.join(path.dirname(f.path), `${f.id}.md`)
