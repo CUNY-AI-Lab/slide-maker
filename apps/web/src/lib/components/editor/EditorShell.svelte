@@ -15,11 +15,12 @@
   let chatCollapsed = $state(false)
   let outlineCollapsed = $state(false)
 
-  $effect(() => {
-    if (chatCollapsed && outlineCollapsed) {
-      outlineCollapsed = false
-    }
-  })
+  function collapseChat() {
+    if (!outlineCollapsed) chatCollapsed = true
+  }
+  function collapseOutline() {
+    if (!chatCollapsed) outlineCollapsed = true
+  }
   let draggingLeft = $state(false)
   let draggingRight = $state(false)
 
@@ -117,6 +118,14 @@
 
 </script>
 
+{#snippet collapseIcon()}
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+{/snippet}
+
+{#snippet expandIcon()}
+  {@render expandIcon()}
+{/snippet}
+
 <div class="editor-wrapper">
 <div class="editor-shell" class:resizing={draggingLeft || draggingRight}>
   
@@ -126,8 +135,8 @@
         <div class="chat-section">
           <div class="section-header">
             <span class="section-label">Chat</span>
-            <button class="section-toggle" onclick={() => chatCollapsed = true} title="Collapse chat" aria-label="Collapse chat">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            <button class="section-toggle" onclick={collapseChat} title="Collapse chat" aria-label="Collapse chat">
+              {@render collapseIcon()}
             </button>
           </div>
           <ChatPanel />
@@ -135,8 +144,8 @@
         <div class="outline-section">
           <div class="section-header">
             <span class="section-label">Slides</span>
-            <button class="section-toggle" onclick={() => outlineCollapsed = true} title="Collapse outline" aria-label="Collapse outline">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            <button class="section-toggle" onclick={collapseOutline} title="Collapse outline" aria-label="Collapse outline">
+              {@render collapseIcon()}
             </button>
           </div>
           <SlideOutline />
@@ -144,32 +153,32 @@
       {:else if chatCollapsed}
         <div class="collapsed-tab top">
           <button class="tab-restore" onclick={() => chatCollapsed = false} title="Expand chat" aria-label="Expand chat">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            {@render expandIcon()}
             <span>Chat</span>
           </button>
         </div>
         <div class="outline-section full">
           <div class="section-header">
             <span class="section-label">Slides</span>
-            <button class="section-toggle" onclick={() => outlineCollapsed = true} title="Collapse outline" aria-label="Collapse outline">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            <button class="section-toggle" onclick={collapseOutline} title="Collapse outline" aria-label="Collapse outline">
+              {@render collapseIcon()}
             </button>
           </div>
           <SlideOutline />
         </div>
-      {:else}
+      {:else if outlineCollapsed}
         <div class="chat-section full">
           <div class="section-header">
             <span class="section-label">Chat</span>
-            <button class="section-toggle" onclick={() => chatCollapsed = true} title="Collapse chat" aria-label="Collapse chat">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"></polyline><polyline points="20 10 14 10 14 4"></polyline><line x1="14" y1="10" x2="21" y2="3"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            <button class="section-toggle" onclick={collapseChat} title="Collapse chat" aria-label="Collapse chat">
+              {@render collapseIcon()}
             </button>
           </div>
           <ChatPanel />
         </div>
         <div class="collapsed-tab bottom">
           <button class="tab-restore" onclick={() => outlineCollapsed = false} title="Expand outline" aria-label="Expand outline">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            {@render expandIcon()}
             <span>Slides</span>
           </button>
         </div>
