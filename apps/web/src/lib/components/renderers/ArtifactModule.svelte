@@ -15,7 +15,7 @@
     editable?: boolean
   }>()
 
-  const CSP_META = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\' \'unsafe-inline\' blob: data:; script-src \'unsafe-inline\' \'unsafe-eval\'; connect-src \'none\'; frame-src \'none\';">'
+  const CSP_META = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\' \'unsafe-inline\' blob: data:; script-src \'unsafe-inline\'; connect-src \'none\'; frame-src \'none\';">'
 
   const width = $derived(data.width || '100%')
   const height = $derived(data.height || '100%')
@@ -66,7 +66,7 @@
       src={iframeSrc}
       class="artifact-iframe"
       class:no-interact={editable}
-      sandbox="allow-scripts allow-same-origin"
+      sandbox="allow-scripts"
       title={alt}
       loading="lazy"
     ></iframe>
