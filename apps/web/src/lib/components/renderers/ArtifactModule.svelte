@@ -1,10 +1,25 @@
 <script lang="ts">
-  import { untrack } from 'svelte'
+  import { onMount } from 'svelte'
   import { base } from '$app/paths'
+  import { getArtifact, type ArtifactController } from '$lib/modules/artifacts'
   import { buildSourceWithConfig } from '$lib/utils/artifact-config'
+  // Register all built-in artifact factories
+  import '$lib/modules/artifacts/astar'
+  import '$lib/modules/artifacts/boids'
+  import '$lib/modules/artifacts/flow'
+  import '$lib/modules/artifacts/harmonograph'
+  import '$lib/modules/artifacts/langton'
+  import '$lib/modules/artifacts/lorenz'
+  import '$lib/modules/artifacts/molnar'
+  import '$lib/modules/artifacts/nake'
+  import '$lib/modules/artifacts/rossler'
+  import '$lib/modules/artifacts/sprott'
+  import '$lib/modules/artifacts/tenprint'
+  import '$lib/modules/artifacts/truchet'
 
   let { data, editable = false } = $props<{
     data: {
+      artifactName?: string
       src?: string
       url?: string
       rawSource?: string
@@ -12,6 +27,7 @@
       width?: string
       height?: string
       alt?: string
+      align?: 'left' | 'center' | 'right'
     }
     editable?: boolean
   }>()
@@ -24,13 +40,56 @@
   const alt = $derived(data.alt || 'Interactive visualization')
   const align = $derived((data.align as string) || 'center')
 
-  // Prefer srcdoc for inline HTML to preserve a valid referrer for subresources (e.g., OSM tiles)
-  // Build iframe params: { src, srcdoc }
+  // Resolve factory: try artifactName first, then fall back to alt (legacy blocks)
+  const factory = $derived(getArtifact(data.artifactName) ?? getArtifact(data.alt))
+  const useNative = $derived(!!factory)
+
+  // --- Native rendering state ---
+  let container: HTMLDivElement | null = null
+  let controller: ArtifactController | null = null
+  let error = $state<string | null>(null)
+
+  function startNative() {
+    cleanupNative()
+    error = null
+    if (!factory || !container) return
+    try {
+      controller = factory(container, data.config ?? {})
+    } catch (e) {
+      console.error('Artifact init failed:', e)
+      error = 'Failed to initialize artifact'
+    }
+  }
+
+  function cleanupNative() {
+    try { controller?.destroy?.() } catch {}
+    controller = null
+    if (container) container.replaceChildren()
+  }
+
+  onMount(() => {
+    if (useNative) startNative()
+    return () => cleanupNative()
+  })
+
+  $effect(() => {
+    // Restart native renderer if artifact type changes
+    if (useNative) {
+      data.artifactName; data.alt
+      startNative()
+    }
+  })
+
+  $effect(() => {
+    // Propagate config updates to native controller
+    if (controller) controller.update?.(data.config ?? {})
+  })
+
+  // --- Iframe fallback (legacy HTML-source artifacts) ---
   const iframe = $derived.by(() => {
+    if (useNative) return { src: '', srcdoc: '' }
     if (data.rawSource) {
-      // If rawSource looks like an absolute URL, use it directly via src
       if (/^https?:\/\//i.test(data.rawSource)) return { src: data.rawSource, srcdoc: '' }
-      // Otherwise, treat as inline HTML and inject config + CSP, served via srcdoc
       let html = data.config && Object.keys(data.config).length > 0
         ? buildSourceWithConfig(data.rawSource, data.config)
         : data.rawSource
@@ -41,22 +100,18 @@
       } else {
         html = CSP_META + html
       }
-      // Serve via same-origin endpoint so subresources (e.g., OSM tiles) get a proper Referer
-      // Base64-encode to pass safely in the query string
       const b64 = btoa(unescape(encodeURIComponent(html)))
       return { src: `${base}/artifact?b64=${encodeURIComponent(b64)}`, srcdoc: '' }
     }
     const src = data.src || data.url || ''
-    // Only allow http(s) and blob URLs to prevent javascript: and data: injection
     const safe = /^(https?:\/\/|blob:)/i.test(src) ? src : ''
     return { src: safe, srcdoc: '' }
   })
 
-  // Revoke blob URLs on cleanup
   $effect(() => {
-    const url = iframe.src
-    return () => {
-      if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
+    if (!useNative) {
+      const url = iframe.src
+      return () => { if (url?.startsWith('blob:')) URL.revokeObjectURL(url) }
     }
   })
 </script>
@@ -71,10 +126,19 @@
       <span class="artifact-label">{alt}</span>
     </div>
   {/if}
-  {#if iframe.src || iframe.srcdoc}
+
+  {#if useNative}
+    {#if error}
+      <div class="artifact-placeholder">
+        <span class="artifact-icon">!</span>
+        <p>{error}</p>
+      </div>
+    {:else}
+      <div bind:this={container} class="artifact-native" class:no-interact={editable}></div>
+    {/if}
+  {:else if iframe.src}
     <iframe
-      src={iframe.src || undefined}
-      srcdoc={iframe.srcdoc || undefined}
+      src={iframe.src}
       class="artifact-iframe"
       class:no-interact={editable}
       sandbox="allow-scripts"
@@ -91,7 +155,6 @@
 </div>
 
 <style>
-  /* Align editor styling with export/preview framework CSS */
   .artifact-wrapper {
     display: flex;
     flex-direction: column;
@@ -117,17 +180,18 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .artifact-native,
   .artifact-iframe {
     display: block;
     border: none;
     width: 100%;
     flex: 1;
     min-height: 0;
-    /* Default to 16:9 aspect */
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 1;
   }
-  /* When an explicit height is provided on the wrapper, drop square aspect */
+  .artifact-wrapper.custom-sized .artifact-native,
   .artifact-wrapper.custom-sized .artifact-iframe { aspect-ratio: auto; }
+  .artifact-native.no-interact,
   .artifact-iframe.no-interact {
     pointer-events: none;
   }

@@ -217,11 +217,11 @@ figcaption { margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); }
 }
 .artifact-wrapper iframe {
   display: block; width: 100%; flex: 1; min-height: 0;
-  aspect-ratio: 16 / 9; border: none;
+  aspect-ratio: 1; border: none;
 }
 .artifact-card iframe {
   display: block; width: 100%; flex: 1; min-height: 0;
-  aspect-ratio: 16 / 9; border: none;
+  aspect-ratio: 1; border: none;
 }
 /* When a height is specified inline (e.g., style="height: 240px"),
    drop the default square aspect ratio and allow natural sizing. */
@@ -343,11 +343,6 @@ export const FRAMEWORK_CSS_PREVIEW = FRAMEWORK_CSS_BASE + `
 .slide {
   display: flex; position: relative; width: 100%; min-height: 100vh;
   padding: 60px 80px; overflow: visible; flex-direction: column; justify-content: flex-start;
-}
-
-/* ── Zone overflow ────────────────────────────────────────────────── */
-.slide > .content, .slide > .stage, .slide > .main, .slide > .hero {
-  overflow: visible; min-height: 0; flex-shrink: 0;
 }
 
 /* ── Step Reveal (all visible in preview, with step indicator) ──── */
