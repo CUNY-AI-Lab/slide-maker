@@ -189,7 +189,7 @@
 <footer class="app-footer">
   <div class="footer-divider"></div>
   <div class="footer-content">
-    <a href="https://ailab.gc.cuny.edu" target="_blank" rel="noopener" class="footer-link-main">ailab.gc.cuny.edu</a>
+    <a href="https://tools.ailab.gc.cuny.edu" target="_blank" rel="noopener" class="footer-link-main">tools.ailab.gc.cuny.edu</a>
     <img src="{base}/cuny-ai-lab-logo.png" alt="CUNY AI Lab" class="footer-logo" />
   </div>
 </footer>
@@ -398,8 +398,8 @@
   }
 
   .footer-logo {
-    width: 28px;
-    height: 28px;
+    width: 44px;
+    height: 44px;
     object-fit: contain;
     flex-shrink: 0;
     opacity: 0.6;
