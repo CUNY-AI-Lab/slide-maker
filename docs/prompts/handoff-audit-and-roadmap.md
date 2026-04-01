@@ -43,7 +43,7 @@ Each phase below needs verification. Check the box when audited and passing.
 - [ ] Resize the browser at multiple widths (1440, 1024, 860px) and confirm modules scale smoothly
 - [ ] Verify `@container (max-width: 500px)` breakpoint in ComparisonModule triggers correctly
 
-### Phase 4: JS Primitives (Creative Clawing Artifacts)
+### Phase 4: JS Primitives (Built-in Artifacts)
 
 - [ ] Validate all 12 JSON templates parse correctly: `node -e "for(const f of require('fs').readdirSync('templates/artifacts').filter(f=>f.endsWith('.json'))){JSON.parse(require('fs').readFileSync('templates/artifacts/'+f,'utf8'));console.log('OK:',f)}"`
 - [ ] Run `pnpm db:seed` and confirm all 12 artifacts load into the database
@@ -53,7 +53,7 @@ Each phase below needs verification. Check the box when audited and passing.
 ### Phase 5: Artifact Security
 
 - [ ] Confirm CSP meta tag appears in blob URL HTML: inspect iframe src in devtools → `URL.createObjectURL` result should contain `<meta http-equiv="Content-Security-Policy" ...>`
-- [ ] Verify none of the 12 Creative Clawing sketches need network access (they should all be self-contained canvas animations)
+- [ ] Verify none of the 12 built-in sketches need network access (they should all be self-contained canvas animations)
 - [ ] Check for `$effect` cleanup race condition: does blob URL revocation fire before the iframe finishes loading? Test by adding a slow-rendering artifact and switching slides rapidly
 - [ ] Verify `connect-src 'none'` in artifact CSP doesn't break any sketches that use `fetch()` or `XMLHttpRequest`
 
@@ -128,7 +128,7 @@ The AI chat system drives the editor. Assess how tightly coupled the frontend st
 
 ## Part 4: Export Pipeline for JS Primitives
 
-The 12 Creative Clawing artifacts are `rawSource` HTML strings in the DB. Assess the export path.
+The 12 built-in artifacts are `rawSource` HTML strings in the DB. Assess the export path.
 
 ### Current Export Architecture
 
@@ -140,7 +140,7 @@ The 12 Creative Clawing artifacts are `rawSource` HTML strings in the DB. Assess
 
 - [ ] Evaluate: should JS primitives be separate `.html` files in the ZIP (referenced by `<iframe src="artifacts/langton.html">`) instead of inlined srcdoc?
 - [ ] Evaluate: for Kale Deploy (Cloudflare Workers), is a single HTML file simpler or do separate assets cache better?
-- [ ] Evaluate: could a shared CDN at `creative-clawing.com` serve artifacts instead of bundling per-deck? (Already in CSP whitelist)
+- [ ] Evaluate: could a shared CDN serve artifacts instead of bundling per-deck?
 
 ---
 

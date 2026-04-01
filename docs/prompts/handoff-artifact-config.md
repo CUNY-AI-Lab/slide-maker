@@ -87,7 +87,7 @@ The design is fully specified in the plan file above. Key decisions:
 
 - **No new API endpoint** — `updateArtifactConfig` is a client-side macro expanding to `updateBlock` calls via the existing `PATCH /api/decks/:id/slides/:slideId/blocks/:blockId` endpoint
 - **`data-config` attribute on `<body>`** is the injection point (already used by `buildSourceWithConfig` in ArtifactsTab)
-- **`?? defaultValue` pattern** ensures artifacts work standalone without any config (backwards compat with creative-clawing.com gallery and old deck blocks)
+- **`?? defaultValue` pattern** ensures artifacts work standalone without any config (backwards compat with old deck blocks)
 - **Tiered prompt** keeps token cost bounded: 1000 artifacts = ~1000 index lines, only 2-3 active + 1-2 focused get expanded
 - **`artifactName` matching** with `data.alt` fallback for old blocks that don't have identity fields
 

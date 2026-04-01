@@ -289,6 +289,6 @@ These items from the handoff document were evaluated and intentionally deferred:
 | Moveable for block resize | Current corner-resize works. Moveable adds 50KB+ for marginal gain. |
 | Floating UI for popovers | Manual positioning is <20 lines where used. Overkill. |
 | Endo for artifact isolation | Iframe sandbox is the correct browser primitive for untrusted HTML. SES is experimental. |
-| Unovis for chart artifacts | The 12 Creative Clawing artifacts are self-contained canvas animations. A chart library solves a different problem. |
+| Unovis for chart artifacts | The 12 built-in artifacts are self-contained canvas animations. A chart library solves a different problem. |
 | Kale Deploy integration | Requires the export pipeline to stabilize first (Task 1). Assess after artifact extraction ships. |
 | SlideRenderer splitRatio $effect | Looks like a redundant sync but is actually correct — two-way binding between prop changes and local drag state. |

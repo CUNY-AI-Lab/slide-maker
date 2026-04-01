@@ -49,7 +49,7 @@ test('artifact with external URL renders without blob', async ({
     type: 'artifact',
     zone: 'main',
     data: {
-      src: 'https://creative-clawing.com/gallery/langton.html',
+      src: 'https://example.com/gallery/langton.html',
       alt: "Langton's Ant",
     },
   })
@@ -59,7 +59,7 @@ test('artifact with external URL renders without blob', async ({
 
   const iframe = page.locator('.artifact-iframe')
   const src = await iframe.getAttribute('src')
-  expect(src).toBe('https://creative-clawing.com/gallery/langton.html')
+  expect(src).toBe('https://example.com/gallery/langton.html')
 })
 
 test('artifact resizes via corner drag', async ({

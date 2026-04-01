@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Generates docs/demo.html — standalone Creative Clawing JS Primitives sandbox
+// Generates docs/demo.html — standalone JS Primitives sandbox
 // Usage: node scripts/build-demo.mjs
 
 import { readFileSync, writeFileSync, readdirSync } from 'fs';
@@ -39,7 +39,7 @@ const html = `<!DOCTYPE html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Creative Clawing \u2014 JS Primitives</title>
+<title>JS Primitives</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
@@ -214,7 +214,7 @@ body{
 
 <header id="topbar">
   <div class="brand">
-    <h1>Creative Clawing</h1>
+    <h1>JS Primitives</h1>
     <span class="tag">JS Primitives</span>
   </div>
   <div class="actions" id="topActions"></div>
@@ -224,7 +224,7 @@ body{
   <div id="welcome">
     <div class="welcome-inner">
       <h2>Drag. Resize. Explore.</h2>
-      <p>12 canvas visualizations from Creative Clawing.<br>
+      <p>12 canvas visualizations.<br>
       Drag title bars to move \u00b7 corner handles to resize \u00b7 dock to toggle.</p>
     </div>
   </div>

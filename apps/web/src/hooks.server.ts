@@ -14,8 +14,11 @@ export const handle: Handle = async ({ event, resolve }) => {
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
-      "connect-src 'self' http://localhost:* https://*.cuny.edu https://*.qzz.io https://creative-clawing.com",
-      "frame-src 'self' blob: https://creative-clawing.com",
+      "connect-src 'self' http://localhost:* https://*.cuny.edu https://*.qzz.io",
+      "frame-src 'self' blob:",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "frame-ancestors 'self'",
     ].join('; ')
   )
 

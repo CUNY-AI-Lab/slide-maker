@@ -1,6 +1,6 @@
 # Interactive JS Artifacts
 
-Embeddable JavaScript visualizations from [creative-clawing.com](https://creative-clawing.com).
+Embeddable JavaScript visualizations bundled as self-contained HTML.
 
 These are standalone HTML canvas files that run in iframes with zero dependencies.
 Each artifact is a self-contained visualization suitable for embedding in slide
@@ -11,12 +11,6 @@ stage panels (layout-split right column) or full-width content slides.
 Artifacts load via `<iframe>` in a slide's stage zone. The slide builder creates
 an iframe element pointing to the artifact URL. Each artifact accepts optional
 configuration via URL parameters or postMessage.
-
-## Source Gallery
-
-All artifacts originate from the Creative Clawing gallery:
-- Live site: https://creative-clawing.com/gallery/
-- Repository: https://github.com/milwrite/creative-clawing
 
 ## Catalog
 

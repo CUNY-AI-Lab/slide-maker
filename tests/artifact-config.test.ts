@@ -9,7 +9,7 @@ const flatArtifact: ArtifactRef = {
   name: 'Boids Visualization',
   description: 'Interactive boids visualization',
   type: 'visualization',
-  source: 'https://creative-clawing.com/gallery/boids.html',
+  source: 'https://example.com/gallery/boids.html',
   config: { width: '100%', height: '400px', sandbox: 'allow-scripts' },
 }
 
@@ -107,7 +107,7 @@ describe('buildAtRef', () => {
     const payload = JSON.parse(jsonBlock)
     expect(payload.name).toBe('Boids Visualization')
     expect(payload.type).toBe('visualization')
-    expect(payload.source).toBe('https://creative-clawing.com/gallery/boids.html')
+    expect(payload.source).toBe('https://example.com/gallery/boids.html')
     expect(payload.config).toEqual({
       width: '100%',
       height: '400px',
