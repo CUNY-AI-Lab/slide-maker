@@ -1,6 +1,7 @@
 import sanitizeHtml from 'sanitize-html'
 import { NAVIGATION_JS } from './navigation.js'
 import { CAROUSEL_JS } from './carousel.js'
+import { ARTIFACTS_JS, NATIVE_ARTIFACT_NAMES } from './artifacts.js'
 
 function esc(str: string): string {
   return str
@@ -278,29 +279,39 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
       const rawSrc = String(d.src || d.url || '')
       const rawSource = d.rawSource ? String(d.rawSource) : ''
       const isUrl = /^https?:\/\//i.test(rawSrc)
+      const artifactName = d.artifactName ? String(d.artifactName) : ''
       const alt = esc(String(d.alt || 'Interactive visualization'))
       const aw = d.width ? String(d.width) : ''
       const ah = d.height ? String(d.height) : ''
       const align = typeof d.align === 'string' ? String(d.align) : 'center'
       const alignCss = align === 'left' ? 'margin-right:auto;' : align === 'right' ? 'margin-left:auto;' : 'margin:0 auto;'
       const sizeStyle = ` style="${aw ? `width:${esc(aw)};` : ''}${ah ? `height:${esc(ah)};aspect-ratio:auto;` : ''}${alignCss}"`
-      const iframeTag = (content: string) => `<div class="artifact-wrapper"${step}${sizeStyle}>${content}</div>`
+      const wrapArtifact = (content: string) => `<div class="artifact-wrapper"${step}${sizeStyle}>${content}</div>`
+
+      // Native JS rendering for registered canvas artifacts (no iframe)
+      const nativeName = artifactName || String(d.alt || '')
+      if (nativeName && NATIVE_ARTIFACT_NAMES.has(nativeName)) {
+        const configJson = d.config ? esc(JSON.stringify(d.config)) : '{}'
+        return wrapArtifact(`<div class="artifact-native" data-artifact="${esc(nativeName)}" data-config="${configJson}"></div>`)
+      }
+
+      // Iframe fallback for external URLs, HTML-source artifacts (charts, maps, etc.)
       if (isUrl) {
-        return iframeTag(`<iframe src="${esc(rawSrc)}" sandbox="allow-scripts" loading="lazy" title="${alt}" referrerpolicy="origin-when-cross-origin"></iframe>`)
+        return wrapArtifact(`<iframe src="${esc(rawSrc)}" sandbox="allow-scripts" loading="lazy" title="${alt}" referrerpolicy="origin-when-cross-origin"></iframe>`)
       }
       if (rawSource && opts?.extractArtifacts) {
         const hash = Buffer.from(rawSource).toString('base64url').slice(0, 12)
         const filename = `artifact-${hash}.html`
         extractedArtifacts.set(filename, rawSource)
-        return iframeTag(`<iframe src="artifacts/${filename}" sandbox="allow-scripts" loading="lazy" title="${alt}" referrerpolicy="origin-when-cross-origin"></iframe>`)
+        return wrapArtifact(`<iframe src="artifacts/${filename}" sandbox="allow-scripts" loading="lazy" title="${alt}" referrerpolicy="origin-when-cross-origin"></iframe>`)
       }
       if (rawSource && opts?.artifactEndpoint) {
         const b64 = Buffer.from(rawSource, 'utf8').toString('base64')
         const ep = opts.artifactEndpoint.endsWith('/') ? opts.artifactEndpoint.slice(0, -1) : opts.artifactEndpoint
-        return iframeTag(`<iframe src="${esc(ep)}?b64=${esc(encodeURIComponent(b64))}" sandbox="allow-scripts" loading="lazy" title="${alt}" referrerpolicy="origin-when-cross-origin"></iframe>`)
+        return wrapArtifact(`<iframe src="${esc(ep)}?b64=${esc(encodeURIComponent(b64))}" sandbox="allow-scripts" loading="lazy" title="${alt}" referrerpolicy="origin-when-cross-origin"></iframe>`)
       }
       if (rawSource) {
-        return iframeTag(`<iframe srcdoc="${esc(rawSource)}" sandbox="allow-scripts" loading="lazy" title="${alt}" referrerpolicy="origin-when-cross-origin"></iframe>`)
+        return wrapArtifact(`<iframe srcdoc="${esc(rawSource)}" sandbox="allow-scripts" loading="lazy" title="${alt}" referrerpolicy="origin-when-cross-origin"></iframe>`)
       }
       return `<div class="artifact-wrapper"${step} style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;">${alt}</div>`
     }
@@ -453,8 +464,8 @@ export function renderDeckHtml(
   const fontUrl = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(bodyFont)}:wght@400;500;600;700&family=${encodeURIComponent(headingFont)}:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap`
 
   const engineScripts = opts?.externalJs
-    ? '<script src="js/engine.js"></script>'
-    : `<script>\n${NAVIGATION_JS}\n  </script>\n  <script>\n${CAROUSEL_JS}\n  </script>`
+    ? '<script src="js/engine.js"></script>\n  <script src="js/artifacts.js"></script>'
+    : `<script>\n${NAVIGATION_JS}\n  </script>\n  <script>\n${CAROUSEL_JS}\n  </script>\n  <script>\n${ARTIFACTS_JS}\n  </script>`
 
   return `<!DOCTYPE html>
 <html lang="en">

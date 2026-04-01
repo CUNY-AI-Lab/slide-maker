@@ -219,6 +219,13 @@ figcaption { margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); }
   display: block; width: 100%; flex: 1; min-height: 0;
   aspect-ratio: 1; border: none;
 }
+.artifact-wrapper .artifact-native {
+  display: block; width: 100%; flex: 1; min-height: 0;
+  aspect-ratio: 1;
+}
+.artifact-wrapper .artifact-native canvas {
+  display: block; width: 100%; height: 100%;
+}
 .artifact-card iframe {
   display: block; width: 100%; flex: 1; min-height: 0;
   aspect-ratio: 1; border: none;
@@ -226,6 +233,7 @@ figcaption { margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); }
 /* When a height is specified inline (e.g., style="height: 240px"),
    drop the default square aspect ratio and allow natural sizing. */
 .artifact-wrapper[style*="height"] iframe { aspect-ratio: auto; }
+.artifact-wrapper[style*="height"] .artifact-native { aspect-ratio: auto; }
 .artifact-card[style*="height"] iframe { aspect-ratio: auto; }
 
 /* ── Blockquote ──────────────────────────────────────────────────── */
