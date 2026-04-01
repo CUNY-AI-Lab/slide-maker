@@ -200,13 +200,25 @@ figcaption { margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); }
   border: 1px solid var(--border-subtle);
   background: rgba(0,0,0,0.15);
 }
+.artifact-card {
+  display: flex; flex-direction: column;
+  width: 100%; border-radius: 4px; overflow: hidden;
+  margin: 0 auto;
+  border: 1px solid var(--border-subtle);
+  background: rgba(0,0,0,0.15);
+}
 .artifact-wrapper iframe {
+  display: block; width: 100%; flex: 1; min-height: 0;
+  aspect-ratio: 1; border: none;
+}
+.artifact-card iframe {
   display: block; width: 100%; flex: 1; min-height: 0;
   aspect-ratio: 1; border: none;
 }
 /* When a height is specified inline (e.g., style="height: 240px"),
    drop the default square aspect ratio and allow natural sizing. */
 .artifact-wrapper[style*="height"] iframe { aspect-ratio: auto; }
+.artifact-card[style*="height"] iframe { aspect-ratio: auto; }
 
 /* ── Blockquote ──────────────────────────────────────────────────── */
 blockquote {
