@@ -39,28 +39,35 @@ export async function streamChat(
 
   const decoder = new TextDecoder()
   let buffer = ''
+  let gotDone = false
 
-  while (true) {
-    if (signal?.aborted) { onError('aborted'); break }
-    const { done, value } = await reader.read()
-    if (done) break
+  try {
+    while (true) {
+      if (signal?.aborted) { onError('aborted'); break }
+      const { done, value } = await reader.read()
+      if (done) break
 
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() ?? ''
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
 
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue
-      const data = line.slice(6).trim()
-      if (!data) continue
-      try {
-        const event = JSON.parse(data)
-        if (event.type === 'text') onText(event.content)
-        else if (event.type === 'done') onDone()
-        else if (event.type === 'error') onError(event.message)
-      } catch {
-        /* ignore malformed SSE data */
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const data = line.slice(6).trim()
+        if (!data) continue
+        try {
+          const event = JSON.parse(data)
+          if (event.type === 'text') onText(event.content)
+          else if (event.type === 'done') { gotDone = true; onDone() }
+          else if (event.type === 'error') onError(event.message || 'Server error')
+        } catch {
+          /* ignore malformed SSE data */
+        }
       }
     }
+  } catch (e: any) {
+    if (signal?.aborted) return
+    // Stream was cut (e.g. by proxy/Cloudflare) — if we got content, treat as done
+    if (!gotDone) onDone()
   }
 }

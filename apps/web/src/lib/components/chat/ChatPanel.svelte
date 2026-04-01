@@ -129,11 +129,6 @@
     // Guard: require an active slide only if the deck already has slides
     if (!slideId && hasSlides) return
 
-    // Build history from current messages (exclude streaming)
-    const history = get(chatMessages)
-      .filter((m) => !m.streaming)
-      .map((m) => ({ role: m.role, content: m.content }))
-
     // Add user message
     addUserMessage(text)
 
@@ -153,12 +148,17 @@
     let firstChunk = true
     let appliedMutationCount = 0
 
+    // Build history from existing messages (exclude the streaming placeholder)
+    const history = get(chatMessages)
+      .filter((m) => m.id !== assistantId && !m.streaming)
+      .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+
     await streamChat(
       text,
       deck.id,
       slideId,
       modelId,
-      [],
+      history,
       (chunk) => {
         if (firstChunk) {
           // Replace "Thinking..." with first real content
