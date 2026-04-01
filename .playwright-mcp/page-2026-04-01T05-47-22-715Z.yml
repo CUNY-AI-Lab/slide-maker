@@ -1,0 +1,122 @@
+- generic [ref=e1]:
+  - alert
+  - generic [ref=e2]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - generic [ref=e435]:
+          - generic [ref=e436]:
+            - generic [ref=e437]:
+              - generic [ref=e438]: Chat
+              - button "Collapse chat" [ref=e439] [cursor=pointer]:
+                - img [ref=e440]
+            - generic [ref=e445]:
+              - generic [ref=e447]:
+                - combobox [ref=e449] [cursor=pointer]:
+                  - option "Kimi K2.5"
+                  - option "GLM 5"
+                  - option "Gemini 3.1 Flash" [selected]
+                  - option "Qwen 3.5 Flash"
+                - button "Reset chat" [ref=e451] [cursor=pointer]: Reset
+              - generic [ref=e452]:
+                - generic [ref=e453]:
+                  - generic [ref=e454]: You
+                  - generic [ref=e455]: Reduce the vertical width of flow field on slide 3
+                - generic [ref=e456]:
+                  - generic [ref=e457]: Wiz
+                  - generic [ref=e458]:
+                    - text: To reduce the vertical footprint of the Flow Field artifact on slide 3, I will update its configuration settings.
+                    - text: I have updated the height of the Flow Field artifact to
+                    - code [ref=e459]: 250px
+                    - text: to make it more compact. Let me know if you would like me to adjust any other elements on that slide!
+              - generic [ref=e460]:
+                - textbox "Ask AI, /add module, /search images..." [ref=e461]
+                - button "Send" [disabled] [ref=e462]
+          - generic [ref=e463]:
+            - generic [ref=e464]:
+              - generic [ref=e465]: Slides
+              - button "Collapse outline" [ref=e466] [cursor=pointer]:
+                - img [ref=e467]
+            - generic [ref=e472]:
+              - generic [ref=e473]:
+                - generic [ref=e474]: SLIDES
+                - generic [ref=e475]:
+                  - button "Undo" [ref=e476] [cursor=pointer]:
+                    - img [ref=e477]
+                  - button "Redo" [disabled] [ref=e480]:
+                    - img [ref=e481]
+                  - button "+" [ref=e485] [cursor=pointer]
+              - list [ref=e486]:
+                - listitem [ref=e487]:
+                  - button "⠇ ▶ 1. Title Slide ✕" [ref=e489] [cursor=pointer]:
+                    - generic "Drag to reorder" [ref=e490]: ⠇
+                    - generic [ref=e491]: ▶
+                    - generic [ref=e492]: 1. Title Slide
+                    - button "✕" [ref=e493]
+                - listitem [ref=e494]:
+                  - generic [ref=e495] [cursor=pointer]:
+                    - button "⠇ ▼ 2. Title Slide ACTIVE ✕" [ref=e496]:
+                      - generic "Drag to reorder" [ref=e497]: ⠇
+                      - generic [ref=e498]: ▼
+                      - generic [ref=e499]: 2. Title Slide
+                      - generic [ref=e500]: ACTIVE
+                      - button "✕" [ref=e501]
+                    - list [ref=e502]:
+                      - listitem [ref=e503]:
+                        - button "⠿ Artifact Lorenz Attractor ▶ Delete module" [ref=e505]:
+                          - generic [ref=e506]: ⠿
+                          - generic [ref=e507]: Artifact
+                          - generic [ref=e508]: Lorenz Attractor
+                          - generic [ref=e509]: ▶
+                          - button "Delete module" [ref=e510]: ✕
+                - listitem [ref=e511]:
+                  - button "⠇ ▶ 3. Title Slide ✕" [ref=e513] [cursor=pointer]:
+                    - generic "Drag to reorder" [ref=e514]: ⠇
+                    - generic [ref=e515]: ▶
+                    - generic [ref=e516]: 3. Title Slide
+                    - button "✕" [ref=e517]
+        - button "◀" [ref=e128] [cursor=pointer]
+        - generic [ref=e130]:
+          - generic [ref=e131]:
+            - generic [ref=e132]:
+              - button "← Decks" [ref=e133] [cursor=pointer]
+              - button "Previous slide" [ref=e135] [cursor=pointer]: ←
+              - generic [ref=e136]: 2 / 3
+              - button "Next slide" [ref=e137] [cursor=pointer]: →
+            - generic [ref=e138]:
+              - generic [ref=e139]:
+                - button "Edit" [ref=e140] [cursor=pointer]
+                - button "View" [ref=e141] [cursor=pointer]
+                - button "Preview" [active] [ref=e142] [cursor=pointer]
+              - button "Logo" [ref=e144] [cursor=pointer]
+              - button "Export" [ref=e145] [cursor=pointer]
+          - generic [ref=e521]: Double-click a text block to edit
+          - generic [ref=e525]:
+            - generic [ref=e527]:
+              - toolbar "Module controls":
+                - combobox "Step reveal order":
+                  - option "Step" [selected]
+                  - option "1"
+                  - option "2"
+                  - option "3"
+                  - option "4"
+                  - option "5"
+                  - option "6"
+                  - option "7"
+                  - option "8"
+                  - option "9"
+                - button "Delete module": ✕
+              - generic [ref=e529]:
+                - generic [ref=e531]: Lorenz Attractor
+                - iframe [ref=e532]:
+                  
+            - button "+ Module" [ref=e535] [cursor=pointer]
+        - button "◀" [ref=e536] [cursor=pointer]
+      - contentinfo [ref=e184]:
+        - generic [ref=e186]:
+          - generic [ref=e187]:
+            - img "CUNY AI Lab" [ref=e188]
+            - link "tools.ailab.gc.cuny.edu" [ref=e189] [cursor=pointer]:
+              - /url: https://tools.ailab.gc.cuny.edu
+          - link "ailab.gc.cuny.edu" [ref=e190] [cursor=pointer]:
+            - /url: https://ailab.gc.cuny.edu
+    - generic [ref=e18]: Editor - CUNY AI Lab Slide Wiz

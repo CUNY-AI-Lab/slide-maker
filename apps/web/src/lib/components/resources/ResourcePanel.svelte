@@ -4,9 +4,9 @@
   import ArtifactsTab from './ArtifactsTab.svelte'
   import ThemesTab from './ThemesTab.svelte'
   import { activeResourceTab } from '$lib/stores/ui'
-  import { currentDeck } from '$lib/stores/deck'
 
   let activeTab = $state<'files' | 'templates' | 'artifacts' | 'themes'>('templates')
+  import { currentDeck } from '$lib/stores/deck'
   let deckId = $derived($currentDeck?.id ?? '')
 
   $effect(() => {

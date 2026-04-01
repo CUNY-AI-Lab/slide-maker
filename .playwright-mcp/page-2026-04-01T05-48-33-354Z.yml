@@ -1,0 +1,236 @@
+- generic [active] [ref=e1]:
+  - alert
+  - generic [ref=e2]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - generic [ref=e435]:
+          - generic [ref=e436]:
+            - generic [ref=e437]:
+              - generic [ref=e438]: Chat
+              - button "Collapse chat" [ref=e439] [cursor=pointer]:
+                - img [ref=e440]
+            - generic [ref=e445]:
+              - generic [ref=e447]:
+                - combobox [ref=e449] [cursor=pointer]:
+                  - option "Kimi K2.5"
+                  - option "GLM 5"
+                  - option "Gemini 3.1 Flash" [selected]
+                  - option "Qwen 3.5 Flash"
+                - button "Reset chat" [ref=e451] [cursor=pointer]: Reset
+              - generic [ref=e452]:
+                - generic [ref=e453]:
+                  - generic [ref=e454]: You
+                  - generic [ref=e455]: Reduce the vertical width of flow field on slide 3
+                - generic [ref=e456]:
+                  - generic [ref=e457]: Wiz
+                  - generic [ref=e458]:
+                    - text: To reduce the vertical footprint of the Flow Field artifact on slide 3, I will update its configuration settings.
+                    - text: I have updated the height of the Flow Field artifact to
+                    - code [ref=e459]: 250px
+                    - text: to make it more compact. Let me know if you would like me to adjust any other elements on that slide!
+              - generic [ref=e460]:
+                - textbox "Ask AI, /add module, /search images..." [ref=e461]
+                - button "Send" [disabled] [ref=e462]
+          - generic [ref=e463]:
+            - generic [ref=e464]:
+              - generic [ref=e465]: Slides
+              - button "Collapse outline" [ref=e466] [cursor=pointer]:
+                - img [ref=e467]
+            - generic [ref=e472]:
+              - generic [ref=e473]:
+                - generic [ref=e474]: SLIDES
+                - generic [ref=e475]:
+                  - button "Undo" [ref=e476] [cursor=pointer]:
+                    - img [ref=e477]
+                  - button "Redo" [disabled] [ref=e480]:
+                    - img [ref=e481]
+                  - button "+" [ref=e485] [cursor=pointer]
+              - list [ref=e486]:
+                - listitem [ref=e487]:
+                  - button "⠇ ▶ 1. Title Slide ✕" [ref=e489] [cursor=pointer]:
+                    - generic "Drag to reorder" [ref=e490]: ⠇
+                    - generic [ref=e491]: ▶
+                    - generic [ref=e492]: 1. Title Slide
+                    - button "✕" [ref=e493]
+                - listitem [ref=e494]:
+                  - button "⠇ ▶ 2. Title Slide ✕" [ref=e555] [cursor=pointer]:
+                    - generic "Drag to reorder" [ref=e497]: ⠇
+                    - generic [ref=e498]: ▶
+                    - generic [ref=e499]: 2. Title Slide
+                    - button "✕" [ref=e501]
+                - listitem [ref=e511]:
+                  - generic [ref=e512] [cursor=pointer]:
+                    - button "⠇ ▼ 3. Title Slide ACTIVE ✕" [ref=e556]:
+                      - generic "Drag to reorder" [ref=e514]: ⠇
+                      - generic [ref=e515]: ▼
+                      - generic [ref=e516]: 3. Title Slide
+                      - generic [ref=e557]: ACTIVE
+                      - button "✕" [ref=e517]
+                    - list [ref=e558]:
+                      - listitem [ref=e559]:
+                        - button "⠿ Heading Presentation Title ▶ Delete module" [ref=e561]:
+                          - generic [ref=e562]: ⠿
+                          - generic [ref=e563]: Heading
+                          - generic [ref=e564]: Presentation Title
+                          - generic [ref=e565]: ▶
+                          - button "Delete module" [ref=e566]: ✕
+                      - listitem [ref=e567]:
+                        - button "⠿ Heading Subtitle goes here ▶ Delete module" [ref=e569]:
+                          - generic [ref=e570]: ⠿
+                          - generic [ref=e571]: Heading
+                          - generic [ref=e572]: Subtitle goes here
+                          - generic [ref=e573]: ▶
+                          - button "Delete module" [ref=e574]: ✕
+                      - listitem [ref=e575]:
+                        - button "⠿ Text **Your Name** | Department | Date ▶ Delete module" [ref=e577]:
+                          - generic [ref=e578]: ⠿
+                          - generic [ref=e579]: Text
+                          - generic [ref=e580]: "**Your Name** | Department | Date"
+                          - generic [ref=e581]: ▶
+                          - button "Delete module" [ref=e582]: ✕
+                      - listitem [ref=e583]:
+                        - button "⠿ Artifact Flow Field ▶ Delete module" [ref=e585]:
+                          - generic [ref=e586]: ⠿
+                          - generic [ref=e587]: Artifact
+                          - generic [ref=e588]: Flow Field
+                          - generic [ref=e589]: ▶
+                          - button "Delete module" [ref=e590]: ✕
+        - button "◀" [ref=e128] [cursor=pointer]
+        - generic [ref=e130]:
+          - generic [ref=e131]:
+            - generic [ref=e132]:
+              - button "← Decks" [ref=e133] [cursor=pointer]
+              - button "Previous slide" [ref=e135] [cursor=pointer]: ←
+              - generic [ref=e136]: 3 / 3
+              - button "Next slide" [disabled] [ref=e137]: →
+            - generic [ref=e138]:
+              - generic [ref=e139]:
+                - button "Edit" [ref=e140] [cursor=pointer]
+                - button "View" [ref=e141] [cursor=pointer]
+                - button "Preview" [ref=e142] [cursor=pointer]
+              - button "Logo" [ref=e144] [cursor=pointer]
+              - button "Export" [ref=e145] [cursor=pointer]
+          - generic [ref=e591]:
+            - combobox "Text Style" [ref=e592] [cursor=pointer]:
+              - option "Normal" [selected]
+              - option "H1"
+              - option "H2"
+              - option "H3"
+              - option "H4"
+            - combobox "Font Size" [ref=e593] [cursor=pointer]:
+              - option "Size" [selected]
+              - option "12"
+              - option "14"
+              - option "16"
+              - option "18"
+              - option "20"
+              - option "24"
+              - option "28"
+              - option "32"
+            - button "B" [ref=e595] [cursor=pointer]:
+              - strong [ref=e596]: B
+            - button "I" [ref=e597] [cursor=pointer]:
+              - emphasis [ref=e598]: I
+            - button "Link" [ref=e600] [cursor=pointer]:
+              - img [ref=e601]
+            - button "Bullet List" [ref=e605] [cursor=pointer]:
+              - img [ref=e606]
+            - button "Numbered List" [ref=e613] [cursor=pointer]:
+              - img [ref=e614]:
+                - generic [ref=e615]: "1"
+                - generic [ref=e616]: "2"
+                - generic [ref=e617]: "3"
+            - button "Align Left" [ref=e622] [cursor=pointer]:
+              - img [ref=e623]
+            - button "Align Center" [ref=e628] [cursor=pointer]:
+              - img [ref=e629]
+            - button "Align Right" [ref=e634] [cursor=pointer]:
+              - img [ref=e635]
+          - generic [ref=e525]:
+            - generic [ref=e641]:
+              - toolbar "Module controls":
+                - generic:
+                  - button "Move module down": ▼
+                - combobox "Step reveal order":
+                  - option "Step" [selected]
+                  - option "1"
+                  - option "2"
+                  - option "3"
+                  - option "4"
+                  - option "5"
+                  - option "6"
+                  - option "7"
+                  - option "8"
+                  - option "9"
+                - button "Delete module": ✕
+              - textbox [ref=e643]
+            - generic [ref=e646]:
+              - toolbar "Module controls":
+                - generic:
+                  - button "Move module up": ▲
+                  - button "Move module down": ▼
+                - combobox "Step reveal order":
+                  - option "Step" [selected]
+                  - option "1"
+                  - option "2"
+                  - option "3"
+                  - option "4"
+                  - option "5"
+                  - option "6"
+                  - option "7"
+                  - option "8"
+                  - option "9"
+                - button "Delete module": ✕
+              - textbox [ref=e648]
+            - generic [ref=e651]:
+              - toolbar "Module controls":
+                - generic:
+                  - button "Move module up": ▲
+                  - button "Move module down": ▼
+                - combobox "Step reveal order":
+                  - option "Step" [selected]
+                  - option "1"
+                  - option "2"
+                  - option "3"
+                  - option "4"
+                  - option "5"
+                  - option "6"
+                  - option "7"
+                  - option "8"
+                  - option "9"
+                - button "Delete module": ✕
+              - textbox [ref=e656]:
+                - paragraph [ref=e657]:
+                  - strong [ref=e658]: Your Name
+                  - text: "| Department | Date"
+            - generic [ref=e661]:
+              - toolbar "Module controls":
+                - generic:
+                  - button "Move module up": ▲
+                - combobox "Step reveal order":
+                  - option "Step" [selected]
+                  - option "1"
+                  - option "2"
+                  - option "3"
+                  - option "4"
+                  - option "5"
+                  - option "6"
+                  - option "7"
+                  - option "8"
+                  - option "9"
+                - button "Delete module": ✕
+              - generic [ref=e663]:
+                - generic [ref=e665]: Flow Field
+                - iframe [ref=e666]:
+                  
+            - button "+ Module" [ref=e535] [cursor=pointer]
+        - button "◀" [ref=e536] [cursor=pointer]
+      - contentinfo [ref=e184]:
+        - generic [ref=e186]:
+          - generic [ref=e187]:
+            - img "CUNY AI Lab" [ref=e188]
+            - link "tools.ailab.gc.cuny.edu" [ref=e189] [cursor=pointer]:
+              - /url: https://tools.ailab.gc.cuny.edu
+          - link "ailab.gc.cuny.edu" [ref=e190] [cursor=pointer]:
+            - /url: https://ailab.gc.cuny.edu
+    - generic [ref=e18]: Editor - CUNY AI Lab Slide Wiz

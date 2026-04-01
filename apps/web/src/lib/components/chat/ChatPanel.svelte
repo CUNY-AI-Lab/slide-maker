@@ -1,8 +1,8 @@
 <script lang="ts">
   import { get } from 'svelte/store'
   import { api } from '$lib/api'
-  import ModelSelector from './ModelSelector.svelte'
   import ChatMessage from './ChatMessage.svelte'
+  import ModelSelector from './ModelSelector.svelte'
   import ChatInput from './ChatInput.svelte'
   import {
     chatMessages,
