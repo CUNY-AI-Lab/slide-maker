@@ -5,6 +5,7 @@ import { authMiddleware } from '../middleware/auth.js'
 import { env } from '../env.js'
 import { db } from '../db/index.js'
 import { deckAccess } from '../db/schema.js'
+import { validateUrlForSsrf } from '../utils/ssrf-guard.js'
 
 type AuthEnv = {
   Variables: {
@@ -102,11 +103,25 @@ search.post('/download-image', async (c) => {
     return c.json({ error: 'This source is not allowed' }, 403)
   }
 
+  // SSRF protection: validate URL resolves to a public IP
   try {
-    // Fetch the image
+    await validateUrlForSsrf(url)
+  } catch {
+    return c.json({ error: 'URL is not allowed' }, 400)
+  }
+
+  try {
+    // Fetch the image with timeout and no redirect following
     const imgRes = await fetch(url, {
       headers: { 'User-Agent': 'CUNY-AI-Lab-SlideMaker/1.0' },
+      redirect: 'manual',
+      signal: AbortSignal.timeout(10_000),
     })
+
+    // Reject redirects (could bypass SSRF validation)
+    if (imgRes.status >= 300 && imgRes.status < 400) {
+      return c.json({ error: 'Redirects are not followed for security' }, 400)
+    }
 
     if (!imgRes.ok) {
       return c.json({ error: `Failed to fetch image: ${imgRes.status}` }, 502)
