@@ -8,7 +8,7 @@ export type Mutation =
   | { action: 'removeBlock'; payload: { slideId: string; blockId: string } }
   | { action: 'reorderSlides'; payload: { order: string[] } }
   | { action: 'reorderBlocks'; payload: { slideId: string; order: string[] } }
-  | { action: 'applyTemplate'; payload: { slideId: string; templateId: string } }
+  | { action: 'applyTemplate'; payload: { slideId?: string; templateId: string } }
   | { action: 'setTheme'; payload: { themeId: string } }
   | { action: 'updateMetadata'; payload: { field: string; value: string } }
   | { action: 'updateArtifactConfig'; payload: { artifactName: string; config: Record<string, unknown> } }
