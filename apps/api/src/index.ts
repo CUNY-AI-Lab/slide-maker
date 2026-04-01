@@ -12,6 +12,7 @@ import previewRouter from './routes/preview.js'
 import chat from './routes/chat.js'
 import providers from './routes/providers.js'
 import resources from './routes/resources.js'
+import artifactRouter from './routes/artifact.js'
 import sharing from './routes/sharing.js'
 import filesRouter from './routes/files.js'
 import search from './routes/search.js'
@@ -50,6 +51,7 @@ app.route('/api/decks', sharing)
 app.route('/api/chat', chat)
 app.route('/api/providers', providers)
 app.route('/api', resources)
+app.route('/api', artifactRouter)
 app.route('/api/search', search)
 
 serve({

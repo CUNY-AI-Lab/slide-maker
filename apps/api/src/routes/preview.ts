@@ -82,8 +82,8 @@ previewRouter.get('/:id/preview', async (c) => {
     theme = await db.select().from(themes).where(eq(themes.id, deck.themeId)).get() || null
   }
 
-  // Render HTML — same as export but with inline CSS instead of external file
-  const htmlTemplate = renderDeckHtml(deck.name, slidesWithBlocks, theme)
+  // Render HTML — use same-origin artifact endpoint so previews send Referer
+  const htmlTemplate = renderDeckHtml(deck.name, slidesWithBlocks, theme, undefined, { artifactEndpoint: '/api/artifact' })
 
   // Replace the external CSS link with an inline <style> block
   const html = htmlTemplate.replace(

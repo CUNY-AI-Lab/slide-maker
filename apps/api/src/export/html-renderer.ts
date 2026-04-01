@@ -129,6 +129,9 @@ function rewriteSrc(src: string, files?: ExportFile[]): string {
 interface RenderOptions {
   extractArtifacts?: boolean
   externalJs?: boolean // when true, reference js/engine.js instead of inlining
+  // When provided, inline artifact HTML will be served via this endpoint as
+  // `/path?b64=<base64(html)>`, which preserves a proper Referer header.
+  artifactEndpoint?: string
 }
 
 const extractedArtifacts: Map<string, string> = new Map()
@@ -283,16 +286,21 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
       const sizeStyle = ` style="${aw ? `width:${esc(aw)};` : ''}${ah ? `height:${esc(ah)};aspect-ratio:auto;` : ''}${alignCss}"`
       const iframeTag = (content: string) => `<div class="artifact-wrapper"${step}${sizeStyle}>${content}</div>`
       if (isUrl) {
-        return iframeTag(`<iframe src="${esc(rawSrc)}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe>`)
+        return iframeTag(`<iframe src="${esc(rawSrc)}" sandbox="allow-scripts" loading="lazy" title="${alt}" referrerpolicy="origin-when-cross-origin"></iframe>`)
       }
       if (rawSource && opts?.extractArtifacts) {
         const hash = Buffer.from(rawSource).toString('base64url').slice(0, 12)
         const filename = `artifact-${hash}.html`
         extractedArtifacts.set(filename, rawSource)
-        return iframeTag(`<iframe src="artifacts/${filename}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe>`)
+        return iframeTag(`<iframe src="artifacts/${filename}" sandbox="allow-scripts" loading="lazy" title="${alt}" referrerpolicy="origin-when-cross-origin"></iframe>`)
+      }
+      if (rawSource && opts?.artifactEndpoint) {
+        const b64 = Buffer.from(rawSource, 'utf8').toString('base64')
+        const ep = opts.artifactEndpoint.endsWith('/') ? opts.artifactEndpoint.slice(0, -1) : opts.artifactEndpoint
+        return iframeTag(`<iframe src="${esc(ep)}?b64=${esc(encodeURIComponent(b64))}" sandbox="allow-scripts" loading="lazy" title="${alt}" referrerpolicy="origin-when-cross-origin"></iframe>`)
       }
       if (rawSource) {
-        return iframeTag(`<iframe srcdoc="${esc(rawSource)}" sandbox="allow-scripts" loading="lazy" title="${alt}"></iframe>`)
+        return iframeTag(`<iframe srcdoc="${esc(rawSource)}" sandbox="allow-scripts" loading="lazy" title="${alt}" referrerpolicy="origin-when-cross-origin"></iframe>`)
       }
       return `<div class="artifact-wrapper"${step} style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;">${alt}</div>`
     }

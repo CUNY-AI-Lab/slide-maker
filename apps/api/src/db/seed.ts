@@ -408,7 +408,8 @@ Object.entries(states).forEach(([abbr,d])=>{
           id: tmpl.id,
           name: tmpl.name,
           description: tmpl.description || '',
-          type: 'visualization',
+          // Allow template files to specify a type; default to 'visualization'
+          type: (tmpl.type ?? 'visualization') as 'chart' | 'diagram' | 'map' | 'visualization',
           source: tmpl.source,
           config: tmpl.config ?? {},
           builtIn: true,

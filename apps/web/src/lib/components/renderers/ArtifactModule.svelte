@@ -24,13 +24,11 @@
   const align = $derived((data.align as string) || 'center')
 
   // Prefer srcdoc for inline HTML to preserve a valid referrer for subresources (e.g., OSM tiles)
-  // Build iframe content/source: srcdoc when rawSource is inline HTML; otherwise use src/url
-  let iframeSrcdoc = $derived<string | null>(null)
-  let iframeSrc = $derived.by(() => {
-    iframeSrcdoc = null
+  // Build iframe params: { src, srcdoc }
+  const iframe = $derived.by(() => {
     if (data.rawSource) {
-      // If rawSource looks like an absolute URL, use it directly
-      if (/^https?:\/\//i.test(data.rawSource)) return data.rawSource
+      // If rawSource looks like an absolute URL, use it directly via src
+      if (/^https?:\/\//i.test(data.rawSource)) return { src: data.rawSource, srcdoc: '' }
       // Otherwise, treat as inline HTML and inject config + CSP, served via srcdoc
       let html = data.config && Object.keys(data.config).length > 0
         ? buildSourceWithConfig(data.rawSource, data.config)
@@ -42,17 +40,20 @@
       } else {
         html = CSP_META + html
       }
-      iframeSrcdoc = html
-      return ''
+      // Serve via same-origin endpoint so subresources (e.g., OSM tiles) get a proper Referer
+      // Base64-encode to pass safely in the query string
+      const b64 = btoa(unescape(encodeURIComponent(html)))
+      return { src: `/artifact?b64=${encodeURIComponent(b64)}`, srcdoc: '' }
     }
     const src = data.src || data.url || ''
     // Only allow http(s) and blob URLs to prevent javascript: and data: injection
-    return /^(https?:\/\/|blob:)/i.test(src) ? src : ''
+    const safe = /^(https?:\/\/|blob:)/i.test(src) ? src : ''
+    return { src: safe, srcdoc: '' }
   })
 
   // Revoke blob URLs on cleanup
   $effect(() => {
-    const url = iframeSrc
+    const url = iframe.src
     return () => {
       if (url?.startsWith('blob:')) URL.revokeObjectURL(url)
     }
@@ -69,10 +70,10 @@
       <span class="artifact-label">{alt}</span>
     </div>
   {/if}
-  {#if iframeSrcdoc !== null || iframeSrc}
+  {#if iframe.src || iframe.srcdoc}
     <iframe
-      src={iframeSrc || undefined}
-      srcdoc={iframeSrcdoc || undefined}
+      src={iframe.src || undefined}
+      srcdoc={iframe.srcdoc || undefined}
       class="artifact-iframe"
       class:no-interact={editable}
       sandbox="allow-scripts"
