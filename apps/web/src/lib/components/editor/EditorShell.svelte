@@ -313,6 +313,7 @@
     height: 0;
     min-height: 0;
     border-top: none;
+    overflow-y: hidden;
   }
 
   .collapsed-tab {
@@ -497,6 +498,11 @@
     color: var(--color-primary, #3B73E6);
   }
 
+  /* Smooth section transitions */
+  .chat-section, .outline-section, .collapsed-tab {
+    transition: flex 0.2s ease, height 0.2s ease;
+  }
+
   /* Responsive: auto-collapse panels on narrow viewports */
   @media (max-width: 1024px) {
     .left-panel {
@@ -504,6 +510,10 @@
     }
     .right-panel {
       max-width: 220px;
+    }
+    .outline-section:not(.full) {
+      height: 200px;
+      min-height: 160px;
     }
   }
 
