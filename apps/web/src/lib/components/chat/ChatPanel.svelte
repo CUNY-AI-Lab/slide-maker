@@ -1,6 +1,5 @@
 <script lang="ts">
   import { get } from 'svelte/store'
-  import { base } from '$app/paths'
   import { api } from '$lib/api'
   import ModelSelector from './ModelSelector.svelte'
   import ChatMessage from './ChatMessage.svelte'
@@ -228,13 +227,12 @@
 
 <div class="chat-panel">
   <div class="chat-header">
-    <a href="{base}/" class="chat-title"><span class="brand-slide">Slide</span> <span class="brand-wiz">Wiz</span></a>
     <div class="chat-controls">
       <ModelSelector />
       {#if $chatStreaming}
         <button class="stop-btn" title="Stop response" onclick={stopStreaming} aria-label="Stop streaming">Stop</button>
       {/if}
-      <div class="reset-wrap">
+      <div class="reset-wrap" style="margin-left: auto;">
         <button
           class="reset-btn"
           title={$chatStreaming ? 'Wait for response to finish' : 'Reset chat'}
@@ -242,7 +240,7 @@
           disabled={clearing || $chatStreaming}
           aria-label="Reset chat"
         >
-          {clearing ? '…' : (showConfirm ? 'Confirm' : 'Reset')}
+          {clearing ? '...' : (showConfirm ? 'Confirm' : 'Reset')}
         </button>
         {#if showConfirm}
           <div class="confirm-pop">
@@ -258,7 +256,7 @@
   <div class="messages" bind:this={messagesContainer}>
     {#if messages.length === 0}
       <div class="empty-state">
-        <p>Ask the AI to create slides, edit content, or change the theme.</p>
+        <p>Ask the AI to build slides for you.</p>
       </div>
     {:else}
       {#each messages as msg (msg.id)}
@@ -279,9 +277,6 @@
   }
 
   .chat-header {
-    display: flex;
-    flex-direction: column;
-    border-bottom: 1px solid var(--color-border);
     flex-shrink: 0;
   }
 
@@ -289,33 +284,37 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 10px 8px;
+    padding: 6px 10px;
   }
 
   .reset-wrap { position: relative; }
 
   .stop-btn {
-    padding: 4px 8px;
-    font-size: 12px;
+    padding: 3px 8px;
+    font-size: 11px;
     border: 1px solid #ef4444;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: #ef4444;
     cursor: pointer;
+    transition: background 0.15s;
+  }
+  .stop-btn:hover {
+    background: rgba(239, 68, 68, 0.08);
   }
 
   .reset-btn {
-    padding: 4px 8px;
-    font-size: 12px;
+    padding: 3px 8px;
+    font-size: 11px;
     border: 1px solid var(--color-border);
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     background: transparent;
     color: var(--color-text-muted);
     cursor: pointer;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
   .reset-btn:hover:not(:disabled) {
-    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
+    background: var(--color-ghost-bg);
     color: var(--color-primary);
     border-color: var(--color-primary);
   }
@@ -327,34 +326,17 @@
     top: 32px;
     background: var(--color-bg);
     border: 1px solid var(--color-border);
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     padding: 8px;
     display: flex;
     align-items: center;
     gap: 6px;
     z-index: 10;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    font-size: 12px;
   }
-  .confirm-input { width: 90px; padding: 4px 6px; font-size: 12px; }
-  .confirm-cancel { background: transparent; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 12px; }
-
-  .chat-title {
-    padding: 8px 10px 4px;
-    font-size: 14px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-decoration: none;
-    transition: opacity 0.15s;
-  }
-  .chat-title:hover { opacity: 0.7; }
-
-  .brand-slide {
-    color: #1a1a2e;
-  }
-  .brand-wiz {
-    color: #5a8fd4;
-  }
+  .confirm-input { width: 80px; padding: 3px 6px; font-size: 11px; border: 1px solid var(--color-border); border-radius: 4px; }
+  .confirm-cancel { background: transparent; border: none; color: var(--color-text-muted); cursor: pointer; font-size: 11px; }
 
   .messages {
     flex: 1;
@@ -362,7 +344,7 @@
     display: flex;
     flex-direction: column;
     gap: 2px;
-    padding: 4px 0;
+    padding: 8px 0;
     min-height: 0;
   }
 
@@ -371,12 +353,12 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    padding: 20px;
+    padding: 24px;
     text-align: center;
   }
 
   .empty-state p {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--color-text-muted);
     line-height: 1.5;
   }

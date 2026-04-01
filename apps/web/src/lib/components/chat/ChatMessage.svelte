@@ -57,35 +57,36 @@
 
 <style>
   .chat-message {
-    padding: 8px 10px;
-    margin: 4px 8px;
-    border-radius: 6px;
-    font-size: 14px;
-    line-height: 1.5;
-    max-width: 92%;
+    padding: 8px 12px;
+    margin: 2px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    line-height: 1.55;
+    max-width: 90%;
   }
 
   .chat-message.user {
     align-self: flex-end;
-    background: var(--color-primary-light, #e0edff);
+    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
     color: var(--color-text);
     margin-left: auto;
   }
 
   .chat-message.assistant {
     align-self: flex-start;
-    background: var(--color-bg-secondary, #f5f5f5);
+    background: transparent;
     color: var(--color-text);
     margin-right: auto;
+    border-left: 2px solid var(--color-border);
   }
 
   .message-role {
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 2px;
-    opacity: 0.6;
+    color: var(--color-text-muted);
   }
 
   .message-content {
@@ -104,7 +105,7 @@
   .message-content :global(.code-block pre) {
     margin: 0;
     padding: 8px 10px;
-    font-size: 13px;
+    font-size: 12px;
     font-family: 'SF Mono', 'Fira Code', monospace;
     line-height: 1.4;
   }
@@ -117,7 +118,7 @@
     position: absolute;
     top: 4px;
     right: 6px;
-    font-size: 11px;
+    font-size: 10px;
     opacity: 0.5;
   }
 
@@ -125,14 +126,14 @@
     background: var(--color-bg-tertiary, #e8e8e8);
     padding: 1px 4px;
     border-radius: 3px;
-    font-size: 13px;
+    font-size: 12px;
     font-family: 'SF Mono', 'Fira Code', monospace;
   }
 
   .cursor-blink {
     display: inline-block;
     width: 2px;
-    height: 14px;
+    height: 13px;
     background: var(--color-primary, #2563eb);
     margin-left: 2px;
     vertical-align: text-bottom;
