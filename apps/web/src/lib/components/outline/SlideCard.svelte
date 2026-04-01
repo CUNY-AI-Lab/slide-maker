@@ -35,6 +35,7 @@
   let layoutLabel = $derived(layoutLabels[slide.layout] ?? slide.layout)
 
   let deleting = $state(false)
+  let expanded = $state(false)
   let blockItems = $state(slide.blocks)
   let draggingBlocks = false  // plain boolean — invisible to reactive system
 
@@ -70,9 +71,17 @@
     }
   }
 
+  // Auto-expand when this slide becomes active
+  $effect(() => {
+    if (active) expanded = true
+  })
+
   function handleClick() {
-    // Sticky selection: never clear to null on click
-    activeSlideId.set(slide.id)
+    if (active) {
+      expanded = !expanded
+    } else {
+      activeSlideId.set(slide.id)
+    }
   }
 
   async function handleDelete(e: MouseEvent) {
@@ -109,7 +118,7 @@
 <div class="slide-card" class:active data-slide-id={slide.id}>
   <div class="card-header" onclick={handleClick} onkeydown={(e) => e.key === 'Enter' && handleClick()} role="button" tabindex="0">
     <span class="drag-handle" title="Drag to reorder">{'\u2807'}</span>
-    <span class="arrow">{active ? '\u25BC' : '\u25B6'}</span>
+    <span class="arrow">{expanded ? '\u25BC' : '\u25B6'}</span>
     <span class="slide-label">{index + 1}. {layoutLabel}</span>
     {#if active}
       <span class="active-badge">ACTIVE</span>
@@ -124,7 +133,7 @@
     </button>
   </div>
 
-  {#if active && blockItems.length > 0}
+  {#if expanded && blockItems.length > 0}
     <div class="blocks-list" use:dndzone={{ items: blockItems, flipDurationMs, dropTargetStyle: {}, dropFromOthersDisabled: true, dragHandleSelector: '.drag-handle' }} onconsider={handleDndConsider} onfinalize={handleDndFinalize}>
       {#each blockItems as block (block.id)}
         <div animate:flip={{ duration: flipDurationMs }}>
