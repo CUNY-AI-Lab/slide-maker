@@ -298,4 +298,24 @@ chat.get('/:deckId/history', async (c) => {
   return c.json({ messages })
 })
 
+// DELETE /:deckId/history — Clear chat history for a deck
+chat.delete('/:deckId/history', async (c) => {
+  const user = c.get('user')
+  const deckId = c.req.param('deckId')
+
+  // Check access
+  const access = await db
+    .select()
+    .from(deckAccess)
+    .where(and(eq(deckAccess.deckId, deckId), eq(deckAccess.userId, user.id)))
+    .get()
+
+  if (!access) {
+    return c.json({ error: 'Not found or no access' }, 404)
+  }
+
+  await db.delete(chatMessages).where(eq(chatMessages.deckId, deckId))
+  return c.json({ ok: true })
+})
+
 export default chat
