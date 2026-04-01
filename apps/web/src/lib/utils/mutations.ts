@@ -203,6 +203,7 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
       break
     }
 
+    case 'updateMetadata':
     case 'updateDeckMeta': {
       const updates: Record<string, unknown> = {}
       if (payload.name !== undefined) updates.name = payload.name
@@ -231,6 +232,63 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
           .filter(Boolean) as typeof d.slides
         return { ...d, slides: reordered }
       })
+      break
+    }
+
+    case 'applyTemplate': {
+      const templateId = payload.templateId as string
+      const slideId = payload.slideId as string | undefined
+
+      // Fetch template details
+      const tmplData = await apiCall('/api/templates', 'GET')
+      const template = (tmplData?.templates ?? []).find((t: any) => t.id === templateId)
+      if (!template) {
+        console.error('Template not found:', templateId)
+        break
+      }
+
+      if (slideId) {
+        // Replace slide content with template
+        const slide = deck.slides.find((s) => s.id === slideId)
+        if (slide) {
+          for (const block of slide.blocks) {
+            await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${block.id}`, 'DELETE')
+          }
+          await apiCall(`/api/decks/${deck.id}/slides/${slideId}`, 'PATCH', { layout: template.layout })
+          const newBlocks = []
+          for (const mod of template.modules) {
+            const result = await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks`, 'POST', {
+              type: mod.type,
+              zone: mod.zone,
+              data: mod.data || {},
+              stepOrder: mod.stepOrder,
+            })
+            if (result?.block) newBlocks.push(result.block)
+          }
+          updateSlideInDeck(slideId, (s) => ({
+            ...s,
+            layout: template.layout,
+            blocks: newBlocks,
+          }))
+        }
+      } else {
+        // Create new slide from template
+        const result = await apiCall(`/api/decks/${deck.id}/slides`, 'POST', {
+          layout: template.layout,
+          modules: template.modules,
+        })
+        const newSlide = result?.slide ?? result
+        if (newSlide?.id) {
+          const slide = { ...newSlide, blocks: newSlide.blocks || newSlide.modules || [] }
+          addSlideToDeck(slide)
+          activeSlideId.set(slide.id)
+
+          history.pushMutation(
+            { action: 'applyTemplate', payload },
+            { action: 'removeSlide', payload: { slideId: slide.id } }
+          )
+        }
+      }
       break
     }
 
