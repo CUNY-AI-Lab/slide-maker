@@ -28,6 +28,8 @@
       height?: string
       alt?: string
       align?: 'left' | 'center' | 'right'
+      autoSize?: boolean
+      aspectRatio?: number
     }
     editable?: boolean
   }>()
@@ -37,6 +39,11 @@
   const width = $derived(data.width || '100%')
   const height = $derived(data.height || '')
   const hasCustomSize = $derived(!!data.width || !!data.height)
+  const ratio = $derived.by(() => {
+    const r = Number(data.aspectRatio)
+    return isFinite(r) && r > 0 ? r : 16 / 9
+  })
+  const autoSize = $derived(data.autoSize !== false)
   const alt = $derived(data.alt || 'Interactive visualization')
   const align = $derived((data.align as string) || 'center')
 
@@ -46,8 +53,10 @@
 
   // --- Native rendering state ---
   let container: HTMLDivElement | null = null
+  let wrapper: HTMLDivElement | null = null
   let controller: ArtifactController | null = null
   let error = $state<string | null>(null)
+  let mounted = false
 
   function startNative() {
     cleanupNative()
@@ -69,15 +78,16 @@
 
   onMount(() => {
     if (useNative) startNative()
-    return () => cleanupNative()
+    setupAutoSize()
+    mounted = true
+    return () => { mounted = false; cleanupNative(); ro?.disconnect(); ro = null }
   })
 
   $effect(() => {
-    // Restart native renderer if artifact type changes
-    if (useNative) {
-      data.artifactName; data.alt
-      startNative()
-    }
+    // Restart native renderer when artifact type changes (skip initial mount — onMount handles it)
+    if (!mounted || !useNative) return
+    data.artifactName; data.alt
+    startNative()
   })
 
   $effect(() => {
@@ -114,12 +124,44 @@
       return () => { if (url?.startsWith('blob:')) URL.revokeObjectURL(url) }
     }
   })
+
+  // --- Auto-size: compute height to fit canvas zone ---
+  let ro: ResizeObserver | null = null
+  let computedHeight = $state<number | null>(null)
+  function computeAutoHeight() {
+    if (!wrapper) return
+    if (!autoSize) { computedHeight = null; return }
+    // Measure available width/height from nearest zone container
+    const zone = wrapper.closest('.zone-left, .zone-right, .zone-main, .zone-centered') as HTMLElement | null
+    const containerEl = zone ?? wrapper.parentElement
+    const zoneRect = containerEl?.getBoundingClientRect()
+    const wrapRect = wrapper.getBoundingClientRect()
+    if (!zoneRect || !wrapRect) return
+    const availH = Math.max(120, zoneRect.height - 24) // leave some breathing room
+    const availW = Math.max(1, wrapRect.width)
+    const ideal = availW / ratio
+    const next = Math.floor(Math.min(ideal, availH))
+    if (!Number.isFinite(next) || next <= 0) return
+    computedHeight = next
+  }
+  function setupAutoSize() {
+    if (ro) ro.disconnect()
+    if (!wrapper) return
+    ro = new ResizeObserver(() => computeAutoHeight())
+    ro.observe(wrapper)
+    const zone = wrapper.closest('.zone-left, .zone-right, .zone-main, .zone-centered') as HTMLElement | null
+    if (zone) ro.observe(zone)
+    computeAutoHeight()
+  }
+  $effect(() => { autoSize; ratio; setupAutoSize() })
 </script>
 
 <div
   class="artifact-wrapper"
   class:custom-sized={hasCustomSize}
-  style="width: {width};{hasCustomSize && height ? ` height: ${height};` : ''} {align === 'left' ? 'margin-right: auto;' : align === 'right' ? 'margin-left: auto;' : 'margin: 0 auto;'}"
+  class:auto-size={autoSize}
+  bind:this={wrapper}
+  style="width: {width};{autoSize && computedHeight ? ` height: ${computedHeight}px;` : hasCustomSize && height ? ` height: ${height};` : ''} {align === 'left' ? 'margin-right: auto;' : align === 'right' ? 'margin-left: auto;' : 'margin: 0 auto;'}"
 >
   {#if editable}
     <div class="artifact-header">
@@ -191,6 +233,8 @@
   }
   .artifact-wrapper.custom-sized .artifact-native,
   .artifact-wrapper.custom-sized .artifact-iframe { aspect-ratio: auto; }
+  .artifact-wrapper.auto-size .artifact-native,
+  .artifact-wrapper.auto-size .artifact-iframe { aspect-ratio: auto; height: 100%; }
   .artifact-native.no-interact,
   .artifact-iframe.no-interact {
     pointer-events: none;

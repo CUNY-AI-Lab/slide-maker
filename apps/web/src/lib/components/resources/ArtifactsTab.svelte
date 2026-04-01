@@ -163,8 +163,9 @@
               artifactId: artifact.id,
               artifactName: artifact.name,
               config: resolvedConfig,
-              width: '100%',
-              height: '400px',
+              width: '60%',
+              autoSize: true,
+              aspectRatio: 4 / 3, // data-viz artifacts suit 4:3; blank artifacts (ModulePicker) default 16:9
             },
           },
         },
@@ -248,35 +249,50 @@
                       </div>
                       <div class="artifact-actions">
                         <button
-                          class="insert-btn"
+                          class="act-btn act-insert"
                           onclick={() => insertArtifact(artifact, false)}
                           disabled={inserting !== null || !$activeSlideId}
                           title={$activeSlideId ? 'Insert with defaults' : 'Select a slide first'}
+                          aria-label={$activeSlideId ? 'Insert with defaults' : 'Select a slide first'}
                         >
-                          {inserting === artifact.id ? '...' : '+'}
+                          {#if inserting === artifact.id}
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="3" cy="6" r="1" fill="currentColor"><animate attributeName="opacity" values="1;.3;1" dur=".8s" repeatCount="indefinite"/></circle><circle cx="6" cy="6" r="1" fill="currentColor"><animate attributeName="opacity" values="1;.3;1" dur=".8s" begin=".15s" repeatCount="indefinite"/></circle><circle cx="9" cy="6" r="1" fill="currentColor"><animate attributeName="opacity" values="1;.3;1" dur=".8s" begin=".3s" repeatCount="indefinite"/></circle></svg>
+                          {:else}
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="6" y1="2" x2="6" y2="10"/><line x1="2" y1="6" x2="10" y2="6"/></svg>
+                          {/if}
                         </button>
                         {#if hasConfig(artifact)}
                           <button
-                            class="config-btn"
+                            class="act-btn"
+                            class:act-active={editingArtifactId === artifact.id}
                             onclick={() => openConfigEditor(artifact)}
                             title="Configure data before inserting"
                           >
-                            {editingArtifactId === artifact.id ? '\u00d7' : '\u2699'}
+                            {#if editingArtifactId === artifact.id}
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+                            {:else}
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 7.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/><path d="M9.7 7.2l.5.3a.4.4 0 01.1.5l-.6 1a.4.4 0 01-.5.2l-.6-.2a3.6 3.6 0 01-.8.5l-.1.6a.4.4 0 01-.4.3H6.1a.4.4 0 01-.4-.3l-.1-.6a3.6 3.6 0 01-.8-.5l-.6.2a.4.4 0 01-.5-.2l-.5-1a.4.4 0 01.1-.5l.5-.3a3.5 3.5 0 010-1l-.5-.3a.4.4 0 01-.1-.5l.5-1a.4.4 0 01.5-.2l.6.2a3.6 3.6 0 01.8-.5l.1-.6A.4.4 0 016.1 3h1.2a.4.4 0 01.4.3l.1.6c.3.1.6.3.8.5l.6-.2a.4.4 0 01.5.2l.5 1a.4.4 0 01-.1.5l-.5.3a3.5 3.5 0 010 1z"/></svg>
+                            {/if}
                           </button>
                         {/if}
                         <button
-                          class="icon-btn"
+                          class="act-btn"
+                          class:act-copied={copied === artifact.id}
                           onclick={() => copyConfig(artifact)}
                           title="Copy config to clipboard"
                         >
-                          {copied === artifact.id ? '\u2713' : '\u2398'}
+                          {#if copied === artifact.id}
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2.5,6.5 5,9 9.5,3.5"/></svg>
+                          {:else}
+                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1"/><path d="M8 4V2.5A1 1 0 007 1.5H2.5A1 1 0 001.5 2.5V7A1 1 0 002.5 8H4"/></svg>
+                          {/if}
                         </button>
                         <button
-                          class="icon-btn"
+                          class="act-btn act-at"
                           onclick={() => injectAtRef(artifact)}
-                          title="Send @reference to chat"
+                          title="Send @artifact:{displayName(artifact.name).toLowerCase().replace(/\s+/g, '-')} to chat"
                         >
-                          @
+                          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><circle cx="6" cy="6" r="2"/><path d="M8 4.5v2.3a1.2 1.2 0 002.4 0V6a4.4 4.4 0 10-2.2 3.8"/></svg>
                         </button>
                       </div>
                     </div>
@@ -315,7 +331,7 @@
 
 <style>
   .artifacts-tab {
-    padding: 6px;
+    padding: 4px;
     overflow-x: hidden;
   }
 
@@ -323,57 +339,58 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 30px 16px;
-    font-size: 12px;
+    padding: 24px 12px;
+    font-size: 11px;
     color: var(--color-text-muted, #6b7280);
     text-align: center;
     line-height: 1.5;
   }
 
   .center-msg.error {
-    color: #ef4444;
+    color: var(--color-error, #ef4444);
   }
 
   .group-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
   }
 
-  /* ── Group header (collapsed row) ── */
+  /* ── Group header ── */
   .group-header {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     width: 100%;
-    padding: 8px 10px;
+    padding: 5px 8px;
     background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
-    border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: var(--radius-sm, 6px);
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 3px;
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s;
+    transition: background 0.12s, border-color 0.12s;
   }
   .group-header:hover {
     background: var(--color-ghost-bg-hover, rgba(59, 115, 230, 0.12));
-    border-color: #93c5fd;
+    border-color: var(--color-primary, #3B73E6);
   }
 
   .group-badge {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
-    color: var(--color-primary, #3B73E6);
-    border-radius: var(--radius-sm, 6px);
-    font-size: 10px;
+    background: var(--color-primary, #3B73E6);
+    color: #fff;
+    border-radius: 2px;
+    font-size: 9px;
     font-weight: 700;
     flex-shrink: 0;
+    letter-spacing: 0.02em;
   }
 
   .group-label {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--color-text, #1f2937);
     flex: 1;
@@ -381,18 +398,19 @@
   }
 
   .group-count {
-    font-size: 10px;
+    font-size: 9px;
     color: var(--color-text-muted, #94a3b8);
-    background: rgba(0, 0, 0, 0.04);
-    padding: 1px 6px;
-    border-radius: 9px;
-    font-weight: 500;
+    background: rgba(0, 0, 0, 0.05);
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
   }
 
   .group-chevron {
-    font-size: 11px;
+    font-size: 10px;
     color: var(--color-text-muted, #94a3b8);
-    transition: transform 0.2s;
+    transition: transform 0.15s;
     transform: rotate(0deg);
     flex-shrink: 0;
   }
@@ -404,34 +422,34 @@
   .group-items {
     display: flex;
     flex-direction: column;
-    margin-left: 12px;
-    padding-left: 10px;
-    border-left: 2px solid var(--color-border, #e5e7eb);
+    margin-left: 10px;
+    padding-left: 8px;
+    border-left: 1.5px solid var(--color-border, #e2e8f0);
   }
 
   .artifact-row {
     display: flex;
     flex-direction: column;
-    border-bottom: 1px solid var(--color-border, #e5e7eb);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-border, #e2e8f0) 60%, transparent);
     transition: background 0.1s;
   }
   .artifact-row:last-child {
     border-bottom: none;
   }
   .artifact-row:hover {
-    background: rgba(59, 130, 246, 0.03);
+    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
   }
   .artifact-row.editing {
-    background: rgba(59, 130, 246, 0.05);
+    background: rgba(59, 130, 246, 0.06);
   }
 
   .artifact-main {
-    padding: 6px 8px;
+    padding: 4px 6px;
   }
 
   .artifact-top {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 6px;
   }
 
@@ -440,7 +458,7 @@
     min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 1px;
+    gap: 0;
   }
 
   .artifact-name {
@@ -450,108 +468,114 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 1.4;
   }
 
   .artifact-desc {
-    font-size: 10px;
+    font-size: 9.5px;
     color: var(--color-text-muted, #94a3b8);
-    line-height: 1.3;
+    line-height: 1.25;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
 
+  /* ── Action buttons ── */
   .artifact-actions {
     display: flex;
-    gap: 3px;
+    gap: 2px;
     flex-shrink: 0;
   }
 
-  .insert-btn {
+  .act-btn {
     width: 22px;
     height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
-    font-size: 14px;
-    font-weight: 700;
     background: transparent;
+    color: var(--color-text-muted, #94a3b8);
+    border: 1px solid transparent;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: color 0.12s, background 0.12s, border-color 0.12s;
+    line-height: 1;
+  }
+  .act-btn:hover {
     color: var(--color-primary, #3B73E6);
-    border: 1px solid var(--color-primary, #3B73E6);
-    border-radius: var(--radius-sm, 6px);
-    cursor: pointer;
-    transition: background 0.15s;
-    line-height: 1;
+    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
+    border-color: var(--color-border, #e2e8f0);
   }
-  .insert-btn:hover:not(:disabled) { background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08)); }
-  .insert-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .act-btn:active {
+    background: var(--color-ghost-bg-hover, rgba(59, 115, 230, 0.12));
+  }
 
-  .config-btn {
-    width: 22px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    font-size: 13px;
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    line-height: 1;
+  /* Insert button — the primary action, always visible border */
+  .act-insert {
+    color: var(--color-primary, #3B73E6);
+    border-color: var(--color-primary, #3B73E6);
   }
-  .config-btn:hover { background: #e2e8f0; color: #334155; }
+  .act-insert:hover:not(:disabled) {
+    background: var(--color-primary, #3B73E6);
+    color: #fff;
+  }
+  .act-insert:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    border-color: var(--color-border, #e2e8f0);
+    color: var(--color-text-muted, #94a3b8);
+  }
 
-  .icon-btn {
-    width: 22px;
-    height: 22px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    font-size: 11px;
-    font-weight: 700;
-    background: #f1f5f9;
-    color: #64748b;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
-    line-height: 1;
+  /* Active config toggle */
+  .act-active {
+    color: var(--color-primary, #3B73E6);
+    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
+    border-color: var(--color-primary, #3B73E6);
   }
-  .icon-btn:hover { background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08)); color: var(--color-primary, #3B73E6); }
+
+  /* Copied state flash */
+  .act-copied {
+    color: var(--color-success, #166534);
+    border-color: var(--color-success, #166534);
+    background: rgba(22, 101, 52, 0.06);
+  }
+
+  /* @ button hint */
+  .act-at:hover {
+    color: var(--color-accent, #2FB8D6);
+    border-color: var(--color-accent, #2FB8D6);
+    background: rgba(47, 184, 214, 0.08);
+  }
 
   /* ── Config editor ── */
   .config-editor {
-    padding: 8px 8px 10px;
-    border-top: 1px solid var(--color-border, #e5e7eb);
-    background: #f9fafb;
+    padding: 6px 6px 8px;
+    border-top: 1px solid var(--color-border, #e2e8f0);
+    background: var(--color-bg-secondary, #f8fafc);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
   }
 
   .config-label {
-    font-size: 10px;
-    font-weight: 600;
+    font-size: 9px;
+    font-weight: 700;
     color: var(--color-text-muted, #6b7280);
     text-transform: uppercase;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.05em;
   }
 
   .config-textarea {
     width: 100%;
     font-family: 'JetBrains Mono', 'Fira Code', monospace;
-    font-size: 11px;
+    font-size: 10.5px;
     line-height: 1.5;
-    padding: 8px;
-    border: 1px solid var(--color-border, #e5e7eb);
-    border-radius: 4px;
-    background: white;
+    padding: 6px;
+    border: 1px solid var(--color-border, #e2e8f0);
+    border-radius: 3px;
+    background: var(--color-bg, #fff);
     color: var(--color-text, #1f2937);
     resize: vertical;
     box-sizing: border-box;
@@ -559,26 +583,30 @@
   .config-textarea:focus {
     outline: none;
     border-color: var(--color-primary, #3B73E6);
+    box-shadow: 0 0 0 1px var(--color-primary, #3B73E6);
   }
 
   .config-error {
     font-size: 10px;
-    color: #ef4444;
+    color: var(--color-error, #ef4444);
     margin: 0;
   }
 
   .insert-configured-btn {
-    padding: 5px 12px;
-    font-size: 11px;
+    padding: 4px 10px;
+    font-size: 10px;
     font-weight: 600;
     background: transparent;
     color: var(--color-primary, #3B73E6);
     border: 1px solid var(--color-primary, #3B73E6);
-    border-radius: var(--radius-sm, 6px);
+    border-radius: 3px;
     cursor: pointer;
     align-self: flex-start;
-    transition: background 0.15s;
+    transition: background 0.12s, color 0.12s;
   }
-  .insert-configured-btn:hover:not(:disabled) { background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08)); }
-  .insert-configured-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .insert-configured-btn:hover:not(:disabled) {
+    background: var(--color-primary, #3B73E6);
+    color: #fff;
+  }
+  .insert-configured-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>
