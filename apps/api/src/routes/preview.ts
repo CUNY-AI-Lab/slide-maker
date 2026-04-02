@@ -6,6 +6,7 @@ import { decks, deckAccess, slides, contentBlocks, themes } from '../db/schema.j
 import { authMiddleware } from '../middleware/auth.js'
 import { renderDeckHtml } from '../export/html-renderer.js'
 import { FRAMEWORK_CSS } from '../export/framework-css.js'
+import { resolveArtifactSources } from '../utils/resolve-artifacts.js'
 
 type AuthEnv = {
   Variables: {
@@ -75,6 +76,9 @@ previewRouter.get('/:id/preview', async (c) => {
       stepOrder: b.stepOrder ?? null,
     })),
   }))
+
+  // Resolve artifact sources from catalog for blocks missing rawSource
+  await resolveArtifactSources(slidesWithBlocks.flatMap(s => s.modules))
 
   // Load theme
   let theme = null
