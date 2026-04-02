@@ -94,13 +94,9 @@
     { bg: '#e6f1f4', fg: 'rgba(47,184,214,0.28)', accent: 'rgba(47,184,214,0.16)' },
   ]
 
-  // Preview mode (Dark/Light) for thumbnails only
-  let previewMode = $state<'dark' | 'light'>(
-    (typeof localStorage !== 'undefined' && (localStorage.getItem('templatesPreviewMode') as 'dark' | 'light')) || 'dark'
-  )
-  $effect(() => {
-    try { localStorage.setItem('templatesPreviewMode', previewMode) } catch {}
-  })
+  // Preview mode follows editor dark mode
+  import { editorDarkMode } from '$lib/stores/editor-theme'
+  let previewMode = $derived<'dark' | 'light'>($editorDarkMode ? 'dark' : 'light')
 
   $effect(() => {
     fetch(`${API_URL}/api/templates`, { credentials: 'include' })
@@ -144,26 +140,6 @@
 </script>
 
 <div class="templates-tab">
-  <div class="mode-toggle" role="group" aria-label="Preview mode">
-    <button
-      class:active={previewMode==='dark'}
-      aria-pressed={previewMode==='dark'}
-      title="Dark previews"
-      aria-label="Dark previews"
-      onclick={() => previewMode='dark'}>
-      <span aria-hidden="true">☾</span>
-      <span class="sr-only">Dark</span>
-    </button>
-    <button
-      class:active={previewMode==='light'}
-      aria-pressed={previewMode==='light'}
-      title="Light previews"
-      aria-label="Light previews"
-      onclick={() => previewMode='light'}>
-      <span aria-hidden="true">☀</span>
-      <span class="sr-only">Light</span>
-    </button>
-  </div>
   {#if loading}
     <div class="center-msg">Loading templates...</div>
   {:else if error}
