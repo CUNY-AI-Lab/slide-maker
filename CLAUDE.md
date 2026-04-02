@@ -156,9 +156,11 @@ All mutations persist to API immediately. Pattern:
 ### Export
 Produces self-contained HTML decks matching the CUNY AI Lab framework:
 - `css/styles.css` — layout classes, module styles, step reveals, responsive typography with `clamp()`
-- Inline JS — deck-engine (keyboard nav, step system, carousel sync, scrubber, ARIA announcements)
+- `js/engine.js` — deck-engine (keyboard nav, step system, carousel sync, scrubber, ARIA announcements)
+- `js/artifacts.js` — native artifact renderers (canvas visualizations, maps, etc.)
 - `assets/` — bundled uploaded images with rewritten URLs
-- Export code: `apps/api/src/export/` (framework-css.ts, navigation.ts, carousel.ts, html-renderer.ts, index.ts)
+- `artifacts/` — extracted iframe-based artifact HTML files (only if non-native artifacts exist)
+- Export code: `apps/api/src/export/` (framework-css.ts, navigation.ts, carousel.ts, artifacts.ts, html-renderer.ts, index.ts)
 - Framework CSS lives in `packages/shared/src/framework-css.ts` — single source of truth for module/layout styles. Three exports: `FRAMEWORK_CSS_BASE` (shared), `FRAMEWORK_CSS_EXPORT` (multi-slide deck), `FRAMEWORK_CSS_PREVIEW` (single-slide iframe). Both the API export and client preview import from here.
 
 ## Server Storage
@@ -232,7 +234,7 @@ Full admin panel at `/admin` with:
 - Plans: `docs/superpowers/plans/2026-03-28-slide-maker-v{1,2,3}.md`
 
 ### Themes
-- 7 built-in themes (CUNY AI Lab, CUNY Dark, CUNY Light, Warm Academic, Slate Minimal, Midnight, Forest)
+- 9 built-in themes (Studio Dark, Studio Light, CUNY AI Lab, CUNY Dark, CUNY Light, Warm Academic, Slate Minimal, Midnight, Forest)
 - Theme-driven rendering: both preview iframe and export apply theme colors/fonts via CSS variables
 - Auto-detects dark/light themes for text contrast (uses luminance calculation)
 - Theme store at `apps/web/src/lib/stores/themes.ts`

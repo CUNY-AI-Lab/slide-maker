@@ -161,7 +161,11 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
   switch (mod.type) {
     case 'heading': {
       const level = Math.min(Math.max(Number(d.level) || 1, 1), 4)
-      return `<h${level}${step}>${esc(String(d.text || ''))}</h${level}>`
+      const styles: string[] = []
+      if (d.fontSize) styles.push(`font-size: ${esc(String(d.fontSize))}`)
+      if (d.align) styles.push(`text-align: ${esc(String(d.align))}`)
+      const styleAttr = styles.length ? ` style="${styles.join('; ')}"` : ''
+      return `<h${level}${step}${styleAttr}>${esc(String(d.text || ''))}</h${level}>`
     }
 
     case 'text': {
@@ -182,7 +186,7 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
       const variant = d.variant ? ` card-${esc(String(d.variant))}` : ''
       const title = d.title ? `<h3>${esc(String(d.title))}</h3>` : ''
       const raw = String(d.body || d.content || '')
-      const body = (d.content && typeof d.content === 'string' && d.content.includes('<')) ? sanitize(raw) : esc(raw)
+      const body = (raw.includes('<')) ? sanitize(raw) : inlineMd(raw)
       return `<div class="card${variant}"${step}>${title}<p>${body}</p></div>`
     }
 
@@ -194,7 +198,7 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
     case 'tip-box': {
       const title = d.title ? `<strong>${esc(String(d.title))}</strong>` : ''
       const raw = String(d.content || d.text || '')
-      const body = (d.content && typeof d.content === 'string' && d.content.includes('<')) ? sanitize(raw) : esc(raw)
+      const body = (raw.includes('<')) ? sanitize(raw) : inlineMd(raw)
       return `<div class="tip-box"${step}>${title}${body}</div>`
     }
 
@@ -241,7 +245,8 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
       for (const panel of panels) {
         const p = panel as Record<string, unknown>
         const title = p.title ? `<h3>${esc(String(p.title))}</h3>` : ''
-        const body = esc(String(p.body || p.content || ''))
+        const raw = String(p.body || p.content || '')
+        const body = raw.includes('<') ? sanitize(raw) : inlineMd(raw)
         html += `<div class="comparison-panel">${title}<p>${body}</p></div>`
       }
       html += `</div>`
@@ -255,7 +260,8 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
       for (const card of cards) {
         const c = card as Record<string, unknown>
         const title = c.title ? `<h3>${esc(String(c.title))}</h3>` : ''
-        const body = esc(String(c.body || c.content || ''))
+        const raw = String(c.body || c.content || '')
+        const body = raw.includes('<') ? sanitize(raw) : inlineMd(raw)
         const variant = c.variant ? ` card-${esc(String(c.variant))}` : ''
         html += `<div class="card${variant}">${title}<p>${body}</p></div>`
       }
@@ -278,7 +284,9 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
       const items = Array.isArray(d.items) ? d.items : []
       let html = `<ul class="stream-list"${step}>`
       for (const item of items) {
-        html += `<li>${esc(String((item as Record<string, unknown>).text || item))}</li>`
+        const o = item as Record<string, unknown>
+        const text = typeof item === 'string' ? item : String(o.text || o.content || o.label || o.title || JSON.stringify(item))
+        html += `<li>${inlineMd(text)}</li>`
       }
       html += `</ul>`
       return html

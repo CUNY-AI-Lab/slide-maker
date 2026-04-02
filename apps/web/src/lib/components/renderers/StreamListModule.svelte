@@ -10,7 +10,14 @@
 
   let items: string[] = $derived(
     Array.isArray(data.items)
-      ? data.items.map((item: unknown) => (typeof item === 'string' ? item : String(item)))
+      ? data.items.map((item: unknown) => {
+          if (typeof item === 'string') return item
+          if (item && typeof item === 'object') {
+            const o = item as Record<string, unknown>
+            return String(o.text || o.content || o.label || o.title || JSON.stringify(item))
+          }
+          return String(item)
+        })
       : []
   )
 

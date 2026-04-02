@@ -108,7 +108,7 @@
     {#if !leftCollapsed}
       <div class="left-panel" style:width="{leftWidth}px" style:min-width="{leftWidth}px">
         <div class="app-title-bar">
-          <span class="brand-slide">Slide</span> <span class="brand-wiz">Wiz</span>
+          <a href="{base}/" class="brand-link"><span class="brand-slide">Slide</span> <span class="brand-wiz">Wiz</span></a>
           <a href="https://ailab.gc.cuny.edu" target="_blank" rel="noopener" class="title-logo-link">
             <img src="{base}/cuny-ai-lab-logo.png" alt="CUNY AI Lab" class="title-logo" />
           </a>
@@ -215,6 +215,11 @@
     font-family: var(--font-display);
     font-size: 18px;
     font-weight: 700;
+  }
+
+  .brand-link {
+    text-decoration: none;
+    display: contents;
   }
 
   .brand-slide {

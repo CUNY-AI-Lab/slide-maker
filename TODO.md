@@ -3,6 +3,8 @@
 Working list of near-term fixes and enhancements. Grouped by area and written as small, verifiable tasks.
 
 ## Editor Interaction
+- [ ] Heading modules have no format toolbar — clicking a heading gives no UI for changing level, font size, or alignment (the AI can set these via mutations but there's no manual control)
+- [ ] Artifact modules need an alignment control — they don't receive the format toolbar either, so there's no way to align artifacts from the canvas
 - [ ] Module drag & drop within zones (ZoneDrop)
   - [ ] Integrate `svelte-dnd-action` for vertical reordering without fighting resize controls
   - [ ] Keyboard reorder (focusable list items; Alt+Arrow or Cmd/Ctrl+Arrow to move)

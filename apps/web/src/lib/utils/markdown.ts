@@ -62,13 +62,13 @@ export function markdownToHtml(md: string): string {
   return out.join('\n')
 }
 
-/** Convert markdown string to sanitized HTML, or pass through existing HTML */
+/** Convert markdown string to sanitized HTML, or pass through existing HTML.
+ *  Mixed content (HTML + markdown syntax) gets inline markdown applied too. */
 export function renderContent(content: string): string {
   if (!content) return ''
-  // If content already has HTML tags, sanitize and return as-is
   if (/<[a-z][\s\S]*>/i.test(content)) {
-    return DOMPurify.sanitize(content)
+    // Already has HTML — apply inline markdown for any remaining **bold**/`*italic*` syntax
+    return DOMPurify.sanitize(inlineMarkdown(content))
   }
-  // Otherwise treat as markdown
   return DOMPurify.sanitize(markdownToHtml(content))
 }
