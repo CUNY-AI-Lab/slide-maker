@@ -14,7 +14,7 @@ type AuthEnv = {
   }
 }
 
-const VALID_BLOCK_TYPES = new Set(['heading', 'text', 'card', 'label', 'tip-box', 'prompt-block', 'image', 'carousel', 'comparison', 'card-grid', 'flow', 'stream-list', 'artifact'])
+const VALID_BLOCK_TYPES = new Set(['heading', 'text', 'card', 'label', 'tip-box', 'prompt-block', 'image', 'carousel', 'comparison', 'card-grid', 'flow', 'stream-list', 'artifact', 'video'])
 
 export const decksRouter = new Hono<AuthEnv>()
 
