@@ -241,7 +241,7 @@
 
   <div class="module-content" style:transform={scaleFactor !== 1 ? `scale(${scaleFactor})` : undefined} style:transform-origin={scaleFactor !== 1 ? 'top center' : undefined}>
     {#if Renderer}
-      <Renderer data={module.data} {editable} {onchange} oneditorready={module.type === 'text' ? oneditorready : undefined} />
+      <Renderer data={module.data} {editable} {onchange} {oneditorready} />
     {:else}
       <div class="unknown-module">Unknown: {module.type}</div>
     {/if}
