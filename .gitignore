@@ -39,5 +39,8 @@ e2e/.auth/
 test-results/
 playwright-report/
 
+# Playwright MCP
+.playwright-mcp/
+
 # Generated demo
 docs/demo.html
