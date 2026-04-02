@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resource Panel Alternatives — Slide Maker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  /* ═══════════════════════════════════════════════
+     Design tokens matching slide-maker app.css
+     ═══════════════════════════════════════════════ */
+  :root {
+    --navy: #1D3A83;
+    --blue: #3B73E6;
+    --blue-hover: #2A6FB8;
+    --teal: #2FB8D6;
+    --gold: #ffb81c;
+    --stone: #333333;
+    --color-primary: var(--blue);
+    --color-primary-hover: var(--blue-hover);
+    --color-primary-dark: var(--navy);
+    --color-accent: var(--teal);
+    --color-bg: #ffffff;
+    --color-bg-secondary: #f8fafc;
+    --color-bg-tertiary: #f1f5f9;
+    --color-text: var(--stone);
+    --color-text-secondary: #64748b;
+    --color-text-muted: #6b7280;
+    --color-border: #e2e8f0;
+    --color-ghost-bg: rgba(59, 115, 230, 0.08);
+    --color-ghost-bg-hover: rgba(59, 115, 230, 0.12);
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --font-display: 'Outfit', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-body);
+    color: var(--color-text);
+    background: #f0f2f5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ═══════════════════════════════════════════════
+     Page layout — show panels in a presentation grid
+     ═══════════════════════════════════════════════ */
+  .page-header {
+    padding: 40px 48px 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .page-header h1 {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.02em;
+  }
+  .page-header p {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    margin-top: 6px;
+    line-height: 1.5;
+    max-width: 640px;
+  }
+
+  .designs-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 260px);
+    gap: 48px;
+    padding: 32px 48px 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+    justify-content: center;
+  }
+
+  .design-col {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .design-label {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .design-label::before {
+    content: '';
+    width: 3px;
+    height: 16px;
+    background: var(--color-primary);
+    border-radius: 2px;
+  }
+  .design-desc {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    line-height: 1.5;
+    padding-left: 11px;
+    border-left: 1px solid var(--color-border);
+  }
+
+  /* ═══════════════════════════════════════════════
+     Shared panel chrome
+     ═══════════════════════════════════════════════ */
+  .panel-frame {
+    width: 260px;
+    height: 580px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+    position: relative;
+  }
+
+
+  /* ═══════════════════════════════════════════════
+     OPTION A — Accordion Stack
+     All four sections visible at once, collapsible.
+     Most-used sections (Templates) start expanded.
+     ═══════════════════════════════════════════════ */
+
+  .accordion-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .acc-section {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    border-bottom: 1px solid var(--color-border);
+    transition: flex 0.25s ease;
+  }
+  .acc-section:last-child { border-bottom: none; }
+  .acc-section.expanded { flex: 1; }
+
+  .acc-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background 0.12s;
+    flex-shrink: 0;
+  }
+  .acc-header:hover { background: var(--color-ghost-bg); }
+
+  .acc-icon {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-tertiary);
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+  .acc-icon svg { width: 13px; height: 13px; color: var(--color-text-muted); }
+  .expanded .acc-icon { background: var(--color-ghost-bg); }
+  .expanded .acc-icon svg { color: var(--color-primary); }
+
+  .acc-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text);
+    flex: 1;
+  }
+  .acc-count {
+    font-size: 9px;
+    color: var(--color-text-muted);
+    background: var(--color-bg-tertiary);
+    padding: 1px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .acc-chevron {
+    width: 14px;
+    height: 14px;
+    color: var(--color-text-muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+  .expanded .acc-chevron { transform: rotate(180deg); }
+
+  .acc-body {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding: 4px 10px 10px;
+  }
+  .expanded .acc-body { display: block; }
+
+  /* Templates grid inside accordion */
+  .acc-tmpl-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .acc-tmpl-card {
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .acc-tmpl-card:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+  }
+  .acc-tmpl-thumb {
+    height: 48px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .acc-tmpl-name {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--color-text);
+    padding: 4px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Mini wireframe bars for template thumbnails */
+  .wire-bar { height: 3px; border-radius: 2px; }
+  .wire-block { border-radius: 3px; }
+
+  /* File row in accordion */
+  .acc-file-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .acc-file-row:hover { background: var(--color-ghost-bg); }
+  .acc-file-thumb {
+    width: 36px;
+    height: 36px;
+    border-radius: 4px;
+    background: var(--color-bg-tertiary);
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .acc-file-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .acc-file-name {
+    font-size: 11px;
+    color: var(--color-text);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .acc-file-size {
+    font-size: 9px;
+    color: var(--color-text-muted);
+    flex-shrink: 0;
+  }
+
+  /* Artifact compact row */
+  .acc-artifact-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .acc-artifact-row:hover { background: var(--color-ghost-bg); }
+  .acc-artifact-badge {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--navy);
+    color: #fff;
+    border-radius: 3px;
+    font-size: 8px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .acc-artifact-badge.chart { background: #059669; }
+  .acc-artifact-badge.viz { background: var(--navy); }
+  .acc-artifact-badge.map { background: #b45309; }
+  .acc-artifact-badge.diagram { background: #7c3aed; }
+  .acc-artifact-info {
+    flex: 1;
+    min-width: 0;
+  }
+  .acc-artifact-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .acc-artifact-type {
+    font-size: 9px;
+    color: var(--color-text-muted);
+  }
+  .acc-insert-btn {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
+    border-radius: 3px;
+    cursor: pointer;
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.12s, background 0.12s;
+  }
+  .acc-artifact-row:hover .acc-insert-btn,
+  .acc-file-row:hover .acc-insert-btn { opacity: 1; }
+  .acc-insert-btn:hover { background: var(--color-primary); color: #fff; }
+
+  /* Theme row in accordion */
+  .acc-theme-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .acc-theme-row:hover { background: var(--color-ghost-bg); }
+  .acc-theme-row.active { background: var(--color-ghost-bg); }
+  .acc-swatches {
+    display: flex;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+  .acc-swatch {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(0,0,0,0.08);
+  }
+  .acc-theme-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text);
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .acc-check {
+    font-size: 12px;
+    color: var(--color-primary);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Section action buttons (Upload, Create Theme) */
+  .acc-action-row {
+    padding: 6px 0 4px;
+  }
+  .acc-action-btn {
+    width: 100%;
+    padding: 5px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    background: transparent;
+    color: var(--color-primary);
+    border: 1px dashed var(--color-primary);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .acc-action-btn:hover { background: var(--color-ghost-bg); }
+
+
+  /* ═══════════════════════════════════════════════
+     OPTION B — Command Palette + Pinned Shelf
+     Search-first, with pinned quick-access row.
+     ═══════════════════════════════════════════════ */
+
+  .palette-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .palette-search-bar {
+    padding: 10px 12px 8px;
+    flex-shrink: 0;
+  }
+  .palette-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .palette-input-wrap:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(59,115,230,0.12);
+  }
+  .palette-input-wrap svg { color: var(--color-text-muted); flex-shrink: 0; }
+  .palette-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    font-family: var(--font-body);
+    font-size: 12px;
+    color: var(--color-text);
+  }
+  .palette-input::placeholder { color: var(--color-text-muted); }
+  .palette-kbd {
+    font-family: var(--font-body);
+    font-size: 9px;
+    color: var(--color-text-muted);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    padding: 1px 4px;
+    flex-shrink: 0;
+    line-height: 1.3;
+  }
+
+  /* Filter chips */
+  .palette-filters {
+    display: flex;
+    gap: 4px;
+    padding: 0 12px 8px;
+    flex-shrink: 0;
+  }
+  .palette-chip {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+    border: 1px solid var(--color-border);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: all 0.12s;
+    white-space: nowrap;
+  }
+  .palette-chip:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+  }
+  .palette-chip.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+  }
+
+  /* Pinned shelf */
+  .palette-pinned {
+    padding: 0 12px 10px;
+    flex-shrink: 0;
+  }
+  .palette-pinned-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    margin-bottom: 6px;
+  }
+  .pinned-row {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+  .pinned-card {
+    width: 56px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    cursor: pointer;
+  }
+  .pinned-card-thumb {
+    width: 56px;
+    height: 38px;
+    border-radius: 4px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid transparent;
+    transition: border-color 0.15s;
+  }
+  .pinned-card:hover .pinned-card-thumb {
+    border-color: var(--color-primary);
+  }
+  .pinned-card-label {
+    font-size: 8px;
+    color: var(--color-text-muted);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 56px;
+  }
+  .pin-icon {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 10px;
+    height: 10px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .pin-icon svg { width: 6px; height: 6px; color: var(--color-text-muted); }
+
+  /* Result list */
+  .palette-results {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding: 0 8px 12px;
+  }
+  .palette-divider {
+    padding: 4px;
+    border-bottom: 1px solid var(--color-border);
+    margin-bottom: 4px;
+  }
+  .palette-divider-text {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+
+  .palette-result-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  .palette-result-row:hover { background: var(--color-ghost-bg); }
+  .palette-result-row.focused { background: var(--color-ghost-bg-hover); }
+
+  .pr-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .pr-icon.tmpl { background: #0f2b5c; color: rgba(100,181,246,0.7); }
+  .pr-icon.file { background: var(--color-bg-tertiary); color: var(--color-text-muted); }
+  .pr-icon.artifact { background: var(--navy); color: rgba(255,255,255,0.8); }
+  .pr-icon.theme {
+    border: 1px solid var(--color-border);
+    background: transparent;
+    padding: 2px;
+  }
+  .pr-icon.theme .mini-swatches {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    width: 100%;
+    height: 100%;
+  }
+  .pr-icon.theme .ms {
+    border-radius: 2px;
+  }
+
+  .pr-info { flex: 1; min-width: 0; }
+  .pr-name {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pr-meta {
+    font-size: 9px;
+    color: var(--color-text-muted);
+  }
+  .pr-action {
+    font-size: 9px;
+    font-weight: 600;
+    color: var(--color-primary);
+    opacity: 0;
+    transition: opacity 0.12s;
+    flex-shrink: 0;
+  }
+  .palette-result-row:hover .pr-action { opacity: 1; }
+
+
+  /* ═══════════════════════════════════════════════
+     OPTION C — Icon Dock + Contextual Flyout
+     Vertical icon rail on right edge, content flyout.
+     ═══════════════════════════════════════════════ */
+
+  .dock-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+  }
+
+  /* Contextual content area */
+  .dock-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 0;
+  }
+
+  .dock-content-header {
+    padding: 12px 14px 8px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .dock-content-title {
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-text);
+  }
+  .dock-content-close {
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    color: var(--color-text-muted);
+    transition: background 0.12s;
+  }
+  .dock-content-close:hover { background: var(--color-bg-tertiary); }
+
+  .dock-content-body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding: 0 14px 14px;
+  }
+
+  /* Contextual suggestion zone (when no dock item active) */
+  .context-zone {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 14px;
+    gap: 12px;
+    overflow-y: auto;
+  }
+  .ctx-section-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+  }
+  .ctx-suggestion {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .ctx-suggestion:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary);
+  }
+  .ctx-suggestion-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .ctx-suggestion-info { flex: 1; min-width: 0; }
+  .ctx-suggestion-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-text);
+  }
+  .ctx-suggestion-desc {
+    font-size: 9px;
+    color: var(--color-text-muted);
+    line-height: 1.3;
+  }
+
+  /* The dock rail */
+  .dock-rail {
+    width: 42px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 8px 0;
+    background: var(--color-bg-secondary);
+    border-left: 1px solid var(--color-border);
+  }
+
+  .dock-btn {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--color-text-muted);
+    transition: background 0.12s, color 0.12s;
+    position: relative;
+  }
+  .dock-btn:hover {
+    background: var(--color-ghost-bg);
+    color: var(--color-primary);
+  }
+  .dock-btn.active {
+    background: var(--color-ghost-bg-hover);
+    color: var(--color-primary);
+  }
+  .dock-btn.active::before {
+    content: '';
+    position: absolute;
+    left: -1px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 18px;
+    background: var(--color-primary);
+    border-radius: 0 2px 2px 0;
+  }
+  .dock-btn svg { width: 16px; height: 16px; }
+  .dock-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 14px;
+    height: 14px;
+    background: var(--teal);
+    color: #fff;
+    font-size: 8px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 1.5px solid var(--color-bg-secondary);
+  }
+
+  .dock-separator {
+    width: 22px;
+    height: 1px;
+    background: var(--color-border);
+    margin: 4px 0;
+  }
+
+  /* Dock flyout content: Templates mini-grid */
+  .dock-tmpl-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .dock-tmpl-card {
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid var(--color-border);
+    transition: border-color 0.15s;
+  }
+  .dock-tmpl-card:hover {
+    border-color: var(--color-primary);
+  }
+  .dock-tmpl-thumb {
+    height: 44px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .dock-tmpl-name {
+    font-size: 9px;
+    font-weight: 500;
+    color: var(--color-text);
+    padding: 3px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: var(--color-bg);
+  }
+
+  /* Dock flyout: slide info bar */
+  .dock-slide-info {
+    padding: 8px 10px;
+    background: var(--color-bg-tertiary);
+    border-radius: var(--radius-sm);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .dock-slide-info-text {
+    font-size: 10px;
+    color: var(--color-text-muted);
+  }
+  .dock-slide-info-text strong {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+  .dock-slide-num {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-primary);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-ghost-bg);
+    border-radius: 4px;
+    flex-shrink: 0;
+  }
+
+
+  /* ═══════════════════════════════════════════════
+     Annotations layer
+     ═══════════════════════════════════════════════ */
+  .annotation {
+    font-size: 10px;
+    color: #ef4444;
+    font-weight: 600;
+    font-style: italic;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .annotation::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: #ef4444;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Pros/cons list under each */
+  .pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+    padding: 10px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 10px;
+  }
+  .pros-cons h4 {
+    font-family: var(--font-display);
+    font-size: 10px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    color: var(--color-text);
+  }
+  .pros-cons ul {
+    list-style: none;
+    padding: 0;
+  }
+  .pros-cons li {
+    padding: 2px 0;
+    color: var(--color-text-muted);
+    line-height: 1.4;
+  }
+  .pros-cons li::before {
+    margin-right: 4px;
+    font-weight: 700;
+  }
+  .pros li::before { content: '+'; color: #059669; }
+  .cons li::before { content: '-'; color: #ef4444; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Resource Panel Alternatives</h1>
+  <p>Three alternative designs for the right-hand resources panel (240px). Each preserves the four resource types (Files, Templates, Artifacts, Themes) while exploring different organizational paradigms.</p>
+</div>
+
+<div class="designs-grid">
+
+  <!-- ═════════════════════════════════════════
+       OPTION A — Accordion Stack
+       ═════════════════════════════════════════ -->
+  <div class="design-col">
+    <div class="design-label">A — Accordion Stack</div>
+    <div class="design-desc">All four sections visible simultaneously as collapsible regions. No tab switching — expand what you need. Templates auto-expand as the primary resource.</div>
+
+    <div class="panel-frame">
+      <div class="accordion-panel">
+
+        <!-- Templates — expanded -->
+        <div class="acc-section expanded">
+          <button class="acc-header">
+            <div class="acc-icon">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="2" y1="6" x2="14" y2="6"/><line x1="7" y1="6" x2="7" y2="14"/></svg>
+            </div>
+            <span class="acc-title">Templates</span>
+            <span class="acc-count">21</span>
+            <svg class="acc-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+          <div class="acc-body">
+            <div class="annotation">Auto-expanded for active layout type</div>
+            <div class="acc-tmpl-grid">
+              <div class="acc-tmpl-card">
+                <div class="acc-tmpl-thumb" style="background:#0f2b5c">
+                  <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+                    <div class="wire-bar" style="width:50px;background:rgba(100,181,246,0.35)"></div>
+                    <div class="wire-bar" style="width:30px;background:rgba(59,130,246,0.2)"></div>
+                  </div>
+                </div>
+                <div class="acc-tmpl-name">Title Slide</div>
+              </div>
+              <div class="acc-tmpl-card">
+                <div class="acc-tmpl-thumb" style="background:#172a45">
+                  <div style="display:flex;gap:4px;padding:6px 8px;width:100%;height:100%">
+                    <div style="flex:3;display:flex;flex-direction:column;gap:2px;justify-content:center">
+                      <div class="wire-bar" style="width:70%;background:rgba(255,255,255,0.22)"></div>
+                      <div class="wire-bar" style="width:90%;background:rgba(255,255,255,0.12)"></div>
+                    </div>
+                    <div class="wire-block" style="flex:2;background:rgba(255,255,255,0.22)"></div>
+                  </div>
+                </div>
+                <div class="acc-tmpl-name">Split Layout</div>
+              </div>
+              <div class="acc-tmpl-card">
+                <div class="acc-tmpl-thumb" style="background:#1e2a3a">
+                  <div style="display:flex;flex-direction:column;gap:2px;padding:6px 10px;justify-content:center;width:100%;height:100%">
+                    <div class="wire-bar" style="width:80%;background:rgba(100,181,246,0.22)"></div>
+                    <div class="wire-bar" style="width:60%;background:rgba(100,181,246,0.12)"></div>
+                    <div class="wire-bar" style="width:40%;background:rgba(100,181,246,0.12)"></div>
+                  </div>
+                </div>
+                <div class="acc-tmpl-name">Full Content</div>
+              </div>
+              <div class="acc-tmpl-card">
+                <div class="acc-tmpl-thumb" style="background:#0f3444">
+                  <div style="display:flex;gap:3px;padding:8px;width:100%;height:100%">
+                    <div class="wire-block" style="flex:1;background:rgba(255,255,255,0.22);min-height:100%"></div>
+                    <div class="wire-block" style="flex:1;background:rgba(255,255,255,0.22);min-height:100%"></div>
+                    <div class="wire-block" style="flex:1;background:rgba(255,255,255,0.22);min-height:100%"></div>
+                  </div>
+                </div>
+                <div class="acc-tmpl-name">Card Grid</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Files — collapsed -->
+        <div class="acc-section">
+          <button class="acc-header">
+            <div class="acc-icon">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 14H2V2h7l3 3v9z"/><polyline points="9,2 9,5 14,5"/></svg>
+            </div>
+            <span class="acc-title">Files</span>
+            <span class="acc-count">3</span>
+            <svg class="acc-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+        </div>
+
+        <!-- Artifacts — collapsed -->
+        <div class="acc-section">
+          <button class="acc-header">
+            <div class="acc-icon">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 4v4l3 2"/></svg>
+            </div>
+            <span class="acc-title">Artifacts</span>
+            <span class="acc-count">12</span>
+            <svg class="acc-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+        </div>
+
+        <!-- Themes — collapsed -->
+        <div class="acc-section">
+          <button class="acc-header">
+            <div class="acc-icon">
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="7" r="3"/><circle cx="10" cy="7" r="3"/><circle cx="8" cy="10.5" r="3"/></svg>
+            </div>
+            <span class="acc-title">Themes</span>
+            <span class="acc-count">9</span>
+            <svg class="acc-chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4,6 8,10 12,6"/></svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <h4>Strengths</h4>
+        <ul>
+          <li>All sections always visible — no tab blindness</li>
+          <li>Section headers show item counts at a glance</li>
+          <li>Natural priority: expanded = important</li>
+          <li>Minimal cognitive shift between sections</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h4>Trade-offs</h4>
+        <ul>
+          <li>Collapsed sections are just headers — zero preview</li>
+          <li>Only one section can practically be expanded at full height</li>
+          <li>Vertical space split means less room per section than tabs</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═════════════════════════════════════════
+       OPTION B — Command Palette + Pinned Shelf
+       ═════════════════════════════════════════ -->
+  <div class="design-col">
+    <div class="design-label">B — Search Palette + Pinned Shelf</div>
+    <div class="design-desc">Search-first interface. Type to find any resource — templates, files, artifacts, themes — in one unified list. Pin favorites to a quick-access strip.</div>
+
+    <div class="panel-frame">
+      <div class="palette-panel">
+
+        <!-- Search -->
+        <div class="palette-search-bar">
+          <div class="palette-input-wrap">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><line x1="10" y1="10" x2="14" y2="14"/></svg>
+            <input class="palette-input" type="text" placeholder="Search resources..." readonly>
+            <span class="palette-kbd">/</span>
+          </div>
+        </div>
+
+        <!-- Filter chips -->
+        <div class="palette-filters">
+          <button class="palette-chip active">All</button>
+          <button class="palette-chip">Templates</button>
+          <button class="palette-chip">Files</button>
+          <button class="palette-chip">Artifacts</button>
+          <button class="palette-chip">Themes</button>
+        </div>
+
+        <!-- Pinned -->
+        <div class="palette-pinned">
+          <div class="palette-pinned-label">Pinned</div>
+          <div class="pinned-row">
+            <div class="pinned-card">
+              <div class="pinned-card-thumb" style="background:#0f2b5c">
+                <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+                  <div style="width:30px;height:2px;border-radius:1px;background:rgba(100,181,246,0.35)"></div>
+                  <div style="width:18px;height:2px;border-radius:1px;background:rgba(59,130,246,0.2)"></div>
+                </div>
+                <div class="pin-icon"><svg viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="3" r="1.5"/><path d="M4 5v2"/></svg></div>
+              </div>
+              <div class="pinned-card-label">Title</div>
+            </div>
+            <div class="pinned-card">
+              <div class="pinned-card-thumb" style="background:#172a45">
+                <div style="display:flex;gap:2px;padding:4px;width:100%;height:100%">
+                  <div style="flex:3;display:flex;flex-direction:column;gap:1px;justify-content:center"><div style="width:70%;height:2px;border-radius:1px;background:rgba(255,255,255,0.22)"></div></div>
+                  <div style="flex:2;background:rgba(255,255,255,0.22);border-radius:2px"></div>
+                </div>
+                <div class="pin-icon"><svg viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="3" r="1.5"/><path d="M4 5v2"/></svg></div>
+              </div>
+              <div class="pinned-card-label">Split</div>
+            </div>
+            <div class="pinned-card">
+              <div class="pinned-card-thumb" style="background:var(--color-bg-tertiary);border:1px solid var(--color-border)">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;width:20px;height:20px">
+                  <div style="background:#3b82f6;border-radius:2px"></div>
+                  <div style="background:#6366f1;border-radius:2px"></div>
+                  <div style="background:#2FB8D6;border-radius:2px"></div>
+                  <div style="background:#111827;border-radius:2px"></div>
+                </div>
+                <div class="pin-icon"><svg viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="3" r="1.5"/><path d="M4 5v2"/></svg></div>
+              </div>
+              <div class="pinned-card-label">CUNY AI</div>
+            </div>
+            <div class="pinned-card">
+              <div class="pinned-card-thumb" style="background:var(--color-bg-tertiary);border:1px solid var(--color-border)">
+                <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="var(--navy)" stroke-width="1.3"><circle cx="8" cy="8" r="5.5"/><path d="M8 4v4l3 2"/></svg>
+                <div class="pin-icon"><svg viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="3" r="1.5"/><path d="M4 5v2"/></svg></div>
+              </div>
+              <div class="pinned-card-label">Lorenz</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Results -->
+        <div class="palette-results">
+          <div class="palette-divider">
+            <span class="palette-divider-text">Templates</span>
+          </div>
+
+          <div class="palette-result-row focused">
+            <div class="pr-icon tmpl">
+              <div style="display:flex;flex-direction:column;gap:1px;align-items:center">
+                <div style="width:14px;height:2px;border-radius:1px;background:rgba(100,181,246,0.5)"></div>
+                <div style="width:8px;height:2px;border-radius:1px;background:rgba(59,130,246,0.3)"></div>
+              </div>
+            </div>
+            <div class="pr-info">
+              <div class="pr-name">Title Slide</div>
+              <div class="pr-meta">Cover slide &middot; hero zone</div>
+            </div>
+            <span class="pr-action" style="opacity:1">Add</span>
+          </div>
+
+          <div class="palette-result-row">
+            <div class="pr-icon tmpl" style="background:#172a45">
+              <div style="display:flex;gap:2px;width:16px;height:12px">
+                <div style="flex:3;background:rgba(255,255,255,0.22);border-radius:1px"></div>
+                <div style="flex:2;background:rgba(255,255,255,0.15);border-radius:1px"></div>
+              </div>
+            </div>
+            <div class="pr-info">
+              <div class="pr-name">Split — Image + Text</div>
+              <div class="pr-meta">Two-column &middot; content + stage</div>
+            </div>
+            <span class="pr-action">Add</span>
+          </div>
+
+          <div class="palette-result-row">
+            <div class="pr-icon tmpl" style="background:#172a45">
+              <div style="display:flex;gap:2px;width:16px;height:12px">
+                <div style="flex:3;background:rgba(255,255,255,0.22);border-radius:1px"></div>
+                <div style="flex:2;background:rgba(255,255,255,0.15);border-radius:1px"></div>
+              </div>
+            </div>
+            <div class="pr-info">
+              <div class="pr-name">Split — Prompt Block</div>
+              <div class="pr-meta">Two-column &middot; code example</div>
+            </div>
+            <span class="pr-action">Add</span>
+          </div>
+
+          <div class="palette-divider" style="margin-top:4px">
+            <span class="palette-divider-text">Artifacts</span>
+          </div>
+
+          <div class="palette-result-row">
+            <div class="pr-icon artifact">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.3"><circle cx="8" cy="8" r="5.5"/><path d="M8 4v4l3 2"/></svg>
+            </div>
+            <div class="pr-info">
+              <div class="pr-name">Lorenz Attractor</div>
+              <div class="pr-meta">Visualization &middot; configurable</div>
+            </div>
+            <span class="pr-action">Insert</span>
+          </div>
+
+          <div class="palette-result-row">
+            <div class="pr-icon artifact">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="1.3"><rect x="3" y="3" width="10" height="10" rx="1"/><path d="M3 10l3-3 2 2 3-4 2 2"/></svg>
+            </div>
+            <div class="pr-info">
+              <div class="pr-name">Boids Simulation</div>
+              <div class="pr-meta">Visualization &middot; configurable</div>
+            </div>
+            <span class="pr-action">Insert</span>
+          </div>
+
+          <div class="palette-divider" style="margin-top:4px">
+            <span class="palette-divider-text">Files</span>
+          </div>
+
+          <div class="palette-result-row">
+            <div class="pr-icon file">
+              <div style="width:18px;height:18px;background:var(--color-border);border-radius:2px"></div>
+            </div>
+            <div class="pr-info">
+              <div class="pr-name">diagram-01.png</div>
+              <div class="pr-meta">145 KB &middot; uploaded today</div>
+            </div>
+            <span class="pr-action">Insert</span>
+          </div>
+
+          <div class="palette-divider" style="margin-top:4px">
+            <span class="palette-divider-text">Themes</span>
+          </div>
+
+          <div class="palette-result-row">
+            <div class="pr-icon theme">
+              <div class="mini-swatches">
+                <div class="ms" style="background:#3b82f6"></div>
+                <div class="ms" style="background:#6366f1"></div>
+                <div class="ms" style="background:#2FB8D6"></div>
+                <div class="ms" style="background:#111827"></div>
+              </div>
+            </div>
+            <div class="pr-info">
+              <div class="pr-name">CUNY AI Lab</div>
+              <div class="pr-meta">Active &middot; Outfit / Inter</div>
+            </div>
+            <span class="pr-action">Apply</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <h4>Strengths</h4>
+        <ul>
+          <li>All resource types in one searchable list — fast for power users</li>
+          <li>Pinned shelf gives one-click access to favorites</li>
+          <li>Filter chips let users narrow by type when needed</li>
+          <li>Keyboard-friendly — / to focus, arrows to navigate</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h4>Trade-offs</h4>
+        <ul>
+          <li>Mixed list can overwhelm if many resources exist</li>
+          <li>Less visual for templates (no thumbnail grid)</li>
+          <li>Requires typing — slower for browse-oriented users</li>
+          <li>Pin management adds a layer of configuration</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═════════════════════════════════════════
+       OPTION C — Icon Dock + Contextual Flyout
+       ═════════════════════════════════════════ -->
+  <div class="design-col">
+    <div class="design-label">C — Icon Dock + Context View</div>
+    <div class="design-desc">Vertical icon rail on the right edge works like a mini dock. Click an icon to open its flyout. When nothing is selected, shows contextual suggestions based on the active slide.</div>
+
+    <div class="panel-frame">
+      <div class="dock-panel">
+
+        <!-- Content area — showing contextual view (no dock item selected) -->
+        <div class="dock-content">
+          <div class="context-zone">
+
+            <div class="dock-slide-info">
+              <div class="dock-slide-num">3</div>
+              <div class="dock-slide-info-text">
+                <strong>layout-split</strong><br>
+                content + stage zones
+              </div>
+            </div>
+
+            <div>
+              <div class="ctx-section-label">Suggested for this slide</div>
+            </div>
+
+            <div class="ctx-suggestion">
+              <div class="ctx-suggestion-icon" style="background:#172a45">
+                <div style="display:flex;gap:2px;padding:3px;width:100%;height:100%">
+                  <div style="flex:3;display:flex;flex-direction:column;gap:1px;justify-content:center"><div style="width:70%;height:2px;border-radius:1px;background:rgba(255,255,255,0.25)"></div><div style="width:50%;height:2px;border-radius:1px;background:rgba(255,255,255,0.15)"></div></div>
+                  <div style="flex:2;background:rgba(255,255,255,0.22);border-radius:2px"></div>
+                </div>
+              </div>
+              <div class="ctx-suggestion-info">
+                <div class="ctx-suggestion-name">Split — Comparison</div>
+                <div class="ctx-suggestion-desc">Side-by-side panels for this layout</div>
+              </div>
+            </div>
+
+            <div class="ctx-suggestion">
+              <div class="ctx-suggestion-icon" style="background:var(--color-bg-tertiary);border:1px solid var(--color-border)">
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--navy)" stroke-width="1.3"><circle cx="8" cy="8" r="5.5"/><path d="M8 4v4l3 2"/></svg>
+              </div>
+              <div class="ctx-suggestion-info">
+                <div class="ctx-suggestion-name">Lorenz Attractor</div>
+                <div class="ctx-suggestion-desc">Add to stage zone as a visual</div>
+              </div>
+            </div>
+
+            <div class="ctx-suggestion">
+              <div class="ctx-suggestion-icon" style="background:var(--color-bg-tertiary);border:1px solid var(--color-border)">
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--color-text-muted)" stroke-width="1.3"><rect x="3" y="3" width="10" height="10" rx="1"/><path d="M3 10l3-3 2 2 3-4 2 2"/></svg>
+              </div>
+              <div class="ctx-suggestion-info">
+                <div class="ctx-suggestion-name">diagram-01.png</div>
+                <div class="ctx-suggestion-desc">Recently uploaded &middot; click to insert</div>
+              </div>
+            </div>
+
+            <div style="margin-top:4px">
+              <div class="ctx-section-label">Quick actions</div>
+            </div>
+
+            <div class="ctx-suggestion" style="border-style:dashed;border-color:var(--color-primary)">
+              <div class="ctx-suggestion-icon" style="background:var(--color-ghost-bg)">
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--color-primary)" stroke-width="1.5"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>
+              </div>
+              <div class="ctx-suggestion-info">
+                <div class="ctx-suggestion-name" style="color:var(--color-primary)">Upload image</div>
+                <div class="ctx-suggestion-desc">Drop or click to add files</div>
+              </div>
+            </div>
+
+            <div class="ctx-suggestion">
+              <div class="ctx-suggestion-icon" style="background:var(--color-ghost-bg)">
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="var(--color-text-muted)" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4"/><line x1="10" y1="10" x2="13" y2="13"/></svg>
+              </div>
+              <div class="ctx-suggestion-info">
+                <div class="ctx-suggestion-name">/search web images</div>
+                <div class="ctx-suggestion-desc">Find and insert from Tavily</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Dock rail -->
+        <div class="dock-rail">
+          <button class="dock-btn" title="Suggested" style="color:var(--color-primary)">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2l1.5 4.5H14l-3.5 2.5L12 14 8 11l-4 3 1.5-5L2 6.5h4.5z"/></svg>
+          </button>
+          <div class="dock-separator"></div>
+          <button class="dock-btn" title="Templates">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="2"/><line x1="2" y1="6" x2="14" y2="6"/><line x1="7" y1="6" x2="7" y2="14"/></svg>
+          </button>
+          <button class="dock-btn" title="Files">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 14H2V2h7l3 3v9z"/><polyline points="9,2 9,5 14,5"/></svg>
+            <span class="dock-badge">3</span>
+          </button>
+          <button class="dock-btn" title="Artifacts">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="5.5"/><path d="M8 4v4l3 2"/></svg>
+          </button>
+          <button class="dock-btn" title="Themes">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="7" r="3"/><circle cx="10" cy="7" r="3"/><circle cx="8" cy="10.5" r="3"/></svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="pros-cons">
+      <div class="pros">
+        <h4>Strengths</h4>
+        <ul>
+          <li>Context view surfaces relevant resources for the active slide</li>
+          <li>Dock rail is always visible — one-click to any section</li>
+          <li>Badges on dock icons show file counts</li>
+          <li>Suggested view reduces decision fatigue for new users</li>
+          <li>Star icon as default = "smart home" for the panel</li>
+        </ul>
+      </div>
+      <div class="cons">
+        <h4>Trade-offs</h4>
+        <ul>
+          <li>Dock rail eats ~42px of the 240px width</li>
+          <li>Suggestion logic needs active slide awareness (new coupling)</li>
+          <li>More complex to implement than tabs or accordion</li>
+          <li>Users may expect full width panel when clicking dock item</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
