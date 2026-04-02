@@ -76,7 +76,9 @@
     if (active) expanded = true
   })
 
-  function handleClick() {
+  function handleClick(e: MouseEvent) {
+    // Ignore clicks on the delete button (Svelte 5 event delegation)
+    if ((e.target as HTMLElement).closest('.delete-btn')) return
     if (active) {
       expanded = !expanded
     } else {
@@ -90,7 +92,7 @@
     deleting = true
 
     const deck = get(currentDeck)
-    if (!deck) return
+    if (!deck) { deleting = false; return }
 
     try {
       const res = await fetch(`${API_URL}/api/decks/${deck.id}/slides/${slide.id}`, {

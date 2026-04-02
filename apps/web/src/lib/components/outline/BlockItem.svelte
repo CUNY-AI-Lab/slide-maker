@@ -109,7 +109,7 @@
 
 <div class="block-item">
   <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div class="block-header" onclick={() => expanded = !expanded} onkeydown={(e) => e.key === 'Enter' && (expanded = !expanded)} role="button" tabindex="0">
+  <div class="block-header" onclick={(e) => { if (!(e.target as HTMLElement).closest('.delete-block-btn')) expanded = !expanded }} onkeydown={(e) => e.key === 'Enter' && (expanded = !expanded)} role="button" tabindex="0">
     <span class="drag-handle">{'\u283F'}</span>
     <span class="block-label">{label}</span>
     {#if preview}
