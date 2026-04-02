@@ -58,7 +58,7 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
   text-align: center; align-items: center;
 }
 .title-slide > .hero, .layout-divider > .hero, .closing-slide > .hero {
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
   max-height: 100%; overflow: hidden; gap: 12px;
 }
 .title-slide h1 { font-size: clamp(1.8rem, 4.5vw, 3.8rem); }
