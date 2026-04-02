@@ -1,6 +1,9 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
   import { untrack } from 'svelte'
   import '$lib/framework-preview.css'
+  import { goto } from '$app/navigation'
+  import { base } from '$app/paths'
   import { API_URL } from '$lib/api'
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId, activeModuleControls, setActiveSlide } from '$lib/stores/ui'
@@ -60,26 +63,39 @@
   }
 
   function handleCanvasKeydown(e: KeyboardEvent) {
-    if (e.key === 'Escape' && canvasMode === 'edit') {
-      setMode('view')
-      return
-    }
-
-    // Arrow key slide navigation — skip if user is typing in an editable element
-    const active = document.activeElement
-    if (active?.closest('[contenteditable]') || active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.tagName === 'SELECT') return
-
-    const slides = [...($currentDeck?.slides ?? [])].sort((a, b) => a.order - b.order)
-    const idx = $activeSlideId ? slides.findIndex((s) => s.id === $activeSlideId) : -1
-
-    if (e.key === 'ArrowLeft' && idx > 0) {
-      e.preventDefault()
-      setActiveSlide(slides[idx - 1].id, idx)
-    } else if (e.key === 'ArrowRight' && idx < slides.length - 1) {
-      e.preventDefault()
-      setActiveSlide(slides[idx + 1].id, idx + 2)
-    }
+    // no-op — global handler below handles everything
   }
+
+  // Global keyboard handler for slide navigation
+  onMount(() => {
+    function handleGlobalKeydown(e: KeyboardEvent) {
+      // Skip if user is typing in an editable element
+      const active = document.activeElement
+      if (active?.closest('[contenteditable]') || active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.tagName === 'SELECT') return
+
+      // Escape → back to gallery
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        goto(`${base}/`)
+        return
+      }
+
+      // Arrow keys → prev/next slide
+      const allSlides = [...($currentDeck?.slides ?? [])].sort((a, b) => a.order - b.order)
+      const idx = $activeSlideId ? allSlides.findIndex((s) => s.id === $activeSlideId) : -1
+
+      if (e.key === 'ArrowLeft' && idx > 0) {
+        e.preventDefault()
+        setActiveSlide(allSlides[idx - 1].id, idx)
+      } else if (e.key === 'ArrowRight' && idx < allSlides.length - 1) {
+        e.preventDefault()
+        setActiveSlide(allSlides[idx + 1].id, idx + 2)
+      }
+    }
+
+    window.addEventListener('keydown', handleGlobalKeydown)
+    return () => window.removeEventListener('keydown', handleGlobalKeydown)
+  })
 
   // Derive theme-driven CSS variables for the SlideRenderer (edit mode)
   let themeStyle = $derived.by(() => {
