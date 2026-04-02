@@ -122,7 +122,7 @@
   </div>
 {:else}
   <div class="format-toolbar disabled">
-    <span class="hint">Double-click a text block to edit</span>
+    <span class="hint">Click a text block to edit</span>
   </div>
 {/if}
 
