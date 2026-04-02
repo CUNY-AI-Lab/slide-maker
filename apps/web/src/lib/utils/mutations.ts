@@ -20,6 +20,24 @@ async function apiCall(path: string, method: string, body?: unknown) {
   return null
 }
 
+/** Resolve artifact source from catalog for a module def that has artifactName but no rawSource */
+async function resolveArtifactSource(data: Record<string, unknown>): Promise<void> {
+  if (!data.artifactName || data.rawSource) return
+  const { findArtifactByName, ensureArtifactsLoaded } = await import('../stores/artifacts')
+  const { buildSourceWithConfig, getResolvedConfig } = await import('./artifact-config')
+  await ensureArtifactsLoaded()
+  const artifactDef = findArtifactByName(data.artifactName as string)
+  if (!artifactDef?.source) return
+  const userConfig = (data.config as Record<string, unknown>) || {}
+  const defaults = getResolvedConfig(artifactDef)
+  const mergedConfig = { ...defaults, ...userConfig }
+  data.rawSource = buildSourceWithConfig(artifactDef.source, mergedConfig)
+  data.config = mergedConfig
+  if (!data.alt) data.alt = artifactDef.name
+  if (data.autoSize === undefined) data.autoSize = true
+  if (data.aspectRatio === undefined) data.aspectRatio = 4 / 3
+}
+
 export async function applyMutation(mutation: Record<string, unknown>): Promise<void> {
   const deck = get(currentDeck)
   if (!deck) return
@@ -82,6 +100,13 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
     case 'addSlide': {
       const moduleDefs = (payload.modules as any[]) || []
 
+      // Resolve artifact sources before sending to API
+      for (const mod of moduleDefs) {
+        if (mod.type === 'artifact' && mod.data) {
+          await resolveArtifactSource(mod.data)
+        }
+      }
+
       // Persist to API first — it generates the real IDs
       const result = await apiCall(`/api/decks/${deck.id}/slides`, 'POST', {
         layout: (payload.layout as string) || 'layout-split',
@@ -136,6 +161,10 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
     case 'addBlock': {
       const slideId = payload.slideId as string
       const blockDef = payload.block as { type: string; zone?: string; data: Record<string, unknown>; stepOrder?: number }
+
+      if (blockDef.type === 'artifact' && blockDef.data) {
+        await resolveArtifactSource(blockDef.data)
+      }
 
       const result = await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks`, 'POST', {
         type: blockDef.type,

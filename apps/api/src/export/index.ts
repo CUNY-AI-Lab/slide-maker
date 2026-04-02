@@ -9,6 +9,7 @@ import { ARTIFACTS_JS } from './artifacts.js'
 import { FRAMEWORK_CSS } from './framework-css.js'
 
 const UPLOAD_DIR = path.resolve(import.meta.dirname ?? '.', '..', '..', 'uploads')
+const STATIC_DIR = path.resolve(import.meta.dirname ?? '.', '..', '..', 'static')
 
 interface ExportModule {
   type: string
@@ -89,9 +90,25 @@ export async function exportDeckAsZip(
     archive.append(manifest, { name: `${slug}/manifest.json` })
 
     // Include extracted artifact files, if any
+    // Detect /api/static/ references and bundle those library files
+    const staticDeps = new Set<string>()
     if (artifacts.size > 0) {
       for (const [filename, source] of artifacts) {
-        archive.append(source, { name: `${slug}/artifacts/${filename}` })
+        for (const m of source.matchAll(/\/api\/static\/([^"'<>\s]+)/g)) {
+          staticDeps.add(m[1])
+        }
+        const rewritten = staticDeps.size > 0
+          ? source.replace(/\/api\/static\//g, '../lib/')
+          : source
+        archive.append(rewritten, { name: `${slug}/artifacts/${filename}` })
+      }
+    }
+
+    // Bundle static library files referenced by artifacts
+    for (const dep of staticDeps) {
+      const depPath = path.join(STATIC_DIR, dep)
+      if (fs.existsSync(depPath)) {
+        archive.file(depPath, { name: `${slug}/lib/${dep}` })
       }
     }
 

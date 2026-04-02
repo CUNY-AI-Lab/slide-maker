@@ -1,0 +1,34 @@
+{
+  "id": "artifact-timeline",
+  "name": "Timeline",
+  "description": "Date-aware timeline with events, categories, and optional eras. Supports horizontal/vertical orientation and dot/card styles.",
+  "type": "diagram",
+  "source": "",
+  "config": {
+    "events": {
+      "type": "array",
+      "label": "Events",
+      "itemShape": { "date": "string", "label": "string", "description": "string", "category": "string" },
+      "default": [
+        { "date": "1950", "label": "Turing Test", "description": "Alan Turing proposes the imitation game", "category": "milestone" },
+        { "date": "1956", "label": "Dartmouth Conference", "description": "The field of AI is formally founded", "category": "milestone" },
+        { "date": "1997", "label": "Deep Blue", "description": "IBM's computer defeats world chess champion", "category": "breakthrough" },
+        { "date": "2012", "label": "AlexNet", "description": "Deep learning revolution in image recognition", "category": "breakthrough" },
+        { "date": "2022-11", "label": "ChatGPT", "description": "Large language models reach mainstream adoption", "category": "release" }
+      ]
+    },
+    "eras": {
+      "type": "array",
+      "label": "Eras",
+      "itemShape": { "name": "string", "start": "string", "end": "string", "color": "string" },
+      "default": []
+    },
+    "orientation": { "type": "select", "label": "Orientation", "default": "horizontal", "options": ["horizontal", "vertical"] },
+    "style": { "type": "select", "label": "Style", "default": "dots", "options": ["dots", "cards"] },
+    "categoryColors": {
+      "type": "object",
+      "label": "Category Colors",
+      "default": { "milestone": "#f59e0b", "breakthrough": "#0ea5e9", "release": "#10b981" }
+    }
+  }
+}

@@ -519,5 +519,58 @@ To tweak the parameters after insertion:
   }
 }
 \`\`\`
+
+### Inserting a chart
+User: "Add a line chart showing enrollment trends"
+\`\`\`mutation
+{
+  "action": "addBlock",
+  "payload": {
+    "slideId": "<slideId>",
+    "block": {
+      "type": "artifact",
+      "zone": "stage",
+      "data": {
+        "artifactName": "Line Chart",
+        "alt": "Enrollment trends",
+        "config": {
+          "data": {
+            "labels": ["2020", "2021", "2022", "2023", "2024"],
+            "datasets": [{ "name": "Enrollment", "values": [1200, 1350, 1500, 1420, 1600] }]
+          },
+          "colors": ["#0ea5e9"]
+        }
+      }
+    }
+  }
+}
+\`\`\`
+
+### Inserting a timeline
+User: "Add a timeline of AI milestones"
+\`\`\`mutation
+{
+  "action": "addBlock",
+  "payload": {
+    "slideId": "<slideId>",
+    "block": {
+      "type": "artifact",
+      "zone": "stage",
+      "data": {
+        "artifactName": "Timeline",
+        "alt": "AI milestones",
+        "config": {
+          "events": [
+            { "date": "1950", "label": "Turing Test", "description": "Alan Turing proposes the imitation game", "category": "milestone" },
+            { "date": "2012", "label": "AlexNet", "description": "Deep learning revolution begins", "category": "breakthrough" },
+            { "date": "2022-11", "label": "ChatGPT", "description": "LLMs reach mainstream adoption", "category": "release" }
+          ],
+          "categoryColors": { "milestone": "#f59e0b", "breakthrough": "#0ea5e9", "release": "#10b981" }
+        }
+      }
+    }
+  }
+}
+\`\`\`
 `
 }

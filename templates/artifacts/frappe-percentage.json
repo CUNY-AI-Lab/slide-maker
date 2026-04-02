@@ -1,0 +1,22 @@
+{
+  "id": "artifact-frappe-percentage",
+  "name": "Percentage Bar",
+  "description": "Horizontal stacked proportion bar showing category breakdown. Great for budget, time, or resource allocation.",
+  "type": "chart",
+  "source": "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:transparent;overflow:hidden;font-family:Inter,system-ui,sans-serif}#chart{width:100%;min-height:120px}.frappe-chart .axis text,.frappe-chart .chart-label{fill:#94a3b8!important}</style></head><body data-config=\"{}\"><div id=\"chart\"></div><script src=\"/api/static/frappe-charts.min.umd.js\"><\/script><script>function initChart(){try{var cfg=JSON.parse(document.body.getAttribute('data-config')||'{}');var el=document.getElementById('chart');var d=cfg.data||{labels:['Planning','Development','Testing','Deployment'],datasets:[{values:[15,45,25,15]}]};var c=cfg.colors||['#1D3A83','#3B73E6','#2FB8D6','#64b5f6'];var h=Math.max(120,document.documentElement.clientHeight-20);var chart=new frappe.Chart(el,{data:d,type:'percentage',height:h,colors:c,animate:1,truncateLegends:1});var tid=0;new ResizeObserver(function(){clearTimeout(tid);tid=setTimeout(function(){var nh=Math.max(120,document.documentElement.clientHeight-20);chart=new frappe.Chart(el,{data:d,type:'percentage',height:nh,colors:c,animate:0,truncateLegends:1})},150)}).observe(document.body)}catch(e){var p=document.createElement('p');p.style.cssText='color:#f87171;padding:20px';p.textContent='Chart error: '+e.message;document.body.appendChild(p)}}function waitForLayout(){var el=document.getElementById('chart');if(el&&el.offsetWidth>0){initChart()}else{requestAnimationFrame(waitForLayout)}}requestAnimationFrame(waitForLayout)<\/script></body></html>",
+  "config": {
+    "data": {
+      "type": "object",
+      "label": "Chart Data",
+      "default": {
+        "labels": ["Planning", "Development", "Testing", "Deployment"],
+        "datasets": [{ "values": [15, 45, 25, 15] }]
+      }
+    },
+    "colors": {
+      "type": "array",
+      "label": "Segment Colors",
+      "default": ["#1D3A83", "#3B73E6", "#2FB8D6", "#64b5f6"]
+    }
+  }
+}

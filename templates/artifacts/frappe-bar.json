@@ -1,0 +1,22 @@
+{
+  "id": "artifact-frappe-bar",
+  "name": "Bar Chart",
+  "description": "Interactive bar chart with hover tooltips, animation, and responsive sizing. Configure labels, datasets, and colors.",
+  "type": "chart",
+  "source": "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:transparent;overflow:hidden;font-family:Inter,system-ui,sans-serif}#chart{width:100%;min-height:200px}.frappe-chart .axis text,.frappe-chart .chart-label{fill:#94a3b8!important}.frappe-chart .axis line{stroke:#334155!important}</style></head><body data-config=\"{}\"><div id=\"chart\"></div><script src=\"/api/static/frappe-charts.min.umd.js\"><\/script><script>function initChart(){try{var cfg=JSON.parse(document.body.getAttribute('data-config')||'{}');var el=document.getElementById('chart');var d=cfg.data||{labels:['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],datasets:[{name:'Activity',values:[18,40,30,35,8,52,17]}]};var c=cfg.colors||['#3b82f6'];var h=Math.max(200,document.documentElement.clientHeight-20);var chart=new frappe.Chart(el,{data:d,type:'bar',height:h,colors:c,animate:1,truncateLegends:1,barOptions:{spaceRatio:0.4}});var tid=0;new ResizeObserver(function(){clearTimeout(tid);tid=setTimeout(function(){var nh=Math.max(200,document.documentElement.clientHeight-20);chart=new frappe.Chart(el,{data:d,type:'bar',height:nh,colors:c,animate:0,truncateLegends:1,barOptions:{spaceRatio:0.4}})},150)}).observe(document.body)}catch(e){var p=document.createElement('p');p.style.cssText='color:#f87171;padding:20px';p.textContent='Chart error: '+e.message;document.body.appendChild(p)}}function waitForLayout(){var el=document.getElementById('chart');if(el&&el.offsetWidth>0){initChart()}else{requestAnimationFrame(waitForLayout)}}requestAnimationFrame(waitForLayout)<\/script></body></html>",
+  "config": {
+    "data": {
+      "type": "object",
+      "label": "Chart Data",
+      "default": {
+        "labels": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+        "datasets": [{ "name": "Activity", "values": [18, 40, 30, 35, 8, 52, 17] }]
+      }
+    },
+    "colors": {
+      "type": "array",
+      "label": "Bar Colors",
+      "default": ["#3b82f6"]
+    }
+  }
+}

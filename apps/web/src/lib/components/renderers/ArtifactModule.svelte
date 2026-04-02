@@ -16,6 +16,7 @@
   import '$lib/modules/artifacts/sprott'
 
   import '$lib/modules/artifacts/truchet'
+  import '$lib/modules/artifacts/timeline'
 
   let { data, editable = false } = $props<{
     data: {
@@ -34,7 +35,7 @@
     editable?: boolean
   }>()
 
-  const CSP_META = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\' \'unsafe-inline\' blob: data:; script-src \'unsafe-inline\'; img-src https: data: blob:; style-src \'unsafe-inline\'; connect-src \'none\'; frame-src \'none\';">'
+  const CSP_META = '<meta http-equiv="Content-Security-Policy" content="default-src \'self\' \'unsafe-inline\' blob: data:; script-src \'self\' \'unsafe-inline\'; img-src https: data: blob:; style-src \'unsafe-inline\'; connect-src \'none\'; frame-src \'none\';">'
 
   const width = $derived(data.width || '100%')
   const height = $derived(data.height || '')
@@ -110,8 +111,9 @@
       } else {
         html = CSP_META + html
       }
-      const b64 = btoa(unescape(encodeURIComponent(html)))
-      return { src: `${base}/artifact?b64=${encodeURIComponent(b64)}`, srcdoc: '' }
+      // Use blob URL instead of base64 query param to avoid header-size limits with large inlined sources
+      const blob = new Blob([html], { type: 'text/html' })
+      return { src: URL.createObjectURL(blob), srcdoc: '' }
     }
     const src = data.src || data.url || ''
     const safe = /^(https?:\/\/|blob:)/i.test(src) ? src : ''

@@ -12,7 +12,7 @@ artifactRouter.get('/artifact', async (c) => {
       headers: {
         'Content-Type': 'text/html; charset=utf-8',
         'Cache-Control': 'no-store',
-        'Content-Security-Policy': "default-src 'self' 'unsafe-inline' blob: data:; script-src 'unsafe-inline'; img-src https: data: blob:; style-src 'unsafe-inline'; connect-src 'none'; frame-src 'none';",
+        'Content-Security-Policy': "default-src 'self' 'unsafe-inline' blob: data:; script-src 'self' 'unsafe-inline'; img-src https: data: blob:; style-src 'unsafe-inline'; connect-src 'none'; frame-src 'none';",
       },
     })
   } catch {

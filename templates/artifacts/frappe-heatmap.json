@@ -1,0 +1,19 @@
+{
+  "id": "artifact-frappe-heatmap",
+  "name": "Heatmap",
+  "description": "Calendar-style activity heatmap showing daily values over a year. Data points use unix timestamps as keys. Empty dataPoints generates random demo data.",
+  "type": "chart",
+  "source": "<!DOCTYPE html><html><head><meta charset=\"utf-8\"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:transparent;overflow:hidden;font-family:Inter,system-ui,sans-serif}#chart{width:100%;min-height:160px}.frappe-chart .axis text,.frappe-chart .chart-label{fill:#94a3b8!important}</style></head><body data-config=\"{}\"><div id=\"chart\"></div><script src=\"/api/static/frappe-charts.min.umd.js\"><\/script><script>function initChart(){try{var cfg=JSON.parse(document.body.getAttribute('data-config')||'{}');var el=document.getElementById('chart');var dp=cfg.dataPoints;if(!dp){dp={};var now=Math.floor(Date.now()/1000);for(var i=0;i<365;i++){var ts=now-i*86400;dp[ts]=Math.floor(Math.random()*5)}}var end=cfg.end?new Date(cfg.end):new Date();var start=cfg.start?new Date(cfg.start):new Date(end.getTime()-365*86400000);var c=cfg.colors||['#0e1726','#1e3a5f','#3b82f6','#60a5fa','#93c5fd'];var h=Math.max(160,document.documentElement.clientHeight-20);var chart=new frappe.Chart(el,{data:{dataPoints:dp,start:start,end:end},type:'heatmap',height:h,colors:c,animate:1,discreteDomains:1});var tid=0;new ResizeObserver(function(){clearTimeout(tid);tid=setTimeout(function(){var nh=Math.max(160,document.documentElement.clientHeight-20);chart=new frappe.Chart(el,{data:{dataPoints:dp,start:start,end:end},type:'heatmap',height:nh,colors:c,animate:0,discreteDomains:1})},150)}).observe(document.body)}catch(e){var p=document.createElement('p');p.style.cssText='color:#f87171;padding:20px';p.textContent='Chart error: '+e.message;document.body.appendChild(p)}}function waitForLayout(){var el=document.getElementById('chart');if(el&&el.offsetWidth>0){initChart()}else{requestAnimationFrame(waitForLayout)}}requestAnimationFrame(waitForLayout)<\/script></body></html>",
+  "config": {
+    "dataPoints": {
+      "type": "object",
+      "label": "Data Points (unix timestamp: value)",
+      "default": {}
+    },
+    "colors": {
+      "type": "array",
+      "label": "Heat Colors (5 levels, low to high)",
+      "default": ["#0e1726", "#1e3a5f", "#3b82f6", "#60a5fa", "#93c5fd"]
+    }
+  }
+}
