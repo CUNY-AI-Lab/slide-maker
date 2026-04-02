@@ -3,7 +3,7 @@
   import '$lib/framework-preview.css'
   import { API_URL } from '$lib/api'
   import { currentDeck } from '$lib/stores/deck'
-  import { activeSlideId, activeModuleControls } from '$lib/stores/ui'
+  import { activeSlideId, activeModuleControls, setActiveSlide } from '$lib/stores/ui'
   import { activeTheme, ensureThemesLoaded, isDark } from '$lib/stores/themes'
   import CanvasToolbar from './CanvasToolbar.svelte'
   import FormatToolbar from './FormatToolbar.svelte'
@@ -62,6 +62,22 @@
   function handleCanvasKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape' && canvasMode === 'edit') {
       setMode('view')
+      return
+    }
+
+    // Arrow key slide navigation — skip if user is typing in an editable element
+    const active = document.activeElement
+    if (active?.closest('[contenteditable]') || active?.tagName === 'INPUT' || active?.tagName === 'TEXTAREA' || active?.tagName === 'SELECT') return
+
+    const slides = [...($currentDeck?.slides ?? [])].sort((a, b) => a.order - b.order)
+    const idx = $activeSlideId ? slides.findIndex((s) => s.id === $activeSlideId) : -1
+
+    if (e.key === 'ArrowLeft' && idx > 0) {
+      e.preventDefault()
+      setActiveSlide(slides[idx - 1].id, idx)
+    } else if (e.key === 'ArrowRight' && idx < slides.length - 1) {
+      e.preventDefault()
+      setActiveSlide(slides[idx + 1].id, idx + 2)
     }
   }
 
