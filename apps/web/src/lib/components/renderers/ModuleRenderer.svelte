@@ -46,12 +46,22 @@
     if (isActive) {
       activeModuleControls.set(null)
     } else {
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+      const trigger = e.currentTarget as HTMLElement
+      const rect = trigger.getBoundingClientRect()
+      const popW = 160
+      const popH = 140
+      // Find canvas bounds to keep popover inside the slide area
+      const canvas = trigger.closest('.slide-frame') ?? trigger.closest('.canvas-area')
+      const bounds = canvas?.getBoundingClientRect() ?? { left: 0, right: window.innerWidth, top: 0, bottom: window.innerHeight }
+      // Default: right of trigger
       popX = rect.right + 4
       popY = rect.top
-      // Clamp so popover doesn't go off-screen
-      if (popX + 160 > window.innerWidth) popX = rect.left - 164
-      if (popY + 140 > window.innerHeight) popY = window.innerHeight - 144
+      // Clamp horizontally within canvas bounds
+      if (popX + popW > bounds.right) popX = rect.left - popW - 4
+      if (popX < bounds.left) popX = bounds.left + 4
+      // Clamp vertically within canvas bounds
+      if (popY + popH > bounds.bottom) popY = bounds.bottom - popH - 4
+      if (popY < bounds.top) popY = bounds.top + 4
       activeModuleControls.set(module.id)
     }
   }
