@@ -4,6 +4,7 @@
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId, setActiveSlide } from '$lib/stores/ui'
   import { API_URL } from '$lib/api'
+  import ShareDeckDialog from '$lib/components/gallery/ShareDeckDialog.svelte'
 
   type CanvasMode = 'edit' | 'view'
   let {
@@ -65,6 +66,8 @@
 
     showBranding = false
   }
+
+  let showShare = $state(false)
 
   let exporting = $state(false)
 
@@ -130,6 +133,9 @@
       </div>
     {/if}
   </div>
+  <button class="icon-btn" onclick={() => { showShare = true }} disabled={!$currentDeck} title="Share deck">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+  </button>
   <button class="icon-btn" onclick={handleExport} disabled={exporting || !$currentDeck} title="Export deck">
     {#if exporting}
       ...
@@ -138,6 +144,10 @@
     {/if}
   </button>
 </div>
+
+{#if showShare && $currentDeck}
+  <ShareDeckDialog deckId={$currentDeck.id} onclose={() => { showShare = false }} />
+{/if}
 
 <style>
   .canvas-toolbar {
