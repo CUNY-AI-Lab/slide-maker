@@ -57,20 +57,26 @@
 
   let editingUrl = $state(false)
   let inputUrl = $state('')
+  let inputEl: HTMLInputElement | undefined = $state()
 
   function startEdit() {
     inputUrl = url
     editingUrl = true
+    // Focus after Svelte renders the input
+    requestAnimationFrame(() => inputEl?.focus())
   }
 
   function saveUrl() {
-    onchange?.({ ...data, url: inputUrl.trim() })
+    const trimmed = inputUrl.trim()
+    if (trimmed !== url) {
+      onchange?.({ ...data, url: trimmed })
+    }
     editingUrl = false
   }
 
   function handleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') saveUrl()
-    if (e.key === 'Escape') editingUrl = false
+    if (e.key === 'Enter') { e.preventDefault(); saveUrl() }
+    if (e.key === 'Escape') { editingUrl = false }
   }
 </script>
 
@@ -91,23 +97,28 @@
       <p class="video-caption">{caption}</p>
     {/if}
   {:else if editable}
-    <div class="video-placeholder" role="button" tabindex="0" onclick={startEdit} onkeydown={(e) => { if (e.key === 'Enter') startEdit() }}>
-      {#if editingUrl}
+    {#if editingUrl}
+      <!-- svelte-ignore a11y_autofocus -->
+      <div class="video-placeholder editing">
         <input
+          bind:this={inputEl}
           type="url"
           bind:value={inputUrl}
           placeholder="Paste YouTube, Vimeo, or Loom URL..."
           onkeydown={handleKeydown}
           onblur={saveUrl}
           class="url-input"
-          autofocus
         />
-      {:else}
+        <p class="url-hint">Press Enter to save, Escape to cancel</p>
+      </div>
+    {:else}
+      <!-- svelte-ignore a11y_no_static_element_interactions -->
+      <div class="video-placeholder" role="button" tabindex="0" onclick={startEdit} onkeydown={(e) => { if (e.key === 'Enter') startEdit() }}>
         <span class="placeholder-icon">▶</span>
         <p>{url ? 'Unsupported video URL' : 'Click to add a video URL'}</p>
         {#if url}<p class="url-preview">{url}</p>{/if}
-      {/if}
-    </div>
+      </div>
+    {/if}
   {:else}
     <div class="video-placeholder">
       <span class="placeholder-icon">▶</span>
@@ -170,6 +181,9 @@
     opacity: 0.6;
     word-break: break-all;
   }
+  .video-placeholder.editing {
+    cursor: default;
+  }
   .url-input {
     width: 90%;
     max-width: 400px;
@@ -180,5 +194,10 @@
     outline: none;
     background: var(--color-bg, #fff);
     color: var(--color-text, #1a1a2e);
+  }
+  .url-hint {
+    font-size: 0.7rem;
+    opacity: 0.5;
+    margin: 4px 0 0;
   }
 </style>
