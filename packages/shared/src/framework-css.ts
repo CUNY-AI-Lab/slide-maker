@@ -236,6 +236,20 @@ figcaption { margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); }
 .artifact-wrapper[style*="height"] .artifact-native { aspect-ratio: auto; }
 .artifact-card[style*="height"] iframe { aspect-ratio: auto; }
 
+/* ── Video ──────────────────────────────────────────────────────── */
+.video-wrapper { width: 100%; }
+.video-frame {
+  position: relative; width: 100%; padding-bottom: 56.25%;
+  background: #000; border-radius: 4px; overflow: hidden;
+}
+.video-frame iframe {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;
+}
+.video-caption {
+  font-size: 0.8rem; color: var(--text-muted); text-align: center;
+  margin: 6px 0 0; font-style: italic;
+}
+
 /* ── Blockquote ──────────────────────────────────────────────────── */
 blockquote {
   border-left: 3px solid var(--accent-cyan); padding: 16px 24px;

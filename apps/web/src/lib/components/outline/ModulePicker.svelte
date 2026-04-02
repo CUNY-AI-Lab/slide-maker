@@ -27,6 +27,7 @@
     { type: 'flow', label: 'Process Flow', icon: '↓' },
     { type: 'stream-list', label: 'List', icon: '☰' },
     { type: 'artifact', label: 'Artifact', icon: '🧩' },
+    { type: 'video', label: 'Video', icon: '▶' },
   ]
 
   function getDefaultData(type: string): Record<string, unknown> {
@@ -63,6 +64,8 @@
           autoSize: true,
           aspectRatio: 16 / 9,
         }
+      case 'video':
+        return { url: '', caption: '' }
       default:
         return {}
     }

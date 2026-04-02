@@ -244,8 +244,9 @@ Every module MUST specify a \`zone\` field that matches one of the layout's zone
 
 ### Embeds
 - **artifact**: \`{ "artifactName": "string", "alt": "string", "width": "optional (default 100%)", "height": "optional (default 400px)" }\` — Interactive JS visualization rendered in a sandboxed iframe. Pick a name from "Available Artifacts". Do not inline raw source.
+- **video**: \`{ "url": "string", "caption": "optional string" }\` — Embedded video (YouTube, Vimeo, Loom). Use the regular video URL (e.g., \`https://youtube.com/watch?v=...\`, \`https://vimeo.com/...\`, \`https://www.loom.com/share/...\`) — the app converts it to an embed automatically.
 
-IMPORTANT: Use ONLY the 13 module types listed above. Do not invent other types.
+IMPORTANT: Use ONLY the 14 module types listed above. Do not invent other types.
 
 ## Zone Rules
 

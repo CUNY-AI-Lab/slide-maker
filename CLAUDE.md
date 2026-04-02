@@ -68,7 +68,7 @@ Matching the CUNY AI Lab deck framework:
 - `layout-divider` — Section break. Zone: `hero` (centered)
 - `closing-slide` — Final slide. Zone: `hero` (centered)
 
-### Module Types (12 types)
+### Module Types (14 types)
 Do NOT invent new ones. Each module MUST specify a `zone` matching the layout.
 
 | Module | Data Shape | Use |
@@ -86,6 +86,7 @@ Do NOT invent new ones. Each module MUST specify a `zone` matching the layout.
 | `flow` | `{ nodes: [{label, description?}] }` | Process flow with arrows |
 | `stream-list` | `{ items: string[] }` | Styled bullet list |
 | `artifact` | `{ artifactName?, rawSource?, config?, alt?, width?, height? }` | Interactive JS viz (native canvas or iframe fallback) |
+| `video` | `{ url, caption? }` | Embedded video (YouTube, Vimeo, Loom) — auto-converts URLs to embeds |
 
 Renderers: `apps/web/src/lib/components/renderers/`. Dispatched by `ModuleRenderer.svelte`.
 Artifact config utilities: `apps/web/src/lib/utils/artifact-config.ts` (resolves defaults, builds `@artifact:` chat refs).

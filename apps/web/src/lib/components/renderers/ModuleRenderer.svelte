@@ -12,6 +12,7 @@
   import FlowModule from './FlowModule.svelte'
   import StreamListModule from './StreamListModule.svelte'
   import ArtifactModule from './ArtifactModule.svelte'
+  import VideoModule from './VideoModule.svelte'
 
   import type { Editor } from '@tiptap/core'
   import { activeModuleControls } from '$lib/stores/ui'
@@ -100,6 +101,7 @@
     flow: FlowModule,
     'stream-list': StreamListModule,
     artifact: ArtifactModule,
+    video: VideoModule,
   }
 
   let Renderer = $derived(rendererMap[module.type] ?? null)

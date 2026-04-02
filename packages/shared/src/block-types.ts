@@ -29,7 +29,7 @@ export const LAYOUT_ZONES: Record<SlideLayout, Zone[]> = {
 export const MODULE_TYPES = [
   'heading', 'text', 'card', 'label', 'tip-box', 'prompt-block',
   'image', 'carousel', 'comparison', 'card-grid', 'flow', 'stream-list',
-  'artifact',
+  'artifact', 'video',
 ] as const
 export type ModuleType = (typeof MODULE_TYPES)[number]
 
@@ -83,6 +83,8 @@ export interface ArtifactConfigField {
 
 export type ArtifactConfigSchema = Record<string, ArtifactConfigField>
 
+export interface VideoData { url: string; caption?: string }
+
 export type ModuleDataMap = {
   heading: HeadingData
   text: TextData
@@ -97,4 +99,5 @@ export type ModuleDataMap = {
   flow: FlowData
   'stream-list': StreamListData
   artifact: ArtifactData
+  video: VideoData
 }

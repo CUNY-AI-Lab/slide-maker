@@ -15,7 +15,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       "connect-src 'self' http://localhost:* https://*.cuny.edu https://*.qzz.io",
-      "frame-src 'self' blob:",
+      "frame-src 'self' blob: https://www.youtube.com https://player.vimeo.com https://www.loom.com",
       "object-src 'none'",
       "base-uri 'self'",
       "frame-ancestors 'self'",
