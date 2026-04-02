@@ -17,6 +17,7 @@
 
   import '$lib/modules/artifacts/truchet'
   import '$lib/modules/artifacts/timeline'
+  import '$lib/modules/artifacts/leaflet'
 
   let { data, editable = false } = $props<{
     data: {

@@ -1,6 +1,6 @@
 export const NATIVE_ARTIFACT_NAMES = new Set([
   'A* Pathfinding', 'Boids', 'Flow Field', 'Harmonograph',
-  "Langton's Ant", 'Lorenz Attractor', 'Molnar', 'Nake',
+  "Langton's Ant", 'Leaflet Map', 'Lorenz Attractor', 'Molnar', 'Nake',
   'Rössler Attractor', 'Sprott Attractor', 'Truchet Tiles',
 ])
 
@@ -2178,6 +2178,138 @@ export const ARTIFACTS_JS = `
         ro.disconnect();
         root.removeChild(canvas);
       },
+    };
+  });
+
+  // --- Leaflet Map ---
+  register('Leaflet Map', function(root, initialConfig) {
+    initialConfig = initialConfig || {};
+    var TILES = {
+      default: 'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      dark: 'https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',
+      light: 'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png',
+      satellite: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+    };
+    var T = 256, MIN_Z = 2, MAX_Z = 18;
+    function lon2x(lon, z) { return (lon + 180) / 360 * Math.pow(2, z); }
+    function lat2y(lat, z) { var r = lat * Math.PI / 180; return (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * Math.pow(2, z); }
+    function x2lon(x, z) { return x / Math.pow(2, z) * 360 - 180; }
+    function y2lat(y, z) { var n = Math.PI - 2 * Math.PI * y / Math.pow(2, z); return 180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))); }
+
+    var el = document.createElement('div');
+    el.style.cssText = 'position:relative;width:100%;height:100%;overflow:hidden;background:#0b1220;cursor:grab';
+    root.appendChild(el);
+
+    var center = initialConfig.center || null;
+    var lat = center ? center[0] : (typeof initialConfig.lat === 'number' ? initialConfig.lat : 40.7128);
+    var lng = center ? center[1] : (typeof initialConfig.lng === 'number' ? initialConfig.lng : -74.006);
+    var zoom = Math.max(MIN_Z, Math.min(typeof initialConfig.zoom === 'number' ? initialConfig.zoom : 4, MAX_Z));
+    var tileUrl = initialConfig.tileUrl || TILES[initialConfig.style || 'default'] || TILES['default'];
+    var markers = Array.isArray(initialConfig.markers) ? initialConfig.markers : [];
+
+    var cx = lon2x(lng, zoom), cy = lat2y(lat, zoom);
+    var raf = null, tiles = [], markerEls = [], popup = null;
+
+    function clearTiles() { for (var i = 0; i < tiles.length; i++) tiles[i].remove(); tiles.length = 0; }
+    function clearMarkers() { for (var i = 0; i < markerEls.length; i++) markerEls[i].remove(); markerEls.length = 0; }
+    function removePopup() { if (popup) { popup.remove(); popup = null; } }
+
+    function renderMarkers() {
+      clearMarkers(); removePopup();
+      var w = el.clientWidth, h = el.clientHeight;
+      markers.forEach(function(m) {
+        var mx = lon2x(m.lng, zoom), my = lat2y(m.lat, zoom);
+        var px = (mx - cx) * T + w / 2, py = (my - cy) * T + h / 2;
+        var dot = document.createElement('div');
+        dot.style.cssText = 'position:absolute;left:' + (px - 8) + 'px;top:' + (py - 8) + 'px;width:16px;height:16px;border-radius:50%;background:#3b82f6;border:2px solid #1e3a8a;cursor:pointer;z-index:2';
+        if (m.label) {
+          dot.addEventListener('click', function(e) {
+            e.stopPropagation(); removePopup();
+            popup = document.createElement('div');
+            popup.style.cssText = 'position:absolute;z-index:3;padding:6px 10px;background:rgba(30,41,59,0.9);color:#e2e8f0;border-radius:6px;font:13px system-ui,sans-serif;box-shadow:0 2px 8px rgba(0,0,0,.3);white-space:nowrap;left:' + px + 'px;top:' + (py - 12) + 'px;transform:translate(-50%,-100%)';
+            var b = document.createElement('b');
+            b.style.cssText = 'display:block;font-size:14px;margin-bottom:2px';
+            b.textContent = m.label;
+            popup.appendChild(b);
+            if (m.value) { var sp = document.createElement('span'); sp.textContent = m.value; popup.appendChild(sp); }
+            el.appendChild(popup);
+          });
+        }
+        el.appendChild(dot); markerEls.push(dot);
+      });
+    }
+
+    function render() {
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(function() {
+        var w = el.clientWidth, h = el.clientHeight;
+        var sx = Math.floor(cx - w / (2 * T)), ex = Math.floor(cx + w / (2 * T));
+        var sy = Math.floor(cy - h / (2 * T)), ey = Math.floor(cy + h / (2 * T));
+        var n = Math.pow(2, zoom);
+        clearTiles();
+        for (var x = sx - 1; x <= ex + 1; x++) {
+          for (var y = sy - 1; y <= ey + 1; y++) {
+            if (y < 0 || y >= n) continue;
+            var img = document.createElement('img');
+            img.style.cssText = 'position:absolute;image-rendering:auto';
+            img.style.left = ((x - cx) * T + w / 2) + 'px';
+            img.style.top = ((y - cy) * T + h / 2) + 'px';
+            img.width = T; img.height = T;
+            var X = ((x % n) + n) % n;
+            img.referrerPolicy = 'no-referrer';
+            img.decoding = 'async'; img.loading = 'lazy'; img.draggable = false;
+            img.src = tileUrl.replace('{z}', zoom).replace('{x}', X).replace('{y}', y).replace('{s}', 'a');
+            tiles.push(img); el.appendChild(img);
+          }
+        }
+        renderMarkers();
+      });
+    }
+
+    var dragging = false, lx = 0, ly = 0;
+    el.addEventListener('mousedown', function(e) { dragging = true; lx = e.clientX; ly = e.clientY; el.style.cursor = 'grabbing'; });
+    window.addEventListener('mouseup', function() { dragging = false; el.style.cursor = 'grab'; });
+    window.addEventListener('mousemove', function(e) {
+      if (!dragging) return;
+      cx -= (e.clientX - lx) / T; cy -= (e.clientY - ly) / T;
+      lx = e.clientX; ly = e.clientY;
+      lng = x2lon(cx, zoom); lat = y2lat(cy, zoom);
+      removePopup(); render();
+    }, { passive: true });
+    el.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      var dir = e.deltaY > 0 ? -1 : 1;
+      var nz = Math.max(MIN_Z, Math.min(MAX_Z, zoom + dir));
+      if (nz === zoom) return;
+      var f = Math.pow(2, nz - zoom);
+      cx *= f; cy *= f; zoom = nz;
+      lng = x2lon(cx, zoom); lat = y2lat(cy, zoom);
+      removePopup(); render();
+    }, { passive: false });
+    el.addEventListener('click', removePopup);
+
+    var ro = new ResizeObserver(function() { render(); });
+    ro.observe(root);
+    render();
+
+    return {
+      update: function(cfg) {
+        cfg = cfg || {};
+        var nLat = cfg.center ? cfg.center[0] : (typeof cfg.lat === 'number' ? cfg.lat : lat);
+        var nLng = cfg.center ? cfg.center[1] : (typeof cfg.lng === 'number' ? cfg.lng : lng);
+        var nZoom = Math.max(MIN_Z, Math.min(typeof cfg.zoom === 'number' ? cfg.zoom : zoom, MAX_Z));
+        var nUrl = cfg.tileUrl || TILES[cfg.style || 'default'] || TILES['default'];
+        if (Array.isArray(cfg.markers)) markers = cfg.markers;
+        var changed = nLat !== lat || nLng !== lng || nZoom !== zoom || nUrl !== tileUrl;
+        lat = nLat; lng = nLng; zoom = nZoom; tileUrl = nUrl;
+        if (changed) { cx = lon2x(lng, zoom); cy = lat2y(lat, zoom); }
+        render();
+      },
+      destroy: function() {
+        if (raf) cancelAnimationFrame(raf);
+        ro.disconnect();
+        root.removeChild(el);
+      }
     };
   });
 

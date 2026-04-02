@@ -96,6 +96,7 @@
     position: relative;
     display: flex;
     align-items: center;
+    overflow: hidden;
   }
   .carousel-slide {
     margin: 0;
