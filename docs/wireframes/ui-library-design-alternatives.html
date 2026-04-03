@@ -1,0 +1,2031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UI Library & Design Alternatives — Slide Maker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+
+  :root {
+    --navy: #1D3A83;
+    --blue: #3B73E6;
+    --blue-hover: #2A6FB8;
+    --teal: #2FB8D6;
+    --gold: #ffb81c;
+    --stone: #333333;
+    --color-primary: var(--blue);
+    --color-primary-hover: var(--blue-hover);
+    --color-primary-dark: var(--navy);
+    --color-accent: var(--teal);
+    --color-bg: #ffffff;
+    --color-bg-secondary: #f8fafc;
+    --color-bg-tertiary: #f1f5f9;
+    --color-text: var(--stone);
+    --color-text-secondary: #64748b;
+    --color-text-muted: #6b7280;
+    --color-border: #e2e8f0;
+    --color-ghost-bg: rgba(59, 115, 230, 0.08);
+    --color-ghost-bg-hover: rgba(59, 115, 230, 0.12);
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --font-display: 'Outfit', system-ui, sans-serif;
+    --font-body: 'Inter', system-ui, sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: var(--font-body);
+    color: var(--color-text);
+    background: #f0f2f5;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.5;
+  }
+
+  /* ═══════════════════════════════════════
+     Page Chrome
+     ═══════════════════════════════════════ */
+  .page-header {
+    padding: 48px 48px 16px;
+    max-width: 1600px;
+    margin: 0 auto;
+  }
+  .page-header h1 {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: -0.03em;
+  }
+  .page-header .subtitle {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    margin-top: 8px;
+    max-width: 720px;
+  }
+
+  /* Library recommendation badges */
+  .lib-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .lib-badge.bits { background: #dbeafe; color: #1e40af; }
+  .lib-badge.sonner { background: #fef3c7; color: #92400e; }
+  .lib-badge.floating { background: #d1fae5; color: #065f46; }
+  .lib-badge.dnd { background: #ede9fe; color: #5b21b6; }
+  .lib-badge.native { background: var(--color-bg-tertiary); color: var(--color-text-muted); }
+
+  /* ═══════════════════════════════════════
+     Section blocks
+     ═══════════════════════════════════════ */
+  .section {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 32px 48px;
+  }
+  .section-title {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title::before {
+    content: '';
+    width: 4px;
+    height: 20px;
+    background: var(--color-primary);
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .section-desc {
+    font-size: 13px;
+    color: var(--color-text-muted);
+    margin-bottom: 24px;
+    max-width: 720px;
+    padding-left: 14px;
+  }
+  .todo-ref {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    background: var(--color-bg-tertiary);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--color-text-secondary);
+  }
+
+  /* ═══════════════════════════════════════
+     Comparison grid
+     ═══════════════════════════════════════ */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 24px;
+  }
+  .compare-card {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .compare-card.recommended {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary), 0 4px 16px rgba(59,115,230,0.1);
+  }
+  .compare-header {
+    padding: 16px 20px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .compare-label {
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .rec-badge {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    background: var(--color-primary);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .compare-body {
+    padding: 20px;
+  }
+
+  /* ═══════════════════════════════════════
+     Library Summary Table
+     ═══════════════════════════════════════ */
+  .lib-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-bottom: 32px;
+  }
+  .lib-table th {
+    text-align: left;
+    font-weight: 600;
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--color-border);
+    color: var(--color-text);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .lib-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--color-border);
+    vertical-align: top;
+  }
+  .lib-table tr:last-child td { border-bottom: none; }
+  .lib-table .lib-name {
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .lib-table .check { color: #059669; font-weight: 700; }
+  .lib-table .cross { color: #dc2626; }
+  .lib-table .partial { color: var(--gold); font-weight: 600; }
+
+  /* ═══════════════════════════════════════
+     Wireframe panels (reusable)
+     ═══════════════════════════════════════ */
+  .wf-panel {
+    width: 100%;
+    min-height: 360px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+  }
+
+  /* ═══════════════════════════════════════
+     A: Current dialog pattern (ad-hoc)
+     ═══════════════════════════════════════ */
+  .adhoc-overlay {
+    background: rgba(0,0,0,0.3);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    min-height: 280px;
+  }
+  .adhoc-dialog {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    width: 100%;
+    max-width: 340px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.16);
+  }
+  .adhoc-dialog h3 {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .adhoc-dialog .desc {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin-bottom: 16px;
+  }
+  .adhoc-dialog input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: var(--font-body);
+    margin-bottom: 16px;
+    outline: none;
+  }
+  .adhoc-dialog input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px rgba(59,115,230,0.12);
+  }
+  .adhoc-dialog .btn-row {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+  }
+  .adhoc-dialog .btn-ghost {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+  }
+  .adhoc-dialog .btn-primary {
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--color-primary);
+  }
+  .adhoc-dialog .btn-primary:hover { background: var(--color-ghost-bg); }
+
+  /* Issue callout */
+  .issue-callout {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-top: 12px;
+    font-size: 11px;
+    color: #991b1b;
+    line-height: 1.5;
+  }
+  .issue-callout strong { font-weight: 700; }
+
+  /* ═══════════════════════════════════════
+     B: Bits UI dialog pattern
+     ═══════════════════════════════════════ */
+  .bits-overlay {
+    background: rgba(0,0,0,0.45);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    min-height: 280px;
+    backdrop-filter: blur(2px);
+  }
+  .bits-dialog {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    padding: 28px;
+    width: 100%;
+    max-width: 340px;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.12), 0 4px 12px rgba(0,0,0,0.06);
+    animation: bits-enter 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes bits-enter {
+    from { opacity: 0; transform: translateY(4px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .bits-dialog h3 {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .bits-dialog .desc {
+    font-size: 12px;
+    color: var(--color-text-muted);
+    margin-bottom: 16px;
+  }
+  .bits-dialog input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: var(--font-body);
+    margin-bottom: 16px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .bits-dialog input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(59,115,230,0.12);
+  }
+  .bits-dialog .btn-row { display: flex; gap: 8px; justify-content: flex-end; }
+  .bits-dialog .btn-ghost {
+    padding: 7px 16px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--color-text-secondary);
+    transition: background 0.1s;
+  }
+  .bits-dialog .btn-ghost:hover { background: var(--color-bg-tertiary); }
+  .bits-dialog .btn-primary {
+    padding: 7px 16px;
+    background: transparent;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--color-primary);
+    transition: background 0.1s;
+  }
+  .bits-dialog .btn-primary:hover { background: var(--color-ghost-bg); }
+
+  .benefit-callout {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    margin-top: 12px;
+    font-size: 11px;
+    color: #166534;
+    line-height: 1.5;
+  }
+  .benefit-callout strong { font-weight: 700; }
+
+  /* ═══════════════════════════════════════
+     Popover / Tooltip comparisons
+     ═══════════════════════════════════════ */
+  .popover-demo {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    min-height: 200px;
+    position: relative;
+  }
+  .popover-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    color: var(--color-primary);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    width: fit-content;
+  }
+  .popover-float {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 12px 36px rgba(0,0,0,0.14), 0 2px 8px rgba(0,0,0,0.06);
+    padding: 12px;
+    width: 220px;
+    font-size: 12px;
+    margin-top: 6px;
+  }
+  .popover-float.with-arrow::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 20px;
+    width: 10px;
+    height: 10px;
+    background: var(--color-bg);
+    border-left: 1px solid var(--color-border);
+    border-top: 1px solid var(--color-border);
+    transform: rotate(45deg);
+  }
+  .popover-float h4 {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .popover-float ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .popover-float ul li {
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .popover-float ul li:hover { background: var(--color-ghost-bg); }
+  .popover-float ul li .shortcut {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--color-text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ═══════════════════════════════════════
+     Toast comparisons
+     ═══════════════════════════════════════ */
+  .toast-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px;
+    align-items: flex-end;
+  }
+  .toast {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    font-size: 12px;
+    min-width: 260px;
+    animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.96); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .toast .toast-icon {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 10px;
+    font-weight: 700;
+    color: #fff;
+  }
+  .toast .toast-icon.success { background: #059669; }
+  .toast .toast-icon.error { background: #dc2626; }
+  .toast .toast-icon.info { background: var(--blue); }
+  .toast .toast-text { flex: 1; color: var(--color-text); }
+  .toast .toast-dismiss {
+    font-size: 14px;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 2px;
+  }
+  .toast .toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 2px;
+    background: var(--color-primary);
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    width: 60%;
+    opacity: 0.5;
+  }
+
+  /* ═══════════════════════════════════════
+     Command Palette (Bits UI Combobox)
+     ═══════════════════════════════════════ */
+  .cmd-overlay {
+    background: rgba(0,0,0,0.4);
+    border-radius: 4px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 60px 24px 24px;
+    min-height: 360px;
+    backdrop-filter: blur(2px);
+  }
+  .cmd-palette {
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+    overflow: hidden;
+    animation: cmd-in 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes cmd-in {
+    from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .cmd-input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .cmd-input-row svg { color: var(--color-text-muted); flex-shrink: 0; }
+  .cmd-input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    font-family: var(--font-body);
+    color: var(--color-text);
+    outline: none;
+  }
+  .cmd-input::placeholder { color: var(--color-text-muted); }
+  .cmd-kbd {
+    font-size: 10px;
+    color: var(--color-text-muted);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: var(--font-body);
+  }
+  .cmd-group {
+    padding: 6px;
+  }
+  .cmd-group-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--color-text-muted);
+    padding: 6px 12px 4px;
+  }
+  .cmd-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.08s;
+  }
+  .cmd-item:hover, .cmd-item.focused { background: var(--color-ghost-bg); }
+  .cmd-item-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 13px;
+  }
+  .cmd-item-icon.tmpl { background: rgba(29,58,131,0.08); color: var(--navy); }
+  .cmd-item-icon.file { background: var(--color-bg-tertiary); color: var(--color-text-muted); }
+  .cmd-item-icon.artifact { background: rgba(59,115,230,0.08); color: var(--blue); }
+  .cmd-item-icon.theme { background: rgba(47,184,214,0.08); color: var(--teal); }
+  .cmd-item-icon.action { background: rgba(255,184,28,0.08); color: #b45309; }
+  .cmd-item-info { flex: 1; min-width: 0; }
+  .cmd-item-name { font-size: 13px; font-weight: 500; color: var(--color-text); }
+  .cmd-item-meta { font-size: 10px; color: var(--color-text-muted); }
+  .cmd-item-action {
+    font-size: 10px;
+    color: var(--color-text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .cmd-footer {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 18px;
+    border-top: 1px solid var(--color-border);
+    font-size: 10px;
+    color: var(--color-text-muted);
+  }
+  .cmd-footer kbd {
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    font-family: var(--font-body);
+    font-size: 10px;
+  }
+
+  /* ═══════════════════════════════════════
+     Module Controls — Toolbar Popover
+     ═══════════════════════════════════════ */
+  .module-demo {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .mock-module {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    background: var(--color-bg);
+    position: relative;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .mock-module:hover, .mock-module.selected {
+    border-color: var(--color-primary);
+  }
+  .mock-module .mock-text {
+    font-size: 12px;
+    color: var(--color-text);
+    line-height: 1.6;
+  }
+  .mock-module .mock-text .placeholder {
+    display: block;
+    height: 8px;
+    background: var(--color-bg-tertiary);
+    border-radius: 3px;
+    margin: 4px 0;
+  }
+  .mock-module .mock-text .placeholder:nth-child(2) { width: 80%; }
+  .mock-module .mock-text .placeholder:nth-child(3) { width: 65%; }
+
+  .module-toolbar {
+    position: absolute;
+    top: -36px;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    animation: toolbar-in 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes toolbar-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .toolbar-btn {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    transition: background 0.1s, color 0.1s;
+  }
+  .toolbar-btn:hover { background: var(--color-ghost-bg); color: var(--color-primary); }
+  .toolbar-btn.danger:hover { background: #fef2f2; color: #dc2626; }
+  .toolbar-sep {
+    width: 1px;
+    height: 18px;
+    background: var(--color-border);
+    margin: 0 2px;
+  }
+
+  /* Step dropdown in toolbar */
+  .step-select {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 6px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    outline: none;
+  }
+  .step-select:focus { border-color: var(--color-primary); }
+
+  /* ═══════════════════════════════════════
+     Tooltip comparison
+     ═══════════════════════════════════════ */
+  .tooltip-demo {
+    padding: 32px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  .tooltip-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .tooltip-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: 12px;
+    color: var(--color-text);
+    cursor: pointer;
+    position: relative;
+  }
+  .native-title-hint {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1a1a1a;
+    color: #fff;
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    /* Browser native title tooltip — plain, delayed, unstyled */
+    opacity: 0.9;
+  }
+  .bits-tooltip {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--navy);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    animation: tip-in 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes tip-in {
+    from { opacity: 0; transform: translateX(-50%) translateY(-2px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+  .bits-tooltip::before {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 8px;
+    height: 8px;
+    background: var(--navy);
+  }
+
+  /* ═══════════════════════════════════════
+     Accordion (Bits UI) resource panel
+     ═══════════════════════════════════════ */
+  .bits-accordion {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+  }
+  .bits-acc-item {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid var(--color-border);
+    min-height: 0;
+  }
+  .bits-acc-item:last-child { border-bottom: none; }
+  .bits-acc-item.open { flex: 1; }
+  .bits-acc-trigger {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background 0.12s;
+    flex-shrink: 0;
+  }
+  .bits-acc-trigger:hover { background: var(--color-ghost-bg); }
+  .bits-acc-trigger:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+    border-radius: 2px;
+  }
+  .bits-acc-icon {
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-tertiary);
+    border-radius: 5px;
+    flex-shrink: 0;
+    font-size: 12px;
+  }
+  .open .bits-acc-icon { background: var(--color-ghost-bg); color: var(--color-primary); }
+  .bits-acc-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text);
+    flex: 1;
+  }
+  .bits-acc-count {
+    font-size: 10px;
+    color: var(--color-text-muted);
+    background: var(--color-bg-tertiary);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-weight: 600;
+  }
+  .bits-acc-chevron {
+    color: var(--color-text-muted);
+    transition: transform 0.2s;
+    font-size: 12px;
+  }
+  .open .bits-acc-chevron { transform: rotate(180deg); }
+  .bits-acc-content {
+    display: none;
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    padding: 4px 14px 14px;
+  }
+  .open .bits-acc-content { display: block; }
+
+  /* Inside accordion: template grid */
+  .tmpl-mini-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .tmpl-mini-card {
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: border-color 0.15s;
+  }
+  .tmpl-mini-card:hover { border-color: var(--color-primary); }
+  .tmpl-mini-thumb {
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tmpl-mini-name {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 4px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tmpl-wire {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    align-items: center;
+    padding: 6px;
+  }
+  .tmpl-wire .bar { height: 3px; border-radius: 2px; }
+
+  /* ═══════════════════════════════════════
+     Full editor layout wireframe
+     ═══════════════════════════════════════ */
+  .editor-wireframe {
+    display: flex;
+    width: 100%;
+    height: 480px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .ew-left {
+    width: 260px;
+    min-width: 260px;
+    border-right: 1px solid var(--color-border);
+    background: var(--color-bg);
+    display: flex;
+    flex-direction: column;
+  }
+  .ew-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .ew-right {
+    width: 240px;
+    min-width: 240px;
+    border-left: 1px solid var(--color-border);
+    background: var(--color-bg);
+    display: flex;
+    flex-direction: column;
+  }
+  .ew-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-bg);
+    flex-shrink: 0;
+    font-size: 11px;
+  }
+  .ew-toolbar-btn {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+  .ew-toolbar-spacer { flex: 1; }
+  .ew-canvas-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-secondary);
+    min-height: 0;
+  }
+  .ew-slide-frame {
+    width: 75%;
+    height: 80%;
+    background: var(--navy);
+    border-radius: 4px;
+    display: flex;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .ew-slide-left {
+    flex: 6;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 20px;
+    gap: 8px;
+  }
+  .ew-slide-right {
+    flex: 4;
+    background: rgba(255,255,255,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ew-tab-bar {
+    display: flex;
+    gap: 2px;
+    padding: 0 10px;
+    border-bottom: 1px solid var(--color-border);
+    flex-shrink: 0;
+  }
+  .ew-tab {
+    padding: 8px 10px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-text-muted);
+    border: none;
+    background: none;
+    cursor: pointer;
+    position: relative;
+  }
+  .ew-tab.active { color: var(--color-primary); }
+  .ew-tab.active::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -1px;
+    height: 2px;
+    background: var(--color-primary);
+    border-radius: 1px;
+  }
+
+  /* Annotation markers */
+  .annotation {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 50%;
+    position: absolute;
+    z-index: 10;
+    box-shadow: 0 2px 6px rgba(59,115,230,0.3);
+  }
+
+  .annotation-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 16px 20px;
+    font-size: 12px;
+  }
+  .annotation-legend-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .annotation-legend-item .num {
+    width: 20px;
+    height: 20px;
+    background: var(--color-primary);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .annotation-legend-item .text {
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+  }
+  .annotation-legend-item .text strong {
+    color: var(--color-text);
+    font-weight: 600;
+  }
+
+  /* ═══════════════════════════════════════
+     Notation for dark mode
+     ═══════════════════════════════════════ */
+  .dark-demo {
+    padding: 20px;
+    background: #1a1a2e;
+    border-radius: 4px;
+    min-height: 200px;
+  }
+  .dark-demo .mock-module {
+    background: #16213e;
+    border-color: #2d3748;
+    color: #e0e0e0;
+  }
+  .dark-demo .mock-module:hover { border-color: var(--blue); }
+  .dark-demo .mock-text .placeholder { background: rgba(255,255,255,0.06); }
+  .dark-demo .module-toolbar { background: #16213e; border-color: #2d3748; }
+  .dark-demo .toolbar-btn { color: #94a3b8; }
+  .dark-demo .toolbar-btn:hover { background: rgba(59,115,230,0.12); color: var(--blue); }
+
+  /* ═══════════════════════════════════════
+     Responsive
+     ═══════════════════════════════════════ */
+  @media (max-width: 900px) {
+    .compare-grid { grid-template-columns: 1fr; }
+    .section { padding: 24px; }
+    .page-header { padding: 24px 24px 12px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════
+     HEADER
+     ═══════════════════════════════════════════════ -->
+<div class="page-header">
+  <h1>UI Library & Design Alternatives</h1>
+  <p class="subtitle">
+    Component library recommendations mapped to TODO.md priorities. Each alternative shows
+    the current pattern alongside a library-backed replacement, with TODO references and
+    integration notes. All options are headless/unstyled and compatible with the existing
+    CSS variable design system.
+  </p>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     LIBRARY SUMMARY
+     ═══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">Recommended Stack</div>
+  <p class="section-desc">
+    Four libraries that cover every TODO.md gap without introducing Tailwind or
+    conflicting with the custom CSS variables. All are Svelte 5 runes-native.
+  </p>
+
+  <table class="lib-table">
+    <thead>
+      <tr>
+        <th>Library</th>
+        <th>Purpose</th>
+        <th>Svelte 5</th>
+        <th>Headless</th>
+        <th>Components</th>
+        <th>TODO Coverage</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="lib-name">Bits UI v2</td>
+        <td>Dialog, Popover, Tooltip, Dropdown, Accordion, Tabs, Combobox (command palette), Select</td>
+        <td class="check">Yes</td>
+        <td class="check">Yes</td>
+        <td>40+</td>
+        <td>Accessibility, Resource Panel, Popovers</td>
+      </tr>
+      <tr>
+        <td class="lib-name">Svelte Sonner</td>
+        <td>Toast notifications (export success, mutation applied, errors)</td>
+        <td class="check">Yes</td>
+        <td class="check">Stylable</td>
+        <td>Toasts</td>
+        <td>UX feedback for actions</td>
+      </tr>
+      <tr>
+        <td class="lib-name">Floating UI</td>
+        <td>Positioning engine for custom floating elements (module toolbars, pickers)</td>
+        <td class="check">Yes</td>
+        <td class="check">Yes</td>
+        <td>Utility</td>
+        <td>Module picker, format toolbar</td>
+      </tr>
+      <tr>
+        <td class="lib-name">svelte-dnd-action</td>
+        <td>Drag-and-drop (already installed, extend to zone reorder)</td>
+        <td class="check">Yes</td>
+        <td class="check">Yes</td>
+        <td>DnD</td>
+        <td>Editor Interaction (DnD within zones)</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════
+     1. DIALOGS
+     ═══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    1. Dialogs
+    <span class="todo-ref">Accessibility: Replace ad-hoc popovers/dialogs</span>
+  </div>
+  <p class="section-desc">
+    Current: hand-rolled overlays with manual Escape/backdrop handling and <code>a11y_*</code> suppressions.
+    Proposed: Bits UI Dialog with built-in focus trap, ARIA roles, and scroll lock.
+  </p>
+
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-header">
+        <span class="compare-label">Current: Ad-Hoc Dialog</span>
+        <span class="lib-badge native">Hand-rolled</span>
+      </div>
+      <div class="compare-body">
+        <div class="adhoc-overlay">
+          <div class="adhoc-dialog">
+            <h3>New Deck</h3>
+            <p class="desc">Give your presentation a name.</p>
+            <input type="text" placeholder="My Presentation" value="CUNY AI Workshop">
+            <div class="btn-row">
+              <button class="btn-ghost">Cancel</button>
+              <button class="btn-primary">Create</button>
+            </div>
+          </div>
+        </div>
+        <div class="issue-callout">
+          <strong>Issues:</strong> No focus trap (Tab escapes dialog). No scroll lock.
+          <code>&lt;!-- svelte-ignore a11y_no_noninteractive_element_interactions --&gt;</code>
+          suppressions. Manual <code>keydown</code> + backdrop click handlers duplicated in
+          NewDeckDialog, ShareDeckDialog, ModulePicker.
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-card recommended">
+      <div class="compare-header">
+        <span class="compare-label">Proposed: Bits UI Dialog <span class="rec-badge">Recommended</span></span>
+        <span class="lib-badge bits">Bits UI</span>
+      </div>
+      <div class="compare-body">
+        <div class="bits-overlay">
+          <div class="bits-dialog">
+            <h3>New Deck</h3>
+            <p class="desc">Give your presentation a name.</p>
+            <input type="text" placeholder="My Presentation" value="CUNY AI Workshop" autofocus>
+            <div class="btn-row">
+              <button class="btn-ghost">Cancel</button>
+              <button class="btn-primary">Create</button>
+            </div>
+          </div>
+        </div>
+        <div class="benefit-callout">
+          <strong>Gains:</strong> Automatic focus trap, scroll lock, ARIA <code>role="dialog"</code>,
+          <code>aria-describedby</code>. Escape dismissal built in. Backdrop blur transition.
+          Removes all <code>a11y_*</code> suppressions. Zero custom a11y code needed.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════
+     2. COMMAND PALETTE
+     ═══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    2. Command Palette
+    <span class="todo-ref">Resource Panel Redesign: Option B</span>
+  </div>
+  <p class="section-desc">
+    Unified search across templates, files, artifacts, themes, and actions. Built with
+    Bits UI Combobox. Activated with <kbd>Cmd+K</kbd>. Replaces or augments the resource panel tab-switching pattern.
+  </p>
+
+  <div class="compare-grid">
+    <div class="compare-card recommended">
+      <div class="compare-header">
+        <span class="compare-label">Command Palette <span class="rec-badge">New</span></span>
+        <span class="lib-badge bits">Bits UI Combobox</span>
+      </div>
+      <div class="compare-body">
+        <div class="cmd-overlay">
+          <div class="cmd-palette">
+            <div class="cmd-input-row">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input class="cmd-input" type="text" placeholder="Search templates, files, artifacts..." value="split">
+              <span class="cmd-kbd">Esc</span>
+            </div>
+            <div class="cmd-group">
+              <div class="cmd-group-label">Templates</div>
+              <div class="cmd-item focused">
+                <div class="cmd-item-icon tmpl">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="18"/><rect x="3" y="14" width="7" height="7"/></svg>
+                </div>
+                <div class="cmd-item-info">
+                  <div class="cmd-item-name">Split (Text + Visual)</div>
+                  <div class="cmd-item-meta">layout-split &middot; 2 zones</div>
+                </div>
+                <span class="cmd-item-action">Insert</span>
+              </div>
+              <div class="cmd-item">
+                <div class="cmd-item-icon tmpl">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="18"/><rect x="3" y="14" width="7" height="7"/></svg>
+                </div>
+                <div class="cmd-item-info">
+                  <div class="cmd-item-name">Split: Data Analysis</div>
+                  <div class="cmd-item-meta">layout-split &middot; chart + bullets</div>
+                </div>
+                <span class="cmd-item-action">Insert</span>
+              </div>
+            </div>
+            <div class="cmd-group">
+              <div class="cmd-group-label">Actions</div>
+              <div class="cmd-item">
+                <div class="cmd-item-icon action">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </div>
+                <div class="cmd-item-info">
+                  <div class="cmd-item-name">Add Split Slide</div>
+                  <div class="cmd-item-meta">Create new layout-split slide</div>
+                </div>
+                <span class="cmd-item-action">Enter</span>
+              </div>
+            </div>
+            <div class="cmd-footer">
+              <span><kbd>&uarr;</kbd> <kbd>&darr;</kbd> Navigate</span>
+              <span><kbd>Enter</kbd> Select</span>
+              <span><kbd>Esc</kbd> Close</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-card">
+      <div class="compare-header">
+        <span class="compare-label">Current: Tab-Switching Resource Panel</span>
+        <span class="lib-badge native">Hand-rolled</span>
+      </div>
+      <div class="compare-body">
+        <div class="wf-panel" style="min-height: 320px;">
+          <div class="ew-tab-bar">
+            <button class="ew-tab">Files</button>
+            <button class="ew-tab active">Templates</button>
+            <button class="ew-tab">Artifacts</button>
+            <button class="ew-tab">Themes</button>
+          </div>
+          <div style="padding: 12px; flex: 1;">
+            <div class="tmpl-mini-grid">
+              <div class="tmpl-mini-card" style="border-color: var(--color-primary)">
+                <div class="tmpl-mini-thumb" style="background: var(--navy)">
+                  <div class="tmpl-wire">
+                    <div class="bar" style="width: 40px; background: rgba(255,255,255,0.3)"></div>
+                    <div class="bar" style="width: 28px; background: rgba(255,255,255,0.15)"></div>
+                  </div>
+                </div>
+                <div class="tmpl-mini-name">Title Slide</div>
+              </div>
+              <div class="tmpl-mini-card">
+                <div class="tmpl-mini-thumb" style="background: #0f2b5c">
+                  <div style="display: flex; gap: 3px; padding: 6px; width: 100%; height: 100%;">
+                    <div style="flex: 6; background: rgba(255,255,255,0.08); border-radius: 2px;"></div>
+                    <div style="flex: 4; background: rgba(255,255,255,0.04); border-radius: 2px;"></div>
+                  </div>
+                </div>
+                <div class="tmpl-mini-name">Split Layout</div>
+              </div>
+              <div class="tmpl-mini-card">
+                <div class="tmpl-mini-thumb" style="background: #1e293b">
+                  <div class="tmpl-wire">
+                    <div class="bar" style="width: 50px; background: rgba(255,255,255,0.2)"></div>
+                    <div class="bar" style="width: 50px; background: rgba(255,255,255,0.1)"></div>
+                    <div class="bar" style="width: 35px; background: rgba(255,255,255,0.1)"></div>
+                  </div>
+                </div>
+                <div class="tmpl-mini-name">Full Content</div>
+              </div>
+              <div class="tmpl-mini-card">
+                <div class="tmpl-mini-thumb" style="background: #0f172a">
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 6px; width: 100%; height: 100%;">
+                    <div style="background: rgba(255,255,255,0.06); border-radius: 2px;"></div>
+                    <div style="background: rgba(255,255,255,0.06); border-radius: 2px;"></div>
+                    <div style="background: rgba(255,255,255,0.06); border-radius: 2px;"></div>
+                    <div style="background: rgba(255,255,255,0.06); border-radius: 2px;"></div>
+                  </div>
+                </div>
+                <div class="tmpl-mini-name">Card Grid</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="issue-callout">
+          <strong>Limitation:</strong> Users must know which tab holds the resource they need.
+          No cross-tab search. 4 tabs compete for 240px width. Keyboard nav limited to
+          Tab stops — no arrow-key list navigation or typeahead.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════
+     3. RESOURCE PANEL ACCORDION
+     ═══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    3. Resource Panel — Accordion
+    <span class="todo-ref">Resource Panel Redesign: Option A</span>
+  </div>
+  <p class="section-desc">
+    Bits UI Accordion replaces the tab bar with collapsible sections. All resources visible
+    at a glance; expanded section gets remaining space. ARIA-compliant keyboard navigation
+    built in (Enter/Space to toggle, arrow keys between headers).
+  </p>
+
+  <div class="compare-grid">
+    <div class="compare-card recommended">
+      <div class="compare-header">
+        <span class="compare-label">Bits UI Accordion Panel <span class="rec-badge">Recommended</span></span>
+        <span class="lib-badge bits">Bits UI</span>
+      </div>
+      <div class="compare-body">
+        <div class="wf-panel" style="min-height: 400px;">
+          <div class="bits-accordion">
+            <div class="bits-acc-item open">
+              <button class="bits-acc-trigger">
+                <div class="bits-acc-icon">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="18"/><rect x="3" y="14" width="7" height="7"/></svg>
+                </div>
+                <span class="bits-acc-label">Templates</span>
+                <span class="bits-acc-count">12</span>
+                <span class="bits-acc-chevron">&#x25BC;</span>
+              </button>
+              <div class="bits-acc-content">
+                <div class="tmpl-mini-grid">
+                  <div class="tmpl-mini-card" style="border-color: var(--color-primary);">
+                    <div class="tmpl-mini-thumb" style="background: var(--navy)">
+                      <div class="tmpl-wire"><div class="bar" style="width: 36px; background: rgba(255,255,255,0.3)"></div><div class="bar" style="width: 24px; background: rgba(255,255,255,0.15)"></div></div>
+                    </div>
+                    <div class="tmpl-mini-name">Title Slide</div>
+                  </div>
+                  <div class="tmpl-mini-card">
+                    <div class="tmpl-mini-thumb" style="background: #0f2b5c">
+                      <div style="display: flex; gap: 3px; padding: 6px; width: 100%; height: 100%;"><div style="flex: 6; background: rgba(255,255,255,0.08); border-radius: 2px;"></div><div style="flex: 4; background: rgba(255,255,255,0.04); border-radius: 2px;"></div></div>
+                    </div>
+                    <div class="tmpl-mini-name">Split Layout</div>
+                  </div>
+                  <div class="tmpl-mini-card">
+                    <div class="tmpl-mini-thumb" style="background: #1e293b">
+                      <div class="tmpl-wire"><div class="bar" style="width: 44px; background: rgba(255,255,255,0.2)"></div><div class="bar" style="width: 30px; background: rgba(255,255,255,0.1)"></div></div>
+                    </div>
+                    <div class="tmpl-mini-name">Full Content</div>
+                  </div>
+                  <div class="tmpl-mini-card">
+                    <div class="tmpl-mini-thumb" style="background: #0f172a">
+                      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2px; padding: 6px; width: 100%; height: 100%;"><div style="background: rgba(255,255,255,0.06); border-radius: 2px;"></div><div style="background: rgba(255,255,255,0.06); border-radius: 2px;"></div><div style="background: rgba(255,255,255,0.06); border-radius: 2px;"></div><div style="background: rgba(255,255,255,0.06); border-radius: 2px;"></div></div>
+                    </div>
+                    <div class="tmpl-mini-name">Card Grid</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="bits-acc-item">
+              <button class="bits-acc-trigger">
+                <div class="bits-acc-icon">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/></svg>
+                </div>
+                <span class="bits-acc-label">Files</span>
+                <span class="bits-acc-count">4</span>
+                <span class="bits-acc-chevron">&#x25B6;</span>
+              </button>
+            </div>
+            <div class="bits-acc-item">
+              <button class="bits-acc-trigger">
+                <div class="bits-acc-icon">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+                </div>
+                <span class="bits-acc-label">Artifacts</span>
+                <span class="bits-acc-count">8</span>
+                <span class="bits-acc-chevron">&#x25B6;</span>
+              </button>
+            </div>
+            <div class="bits-acc-item">
+              <button class="bits-acc-trigger">
+                <div class="bits-acc-icon">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12.5" r="2.5"/></svg>
+                </div>
+                <span class="bits-acc-label">Themes</span>
+                <span class="bits-acc-count">9</span>
+                <span class="bits-acc-chevron">&#x25B6;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="benefit-callout">
+          <strong>Gains:</strong> All sections discoverable at once. Keyboard: arrow keys between headers,
+          Enter/Space to toggle, Home/End jump. Built-in <code>aria-expanded</code>, <code>aria-controls</code>.
+          Supports <code>multiple</code> or <code>single</code> mode. Pair with Cmd+K palette for power users.
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-card">
+      <div class="compare-header">
+        <span class="compare-label">Hybrid: Accordion + Cmd+K</span>
+        <span class="lib-badge bits">Bits UI</span>
+      </div>
+      <div class="compare-body">
+        <div style="font-size: 12px; color: var(--color-text-secondary); line-height: 1.7; padding: 8px 0;">
+          <p style="margin-bottom: 12px;">
+            <strong>Best of both worlds.</strong> The accordion serves as the always-visible
+            browsable panel (Option A), while <kbd>Cmd+K</kbd> opens the command palette
+            for cross-type search (Option B). Users who know what they want hit Cmd+K;
+            users who are exploring browse the accordion.
+          </p>
+          <p style="margin-bottom: 12px;">
+            <strong>Implementation:</strong> Bits UI Accordion for the panel, Bits UI Dialog + Combobox
+            for the palette. One library, two patterns, shared keyboard conventions.
+          </p>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 140px; background: var(--color-bg-secondary); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+              <div style="font-size: 11px; font-weight: 700; color: var(--navy); margin-bottom: 6px;">Browse</div>
+              <div style="font-size: 11px; color: var(--color-text-muted);">
+                Accordion panel<br>
+                Always visible<br>
+                Expandable sections<br>
+                Drag to insert
+              </div>
+            </div>
+            <div style="flex: 1; min-width: 140px; background: var(--color-bg-secondary); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--color-border);">
+              <div style="font-size: 11px; font-weight: 700; color: var(--navy); margin-bottom: 6px;">Search <kbd style="font-size: 9px; background: var(--color-bg-tertiary); padding: 1px 4px; border-radius: 3px; border: 1px solid var(--color-border);">Cmd+K</kbd></div>
+              <div style="font-size: 11px; color: var(--color-text-muted);">
+                Command palette<br>
+                Cross-type search<br>
+                Quick actions<br>
+                Keyboard-first
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════
+     4. TOOLTIPS
+     ═══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    4. Tooltips
+    <span class="todo-ref">Accessibility: keyboard navigable controls</span>
+  </div>
+  <p class="section-desc">
+    Current: native <code>title</code> attributes (delayed, unstyled, inaccessible to keyboard users).
+    Proposed: Bits UI Tooltip with instant display, custom styling, and keyboard trigger support.
+  </p>
+
+  <div class="compare-grid">
+    <div class="compare-card">
+      <div class="compare-header">
+        <span class="compare-label">Current: Native title</span>
+        <span class="lib-badge native">Browser default</span>
+      </div>
+      <div class="compare-body">
+        <div class="tooltip-demo">
+          <div class="tooltip-row">
+            <div style="position: relative; display: inline-flex;">
+              <button class="tooltip-trigger" title="Export deck as ZIP">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export
+              </button>
+              <div class="native-title-hint">Export deck as ZIP</div>
+            </div>
+            <div style="font-size: 11px; color: var(--color-text-muted);">&larr; ~500ms delay, plain OS chrome, no keyboard trigger</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-card recommended">
+      <div class="compare-header">
+        <span class="compare-label">Proposed: Bits UI Tooltip <span class="rec-badge">Recommended</span></span>
+        <span class="lib-badge bits">Bits UI</span>
+      </div>
+      <div class="compare-body">
+        <div class="tooltip-demo">
+          <div class="tooltip-row">
+            <div style="position: relative; display: inline-flex;">
+              <button class="tooltip-trigger">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Export
+              </button>
+              <div class="bits-tooltip">Export deck as ZIP</div>
+            </div>
+            <div style="font-size: 11px; color: var(--color-text-muted);">&larr; Instant, styled, keyboard accessible, arrow pointer</div>
+          </div>
+          <div class="tooltip-row">
+            <div style="position: relative; display: inline-flex;">
+              <button class="tooltip-trigger">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                Share
+              </button>
+              <div class="bits-tooltip">Share this deck</div>
+            </div>
+            <div style="font-size: 11px; color: var(--color-text-muted);">&larr; Focus-triggered too (Tab navigation)</div>
+          </div>
+        </div>
+        <div class="benefit-callout">
+          <strong>Gains:</strong> Keyboard accessible (shows on focus). Customizable delay, placement, animation.
+          Consistent styling with design system. Supports rich content (not just strings).
+          Floating UI positioning handles edge cases (viewport overflow, scroll).
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════
+     5. MODULE CONTROLS TOOLBAR
+     ═══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    5. Module Controls
+    <span class="todo-ref">Editor Interaction + Accessibility</span>
+  </div>
+  <p class="section-desc">
+    Floating toolbar on selected modules with Bits UI Popover for overflow actions +
+    Bits UI Tooltip on each button. Consistent across light and dark editor modes.
+  </p>
+
+  <div class="compare-grid">
+    <div class="compare-card recommended">
+      <div class="compare-header">
+        <span class="compare-label">Light Mode <span class="rec-badge">Proposed</span></span>
+        <span class="lib-badge bits">Bits UI Popover</span>
+        <span class="lib-badge floating">Floating UI</span>
+      </div>
+      <div class="compare-body">
+        <div class="module-demo">
+          <div class="mock-module selected" style="margin-top: 40px; position: relative;">
+            <div class="module-toolbar">
+              <button class="toolbar-btn" title="Move up">&#x25B2;</button>
+              <button class="toolbar-btn" title="Move down">&#x25BC;</button>
+              <div class="toolbar-sep"></div>
+              <select class="step-select">
+                <option>Step --</option>
+                <option selected>Step 1</option>
+                <option>Step 2</option>
+              </select>
+              <div class="toolbar-sep"></div>
+              <button class="toolbar-btn danger" title="Delete module">&times;</button>
+            </div>
+            <div class="mock-text">
+              <span class="placeholder" style="width: 90%;"></span>
+              <span class="placeholder"></span>
+              <span class="placeholder"></span>
+            </div>
+          </div>
+          <div class="mock-module">
+            <div class="mock-text">
+              <span class="placeholder" style="width: 75%;"></span>
+              <span class="placeholder" style="width: 60%;"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-card">
+      <div class="compare-header">
+        <span class="compare-label">Dark Mode</span>
+        <span class="lib-badge bits">Same components</span>
+      </div>
+      <div class="compare-body">
+        <div class="dark-demo">
+          <div class="module-demo" style="padding: 0;">
+            <div class="mock-module selected" style="margin-top: 40px; position: relative;">
+              <div class="module-toolbar">
+                <button class="toolbar-btn" title="Move up">&#x25B2;</button>
+                <button class="toolbar-btn" title="Move down">&#x25BC;</button>
+                <div class="toolbar-sep"></div>
+                <select class="step-select">
+                  <option>Step --</option>
+                  <option selected>Step 2</option>
+                </select>
+                <div class="toolbar-sep"></div>
+                <button class="toolbar-btn danger">&times;</button>
+              </div>
+              <div class="mock-text">
+                <span class="placeholder" style="width: 85%;"></span>
+                <span class="placeholder"></span>
+                <span class="placeholder"></span>
+              </div>
+            </div>
+            <div class="mock-module">
+              <div class="mock-text">
+                <span class="placeholder" style="width: 70%;"></span>
+                <span class="placeholder" style="width: 55%;"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="benefit-callout">
+          <strong>Dark mode note:</strong> CSS variables from <code>html[data-editor-dark]</code> handle
+          the theme switch automatically. No conditional classes needed in component code.
+          Floating UI positions the toolbar even when the module is near viewport edges.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════
+     6. TOASTS
+     ═══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">
+    6. Toast Notifications
+    <span class="todo-ref">UX feedback (implicit in all TODO areas)</span>
+  </div>
+  <p class="section-desc">
+    Currently: no toast system. Actions like export, delete, share, and mutation errors use
+    <code>console.error</code> or inline state flags. Svelte Sonner provides a drop-in toast
+    system with auto-dismiss, stacking, and swipe-to-dismiss.
+  </p>
+
+  <div class="compare-grid">
+    <div class="compare-card recommended">
+      <div class="compare-header">
+        <span class="compare-label">Svelte Sonner Toasts <span class="rec-badge">New</span></span>
+        <span class="lib-badge sonner">Svelte Sonner</span>
+      </div>
+      <div class="compare-body">
+        <div class="toast-stack">
+          <div class="toast" style="position: relative; animation-delay: 0s;">
+            <div class="toast-icon success">&#x2713;</div>
+            <div class="toast-text"><strong>Deck exported</strong> &middot; slide-deck.zip downloaded</div>
+            <button class="toast-dismiss">&times;</button>
+            <div class="toast-progress"></div>
+          </div>
+          <div class="toast" style="position: relative; animation-delay: 0.1s;">
+            <div class="toast-icon info">i</div>
+            <div class="toast-text">Slide 3 added via AI</div>
+            <button class="toast-dismiss">&times;</button>
+          </div>
+          <div class="toast" style="position: relative; animation-delay: 0.2s;">
+            <div class="toast-icon error">!</div>
+            <div class="toast-text"><strong>Export failed</strong> &middot; Missing image assets</div>
+            <button class="toast-dismiss">&times;</button>
+          </div>
+        </div>
+        <div class="benefit-callout">
+          <strong>Where to use:</strong>
+          Export success/failure. Slide deleted (with undo action). Theme applied.
+          Share link copied. Mutation rejected. File upload complete. Token cap warning.
+          <br><br>
+          <strong>Setup:</strong> One <code>&lt;Toaster /&gt;</code> in the root layout. Call
+          <code>toast.success('...')</code> anywhere. Custom styling via <code>unstyled</code>
+          prop + CSS variables. ~3KB gzipped.
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-card">
+      <div class="compare-header">
+        <span class="compare-label">Current: No Feedback System</span>
+        <span class="lib-badge native">None</span>
+      </div>
+      <div class="compare-body" style="padding: 20px;">
+        <div style="font-size: 12px; color: var(--color-text-secondary); line-height: 1.7;">
+          <p style="margin-bottom: 12px;">Current feedback mechanisms:</p>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 11px;">
+              <code style="background: var(--color-bg-tertiary); padding: 2px 6px; border-radius: 3px; font-size: 10px;">console.error</code>
+              <span>Slide delete failure, block reorder failure</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 11px;">
+              <code style="background: var(--color-bg-tertiary); padding: 2px 6px; border-radius: 3px; font-size: 10px;">$state flag</code>
+              <span><code>exporting</code> spinner on export button</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 11px;">
+              <code style="background: var(--color-bg-tertiary); padding: 2px 6px; border-radius: 3px; font-size: 10px;">inline error</code>
+              <span>Login/register form errors</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 11px;">
+              <code style="background: var(--color-bg-tertiary); padding: 2px 6px; border-radius: 3px; font-size: 10px;">nothing</code>
+              <span>Share link copy, theme switch, mutation applied</span>
+            </div>
+          </div>
+        </div>
+        <div class="issue-callout" style="margin-top: 16px;">
+          <strong>UX gap:</strong> Users get no confirmation when actions succeed silently.
+          Error states in non-form contexts are invisible (console only).
+          No way to surface undo actions for destructive operations.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════
+     7. FULL EDITOR ANNOTATED
+     ═══════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">7. Full Editor — Integration Map</div>
+  <p class="section-desc">
+    Where each library integrates into the three-panel editor layout.
+    Numbers correspond to the sections above.
+  </p>
+
+  <div class="editor-wireframe" style="position: relative;">
+    <!-- Left panel -->
+    <div class="ew-left">
+      <div style="padding: 10px 12px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--color-border);">
+        <span style="font-family: var(--font-display); font-weight: 700; font-size: 14px;"><span style="color: var(--navy);">Slide</span> <span style="color: var(--teal);">Wiz</span></span>
+        <span style="margin-left: auto;"><img width="28" height="28" src="" alt="" style="background: var(--color-bg-tertiary); border-radius: 4px;"></span>
+      </div>
+      <div class="ew-tab-bar">
+        <button class="ew-tab active">Chat</button>
+        <button class="ew-tab">Slides</button>
+      </div>
+      <div style="flex: 1; padding: 12px; overflow: hidden; display: flex; flex-direction: column; gap: 8px;">
+        <div style="background: var(--color-bg-tertiary); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 11px; color: var(--color-text-muted);">
+          Create a split slide about neural networks with a comparison panel...
+        </div>
+        <div style="background: var(--color-ghost-bg); padding: 8px 10px; border-radius: var(--radius-sm); font-size: 11px; color: var(--color-primary); border-left: 2px solid var(--color-primary);">
+          Added slide 3: layout-split with comparison module
+        </div>
+        <div style="flex: 1;"></div>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <div style="flex: 1; background: var(--color-bg-tertiary); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 11px; color: var(--color-text-muted);">Type a message...</div>
+          <div style="width: 28px; height: 28px; background: var(--color-primary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center -->
+    <div class="ew-center">
+      <div class="ew-toolbar" style="position: relative;">
+        <div class="ew-toolbar-btn" style="font-size: 10px; font-weight: 600; color: var(--color-text-muted);">H1</div>
+        <div class="ew-toolbar-btn" style="font-weight: 700; font-size: 12px;">B</div>
+        <div class="ew-toolbar-btn" style="font-style: italic; font-size: 12px;">I</div>
+        <div class="ew-toolbar-spacer"></div>
+        <div class="ew-toolbar-btn" title="Dark mode">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        </div>
+        <div class="ew-toolbar-btn" title="Share">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/></svg>
+        </div>
+        <div class="ew-toolbar-btn" title="Export">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+        <!-- Annotations -->
+        <div class="annotation" style="top: -4px; right: 76px;">4</div>
+        <div class="annotation" style="top: -4px; right: 8px;">6</div>
+      </div>
+      <div class="ew-canvas-area" style="position: relative;">
+        <div class="ew-slide-frame">
+          <div class="ew-slide-left">
+            <div style="height: 4px; width: 50%; background: rgba(255,255,255,0.4); border-radius: 2px;"></div>
+            <div style="height: 3px; width: 80%; background: rgba(255,255,255,0.15); border-radius: 2px;"></div>
+            <div style="height: 3px; width: 65%; background: rgba(255,255,255,0.15); border-radius: 2px;"></div>
+            <div style="height: 3px; width: 70%; background: rgba(255,255,255,0.1); border-radius: 2px;"></div>
+          </div>
+          <div class="ew-slide-right">
+            <div style="width: 60%; height: 60%; background: rgba(255,255,255,0.04); border-radius: 4px; border: 1px dashed rgba(255,255,255,0.1);"></div>
+          </div>
+        </div>
+        <!-- Module toolbar annotation -->
+        <div class="annotation" style="top: 20px; left: 50%; transform: translateX(60px);">5</div>
+      </div>
+    </div>
+
+    <!-- Right panel -->
+    <div class="ew-right" style="position: relative;">
+      <div class="bits-accordion" style="font-size: 11px;">
+        <div class="bits-acc-item open" style="border-bottom: 1px solid var(--color-border);">
+          <button class="bits-acc-trigger" style="padding: 8px 10px;">
+            <span class="bits-acc-label" style="font-size: 11px;">Templates</span>
+            <span class="bits-acc-count" style="font-size: 9px;">12</span>
+            <span class="bits-acc-chevron" style="font-size: 10px;">&#x25BC;</span>
+          </button>
+          <div class="bits-acc-content" style="display: block; padding: 4px 10px 8px;">
+            <div class="tmpl-mini-grid" style="gap: 4px;">
+              <div class="tmpl-mini-card">
+                <div class="tmpl-mini-thumb" style="background: var(--navy); height: 30px;"></div>
+                <div class="tmpl-mini-name" style="font-size: 9px;">Title</div>
+              </div>
+              <div class="tmpl-mini-card" style="border-color: var(--color-primary);">
+                <div class="tmpl-mini-thumb" style="background: #0f2b5c; height: 30px;"></div>
+                <div class="tmpl-mini-name" style="font-size: 9px;">Split</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bits-acc-item" style="border-bottom: 1px solid var(--color-border);">
+          <button class="bits-acc-trigger" style="padding: 8px 10px;">
+            <span class="bits-acc-label" style="font-size: 11px;">Files</span>
+            <span class="bits-acc-count" style="font-size: 9px;">4</span>
+          </button>
+        </div>
+        <div class="bits-acc-item" style="border-bottom: 1px solid var(--color-border);">
+          <button class="bits-acc-trigger" style="padding: 8px 10px;">
+            <span class="bits-acc-label" style="font-size: 11px;">Artifacts</span>
+            <span class="bits-acc-count" style="font-size: 9px;">8</span>
+          </button>
+        </div>
+        <div class="bits-acc-item">
+          <button class="bits-acc-trigger" style="padding: 8px 10px;">
+            <span class="bits-acc-label" style="font-size: 11px;">Themes</span>
+            <span class="bits-acc-count" style="font-size: 9px;">9</span>
+          </button>
+        </div>
+      </div>
+      <!-- Annotations -->
+      <div class="annotation" style="top: 4px; right: 4px;">3</div>
+    </div>
+
+    <!-- Global annotations -->
+    <div class="annotation" style="bottom: 8px; right: 260px;">1</div>
+    <div class="annotation" style="top: 4px; left: 264px;">2</div>
+  </div>
+
+  <div class="annotation-legend" style="margin-top: 16px;">
+    <div class="annotation-legend-item">
+      <div class="num">1</div>
+      <div class="text"><strong>Bits UI Dialog</strong> — NewDeckDialog, ShareDeckDialog, delete confirmations. Focus trap, scroll lock, ARIA roles.</div>
+    </div>
+    <div class="annotation-legend-item">
+      <div class="num">2</div>
+      <div class="text"><strong>Bits UI Combobox</strong> — Cmd+K command palette. Cross-type search for templates, files, artifacts, themes, and actions.</div>
+    </div>
+    <div class="annotation-legend-item">
+      <div class="num">3</div>
+      <div class="text"><strong>Bits UI Accordion</strong> — Resource panel sections. Replaces tab bar with collapsible, keyboard-navigable groups.</div>
+    </div>
+    <div class="annotation-legend-item">
+      <div class="num">4</div>
+      <div class="text"><strong>Bits UI Tooltip</strong> — All toolbar icon buttons. Keyboard-accessible, custom-styled, consistent delay/placement.</div>
+    </div>
+    <div class="annotation-legend-item">
+      <div class="num">5</div>
+      <div class="text"><strong>Bits UI Popover + Floating UI</strong> — Module control toolbar. Smart positioning avoids viewport edges.</div>
+    </div>
+    <div class="annotation-legend-item">
+      <div class="num">6</div>
+      <div class="text"><strong>Svelte Sonner</strong> — Toast notifications for export, delete, share, mutation feedback. Bottom-right stack.</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════
+     MIGRATION PATH
+     ═══════════════════════════════════════════════ -->
+<div class="section" style="padding-bottom: 80px;">
+  <div class="section-title">Migration Path</div>
+  <p class="section-desc">
+    Incremental adoption — each library can be introduced independently. No big-bang rewrite.
+  </p>
+
+  <div style="display: flex; flex-direction: column; gap: 2px; max-width: 720px;">
+    <div style="display: flex; align-items: stretch; gap: 12px;">
+      <div style="width: 3px; background: var(--color-primary); border-radius: 2px; flex-shrink: 0;"></div>
+      <div style="padding: 12px 0;">
+        <div style="font-size: 12px; font-weight: 700; color: var(--navy);">Phase 1: Foundation</div>
+        <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; line-height: 1.6;">
+          Install <span class="lib-badge bits" style="font-size: 9px;">Bits UI</span> and
+          <span class="lib-badge sonner" style="font-size: 9px;">Svelte Sonner</span>.
+          Add <code>&lt;Toaster /&gt;</code> to root layout.
+          Replace <code>NewDeckDialog</code> and <code>ShareDeckDialog</code> with Bits UI Dialog.
+          Remove <code>a11y_*</code> suppressions from those files.
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: stretch; gap: 12px;">
+      <div style="width: 3px; background: var(--color-primary); border-radius: 2px; flex-shrink: 0; opacity: 0.7;"></div>
+      <div style="padding: 12px 0;">
+        <div style="font-size: 12px; font-weight: 700; color: var(--navy);">Phase 2: Resource Panel</div>
+        <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; line-height: 1.6;">
+          Replace <code>ResourcePanel</code> tab bar with Bits UI Accordion.
+          Migrate each tab component into an accordion section (minimal changes — same content, new wrapper).
+          Add Cmd+K palette using Bits UI Dialog + Combobox.
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: stretch; gap: 12px;">
+      <div style="width: 3px; background: var(--color-primary); border-radius: 2px; flex-shrink: 0; opacity: 0.5;"></div>
+      <div style="padding: 12px 0;">
+        <div style="font-size: 12px; font-weight: 700; color: var(--navy);">Phase 3: Micro-interactions</div>
+        <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; line-height: 1.6;">
+          Replace all <code>title</code> attributes with Bits UI Tooltip.
+          Wire toast calls into export, delete, share, and mutation flows.
+          Replace <code>ModulePicker</code> overlay with Bits UI Popover.
+          Add <span class="lib-badge floating" style="font-size: 9px;">Floating UI</span> for module toolbar positioning.
+        </div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: stretch; gap: 12px;">
+      <div style="width: 3px; background: var(--color-primary); border-radius: 2px; flex-shrink: 0; opacity: 0.3;"></div>
+      <div style="padding: 12px 0;">
+        <div style="font-size: 12px; font-weight: 700; color: var(--navy);">Phase 4: Accessibility Audit</div>
+        <div style="font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; line-height: 1.6;">
+          Remove remaining <code>a11y_*</code> suppressions.
+          Verify keyboard navigation end-to-end (Tab, arrow keys, Escape, Enter).
+          Run <code>pnpm audit:a11y</code> for contrast compliance.
+          Add <code>SplitHandle</code> keyboard resizing using Bits UI Slider primitive.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
