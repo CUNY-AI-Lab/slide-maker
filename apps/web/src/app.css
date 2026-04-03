@@ -45,6 +45,22 @@
   --radius-full: 9999px;
 }
 
+/* Editor dark mode — toggled via [data-editor-dark] on <html> */
+html[data-editor-dark] {
+  --color-bg: #1a1a2e;
+  --color-bg-secondary: #16213e;
+  --color-bg-tertiary: #0f3460;
+  --color-text: #e0e0e0;
+  --color-text-secondary: #94a3b8;
+  --color-text-muted: #6b7280;
+  --color-border: #2d3748;
+  --color-border-focus: var(--blue);
+  --color-ghost-bg: rgba(59, 115, 230, 0.12);
+  --color-ghost-bg-hover: rgba(59, 115, 230, 0.18);
+  --color-success: #4ade80;
+  --color-error: #f87171;
+}
+
 * {
   margin: 0;
   padding: 0;

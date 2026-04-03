@@ -2,6 +2,7 @@
   import { get } from 'svelte/store'
   import { currentDeck } from '$lib/stores/deck'
   import { themesStore, themesLoaded, ensureThemesLoaded, type ThemeData, isDark } from '$lib/stores/themes'
+  import { editorDarkMode } from '$lib/stores/editor-theme'
   import { API_URL } from '$lib/api'
 
   type Theme = ThemeData
@@ -192,17 +193,16 @@
     <div class="header-actions">
       <button
         class="toggle-btn"
-        class:toggled-on={currentIsDark}
-        onclick={toggleDeckLightDark}
-        disabled={!deckHasTheme || applying !== null}
-        title={currentIsDark ? 'Switch to light theme' : 'Switch to dark theme'}
-        aria-label={currentIsDark ? 'Switch to light theme' : 'Switch to dark theme'}
+        class:toggled-on={$editorDarkMode}
+        onclick={() => editorDarkMode.toggle()}
+        title={$editorDarkMode ? 'Switch editor to light mode' : 'Switch editor to dark mode'}
+        aria-label={$editorDarkMode ? 'Switch editor to light mode' : 'Switch editor to dark mode'}
         role="switch"
-        aria-checked={currentIsDark}>
+        aria-checked={$editorDarkMode}>
         <span class="toggle-track">
           <span class="toggle-thumb"></span>
         </span>
-        <span class="toggle-label">{currentIsDark ? 'Dark' : 'Light'}</span>
+        <span class="toggle-label">{$editorDarkMode ? 'Dark' : 'Light'}</span>
       </button>
       <button class="create-btn" onclick={() => { showCreateForm = !showCreateForm }}>
         {showCreateForm ? 'Cancel' : '+ Create Theme'}

@@ -3,6 +3,7 @@
   import { base } from '$app/paths'
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId, setActiveSlide } from '$lib/stores/ui'
+  import { editorDarkMode } from '$lib/stores/editor-theme'
   import { API_URL } from '$lib/api'
   import ShareDeckDialog from '$lib/components/gallery/ShareDeckDialog.svelte'
 
@@ -133,6 +134,13 @@
       </div>
     {/if}
   </div>
+  <button class="icon-btn" onclick={() => editorDarkMode.toggle()} title={$editorDarkMode ? 'Light mode' : 'Dark mode'} aria-label={$editorDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}>
+    {#if $editorDarkMode}
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    {:else}
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    {/if}
+  </button>
   <button class="icon-btn" onclick={() => { showShare = true }} disabled={!$currentDeck} title="Share deck">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
   </button>
