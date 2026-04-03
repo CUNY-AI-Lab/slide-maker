@@ -223,7 +223,7 @@
   }
 
   .brand-slide {
-    color: #1a1a2e;
+    color: var(--color-text, #1a1a2e);
   }
 
   .brand-wiz {
@@ -236,6 +236,14 @@
     align-items: center;
     opacity: 0.55;
     transition: opacity 0.15s;
+  }
+
+  :global(html[data-editor-dark]) .title-logo-link {
+    opacity: 0.85;
+  }
+
+  :global(html[data-editor-dark]) .title-logo {
+    filter: brightness(0) invert(1);
   }
 
   .title-logo-link:hover {

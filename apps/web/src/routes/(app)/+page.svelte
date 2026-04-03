@@ -123,7 +123,7 @@
   }
 
   .brand-slide {
-    color: #1a1a2e;
+    color: var(--color-text, #1a1a2e);
   }
   .brand-wiz {
     color: #5a8fd4;
