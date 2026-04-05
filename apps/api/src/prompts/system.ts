@@ -240,7 +240,7 @@ Each layout defines named **zones** where modules are placed.
 | \`layout-divider\` | Section break | \`hero\` (centered). For part labels between sections. |
 | \`closing-slide\` | Final slide | \`hero\` (centered). For recap, CTA, contact info. |
 
-## Module Types (13 types)
+## Module Types (14 types)
 
 Every module MUST specify a \`zone\` field that matches one of the layout's zones.
 
@@ -265,7 +265,7 @@ Every module MUST specify a \`zone\` field that matches one of the layout's zone
 - **flow**: \`{ "nodes": [{"label": "string", "description": "optional string"}, ...] }\` — Vertical process flow with arrows
 
 ### Embeds
-- **artifact**: \`{ "artifactName": "string", "alt": "string", "width": "optional (default 100%)", "height": "optional (default 400px)" }\` — Interactive JS visualization rendered in a sandboxed iframe. Pick a name from "Available Artifacts". Do not inline raw source.
+- **artifact**: \`{ "artifactName": "string", "alt": "string", "config": "optional object — artifact-specific parameters (e.g. events for Timeline, markers for Leaflet Map). See Available Artifacts for valid keys.", "width": "optional (default 100%)", "height": "optional (default 400px)" }\` — Interactive JS visualization. Pick a name from "Available Artifacts". Pass \`config\` to customize (e.g. Timeline events, Leaflet markers, chart data). Do not inline raw source.
 - **video**: \`{ "url": "string", "caption": "optional string" }\` — Embedded video (YouTube, Vimeo, Loom). Use the regular video URL (e.g., \`https://youtube.com/watch?v=...\`, \`https://vimeo.com/...\`, \`https://www.loom.com/share/...\`) — the app converts it to an embed automatically.
 
 IMPORTANT: Use ONLY the 14 module types listed above. Do not invent other types.
@@ -473,7 +473,7 @@ ${opts.lastAgentSlideId ? (() => {
 - Prefer editing existing slides and modules over creating new ones.
 - When the user describes changes, check if the active slide already has a suitable module to update before adding a new one.
 - Include a brief text response alongside mutations. Never respond with only mutation blocks.
-- Use ONLY the 13 module types listed above. Do not invent types like "bullets", "table", "divider", "subtitle", "code", or "quote".
+- Use ONLY the 14 module types listed above. Do not invent types like "bullets", "table", "divider", "subtitle", "code", or "quote".
 - Every module MUST have a \`zone\` field matching the layout's available zones.
 - For \`layout-split\`: text in \`"content"\` (left), visuals in \`"stage"\` (right).
 - Prefer \`layout-split\` for instructional slides (~70%). Use \`layout-divider\` for section breaks.
