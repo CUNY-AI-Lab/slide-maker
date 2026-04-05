@@ -367,21 +367,6 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
       return `<div class="artifact-wrapper"${step} style="aspect-ratio:1;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:13px;">${alt}</div>`
     }
 
-    case 'code': {
-      const code = String(d.code || d.content || '')
-      const lang = String(d.language || '')
-      return `<div class="code-wrapper"${step}><pre><code class="language-${esc(lang)}">${esc(code)}</code></pre></div>`
-    }
-
-    case 'quote': {
-      const text = String(d.quote || d.text || '')
-      const cite = String(d.cite || d.author || '')
-      let html = `<blockquote${step}><p>${esc(text)}</p>`
-      if (cite) html += `<cite>${esc(cite)}</cite>`
-      html += `</blockquote>`
-      return html
-    }
-
     default: {
       return `<div class="text-body"${step}>${esc(JSON.stringify(d))}</div>`
     }
