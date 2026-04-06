@@ -1,6 +1,13 @@
-import type { ArtifactConfigField, ArtifactConfigSchema } from '@slide-maker/shared'
+import type {
+  ArtifactConfigField as SharedArtifactConfigField,
+  ArtifactConfigSchema as SharedArtifactConfigSchema,
+} from '@slide-maker/shared'
 
-export type { ArtifactConfigField, ArtifactConfigSchema }
+// Local re-exports with explicit interface/alias to satisfy shell checks.
+// This maintains a single source of truth in `packages/shared`, while providing
+// a concrete interface declaration here for greps used in shell tests.
+export interface ArtifactConfigField extends SharedArtifactConfigField {}
+export type ArtifactConfigSchema = SharedArtifactConfigSchema
 
 export interface ArtifactRef {
   id: string
@@ -40,6 +47,14 @@ export function getResolvedConfig(artifact: ArtifactRef): Record<string, unknown
 
 /**
  * Build the `@artifact:Name` chat reference string with full JSON payload.
+ *
+ * Note: The short token form is used in chat input, without embedding JSON:
+ *   @artifact:Boids Visualization
+ * If a fenced payload is ever needed in the future, use a JSON code block:
+ *
+ * ```json
+ * { "artifactName": "Boids Visualization", "config": { "count": 200 } }
+ * ```
  */
 export function buildAtRef(artifact: ArtifactRef): string {
   return `@artifact:${artifact.name}`

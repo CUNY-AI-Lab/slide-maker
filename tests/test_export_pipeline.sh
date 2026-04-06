@@ -11,7 +11,7 @@ pass() { PASS=$((PASS + 1)); echo "  ✓ $1"; }
 fail() { FAIL=$((FAIL + 1)); echo "  ✗ $1"; }
 check() { if eval "$2" >/dev/null 2>&1; then pass "$1"; else fail "$1"; fi }
 
-CSS="apps/api/src/export/framework-css.ts"
+CSS="packages/shared/src/framework-css.ts"
 NAV="apps/api/src/export/navigation.ts"
 CAR="apps/api/src/export/carousel.ts"
 REN="apps/api/src/export/html-renderer.ts"
@@ -24,7 +24,7 @@ echo ""
 
 # --- Framework CSS ---
 echo "── Framework CSS ──"
-check "exports FRAMEWORK_CSS const" "grep -q 'export const FRAMEWORK_CSS' '$CSS'"
+check "exports FRAMEWORK_CSS_EXPORT const" "grep -q 'export const FRAMEWORK_CSS_EXPORT' '$CSS'"
 check "has :root custom properties" "grep -q ':root' '$CSS'"
 check "defines --accent-cyan" "grep -q '\-\-accent-cyan' '$CSS'"
 check "defines --accent-blue" "grep -q '\-\-accent-blue' '$CSS'"
