@@ -43,7 +43,7 @@
   $effect(() => {
     const blocks = slide.blocks
     if (untrack(() => !draggingBlocks)) {
-      blockItems = blocks
+      blockItems = blocks.map((b) => ({ ...b }))
     }
   })
 

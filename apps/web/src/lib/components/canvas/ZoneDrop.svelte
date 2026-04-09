@@ -90,15 +90,15 @@
       if (movedItem && movedItem.zone !== zone) {
         const fromZone = movedItem.zone
         items = items.map(m => m.id === info.id ? { ...m, zone } : m)
-        onMoveToZone?.(info.id, fromZone, zone, items.map(m => m.id))
+        await onMoveToZone?.(info.id, fromZone, zone, items.map(m => m.id))
       } else {
         // Same-zone reorder
-        onReorder?.(zone, items)
+        await onReorder?.(zone, items)
       }
-    } else if (info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) {
-      // This zone is the SOURCE — item was taken away, sync the reduced list
-      onReorder?.(zone, items)
     }
+    // DROPPED_INTO_ANOTHER: source zone item was taken away.
+    // No mutation needed — moveBlockToZone from the destination
+    // already reindexes both source and destination zones.
 
     dragging = false
   }
