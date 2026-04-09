@@ -17,18 +17,15 @@
   import type { Editor } from '@tiptap/core'
   import { activeModuleControls } from '$lib/stores/ui'
 
-  let { module, slideId = '', editable = false, onchange, oneditorready, ondelete, onmoveup, onmovedown, onstepchange, isFirst = false, isLast = false }: {
+  let { module, slideId = '', editable = false, onchange, onresize, oneditorready, ondelete, onstepchange }: {
     module: { id: string; type: string; data: Record<string, unknown>; stepOrder?: number | null };
     slideId?: string;
     editable: boolean;
     onchange?: (newData: Record<string, unknown>) => void;
+    onresize?: (newData: Record<string, unknown>) => void;
     oneditorready?: (editor: Editor) => void;
     ondelete?: () => void;
-    onmoveup?: () => void;
-    onmovedown?: () => void;
     onstepchange?: (stepOrder: number | null) => void;
-    isFirst?: boolean;
-    isLast?: boolean;
   } = $props()
 
   function handleStepChange(e: Event) {
@@ -119,55 +116,71 @@
     }
   }
 
-  // Corner resize — sets custom dimensions, triggers CSS scale-down
+  // Corner resize — pointer events with capture, shift-drag aspect lock
+  const PERSISTABLE_RESIZE_TYPES = ['artifact', 'image']
   let wrapperEl: HTMLDivElement | undefined = $state()
   let customW = $state<number | null>(null)
   let customH = $state<number | null>(null)
   let resizing = $state(false)
   let scaleFactor = $state(1)
-
-  // Resize dimension tooltip
   let resizeLabel = $state('')
 
-  function startResize(e: MouseEvent) {
+  // Captured at drag start
+  let _resizeStartX = 0
+  let _resizeStartY = 0
+  let _resizeStartW = 0
+  let _resizeStartH = 0
+  let _resizeNaturalW = 0
+  let _resizeNaturalH = 0
+  let _resizeAspect = 1
+
+  function handleResizeDown(e: PointerEvent) {
     e.preventDefault()
     e.stopPropagation()
+    ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
     resizing = true
-    const startX = e.clientX
-    const startY = e.clientY
+    _resizeStartX = e.clientX
+    _resizeStartY = e.clientY
     const rect = wrapperEl!.getBoundingClientRect()
-    const startW = rect.width
-    const startH = rect.height
-    const naturalW = wrapperEl!.scrollWidth
-    const naturalH = wrapperEl!.scrollHeight
+    _resizeStartW = rect.width
+    _resizeStartH = rect.height
+    _resizeNaturalW = wrapperEl!.scrollWidth
+    _resizeNaturalH = wrapperEl!.scrollHeight
+    _resizeAspect = _resizeStartW / Math.max(_resizeStartH, 1)
+  }
 
-    function onMove(ev: MouseEvent) {
-      const newW = Math.max(160, startW + (ev.clientX - startX))
-      const newH = Math.max(60, startH + (ev.clientY - startY))
-      customW = newW
-      customH = newH
-      resizeLabel = `${Math.round(newW)} × ${Math.round(newH)}`
-      // Scale content down only — enlarging gives more reflow space instead of zooming
-      const scaleX = newW / Math.max(naturalW, 1)
-      const scaleY = newH / Math.max(naturalH, 1)
-      scaleFactor = Math.min(scaleX, scaleY, 1)
+  function handleResizeMove(e: PointerEvent) {
+    if (!resizing) return
+    let newW = Math.max(160, _resizeStartW + (e.clientX - _resizeStartX))
+    let newH = Math.max(60, _resizeStartH + (e.clientY - _resizeStartY))
+    // Shift-drag locks aspect ratio
+    if (e.shiftKey) {
+      newH = newW / _resizeAspect
+      if (newH < 60) { newH = 60; newW = newH * _resizeAspect }
     }
-    function onUp() {
-      resizing = false
-      resizeLabel = ''
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
-      // Persist resize for artifact/image modules
-      if (customW && customH && (module.type === 'artifact' || module.type === 'image')) {
-        const next: Record<string, unknown> = { ...module.data, width: `${Math.round(customW)}px`, height: `${Math.round(customH)}px` }
-        if (module.type === 'artifact') next.autoSize = false
-        onchange?.(next)
-        customW = null
-        customH = null
-      }
+    customW = newW
+    customH = newH
+    resizeLabel = `${Math.round(newW)} × ${Math.round(newH)}${e.shiftKey ? ' ⊟' : ''}`
+    // Scale content down only — enlarging gives more reflow space instead of zooming
+    const scaleX = newW / Math.max(_resizeNaturalW, 1)
+    const scaleY = newH / Math.max(_resizeNaturalH, 1)
+    scaleFactor = Math.min(scaleX, scaleY, 1)
+  }
+
+  function handleResizeUp(e: PointerEvent) {
+    if (!resizing) return
+    resizing = false
+    resizeLabel = ''
+    // Persist resize for artifact/image via mutation-routed callback
+    if (customW && customH && PERSISTABLE_RESIZE_TYPES.includes(module.type)) {
+      const next: Record<string, unknown> = { ...module.data, width: `${Math.round(customW)}px`, height: `${Math.round(customH)}px` }
+      if (module.type === 'artifact') next.autoSize = false
+      onresize?.(next)
     }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
+    // Always reset visual state — non-persisted types lose resize on release
+    customW = null
+    customH = null
+    scaleFactor = 1
   }
 </script>
 
@@ -181,6 +194,7 @@
   style:height={customH ? `${customH}px` : undefined}
 >
   {#if editable}
+    <span class="canvas-drag-handle" aria-label="Drag to reorder">⠿</span>
     <button
       class="module-trigger"
       class:active={isActive}
@@ -193,18 +207,6 @@
 
   {#if isActive}
     <div class="module-popover" role="toolbar" aria-label="Module controls" style="left: {popX}px; top: {popY}px;">
-      <div class="pop-section">
-        <span class="pop-label">Move</span>
-        <div class="pop-row">
-          <button class="pop-btn" aria-label="Move up" onclick={() => onmoveup?.()} disabled={isFirst} title="Move up">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
-          </button>
-          <button class="pop-btn" aria-label="Move down" onclick={() => onmovedown?.()} disabled={isLast} title="Move down">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-          </button>
-        </div>
-      </div>
-      <div class="pop-divider"></div>
       <div class="pop-section">
         <span class="pop-label">Step reveal</span>
         <select
@@ -255,8 +257,15 @@
   </div>
 
   {#if editable}
-    <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="corner-resize" onmousedown={startResize}></div>
+    <div
+      class="corner-resize"
+      role="separator"
+      aria-label="Resize module"
+      onpointerdown={handleResizeDown}
+      onpointermove={handleResizeMove}
+      onpointerup={handleResizeUp}
+      onpointercancel={handleResizeUp}
+    ></div>
     {#if resizeLabel}
       <div class="resize-tooltip">{resizeLabel}</div>
     {/if}
@@ -303,6 +312,34 @@
 
   .module-content {
     width: 100%;
+  }
+
+  /* Drag handle — top-left, appears on hover */
+  .canvas-drag-handle {
+    position: absolute;
+    top: 4px;
+    left: 4px;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    line-height: 1;
+    background: rgba(20, 30, 50, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 5px;
+    color: rgba(255, 255, 255, 0.6);
+    cursor: grab;
+    z-index: 10;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s;
+    backdrop-filter: blur(6px);
+  }
+  .module-wrapper.editable:hover .canvas-drag-handle {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   /* Trigger dot — top-right, appears on hover */
@@ -457,6 +494,7 @@
     z-index: 10;
     opacity: 0;
     transition: opacity 0.15s ease;
+    touch-action: none;
   }
   .corner-resize::after {
     content: '';

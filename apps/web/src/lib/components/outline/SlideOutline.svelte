@@ -6,9 +6,8 @@
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId } from '$lib/stores/ui'
   import { dndzone } from 'svelte-dnd-action'
-  import { API_URL } from '$lib/api'
   import { history } from '$lib/stores/history'
-  import { undo, redo } from '$lib/utils/mutations'
+  import { undo, redo, applyMutation } from '$lib/utils/mutations'
 
   let { onCollapse }: { onCollapse?: () => void } = $props()
 
@@ -46,31 +45,9 @@
 
   async function handleFinalize(e: CustomEvent<{ items: any[] }>) {
     dragItems = e.detail.items
-
-    // Update store FIRST while dragging is still true (blocks the sync effect)
-    const reordered = dragItems.map((item, i) => ({ ...item, order: i }))
-    currentDeck.update((d) => {
-      if (!d) return d
-      return { ...d, slides: reordered }
-    })
-
-    // NOW allow syncing again — store already has new order, so next sync is safe
     dragging = false
-
-    // Persist to API
-    const deck = $currentDeck
-    if (deck) {
-      try {
-        await fetch(`${API_URL}/api/decks/${deck.id}/slides/reorder`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ order: dragItems.map((item) => item.id) }),
-        })
-      } catch (err) {
-        console.error('Failed to persist slide reorder:', err)
-      }
-    }
+    const order = dragItems.map((item) => item.id)
+    await applyMutation({ action: 'reorderSlides', payload: { order } })
   }
 </script>
 

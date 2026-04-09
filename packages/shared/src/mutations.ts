@@ -7,7 +7,8 @@ export type Mutation =
   | { action: 'addBlock'; payload: { slideId: string; block: { type: ModuleType; zone: Zone; data: Record<string, unknown>; stepOrder?: number }; insertAfter?: string } }
   | { action: 'removeBlock'; payload: { slideId: string; blockId: string } }
   | { action: 'reorderSlides'; payload: { order: string[] } }
-  | { action: 'reorderBlocks'; payload: { slideId: string; order: string[] } }
+  | { action: 'reorderBlocks'; payload: { slideId: string; zone: string; order: string[] } }
+  | { action: 'moveBlockToZone'; payload: { slideId: string; blockId: string; fromZone: string; toZone: string; order: string[] } }
   | { action: 'applyTemplate'; payload: { slideId?: string; templateId: string } }
   | { action: 'setTheme'; payload: { themeId: string } }
   | { action: 'updateMetadata'; payload: { name?: string } }

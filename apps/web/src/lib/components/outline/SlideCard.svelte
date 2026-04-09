@@ -7,6 +7,7 @@
   import { activeSlideId, setActiveSlide } from '$lib/stores/ui'
   import { currentDeck, removeSlideFromDeck, updateSlideInDeck } from '$lib/stores/deck'
   import { API_URL } from '$lib/api'
+  import { applyMutation } from '$lib/utils/mutations'
 
   const layoutLabels: Record<string, string> = {
     'title-slide': 'Title Slide',
@@ -51,23 +52,19 @@
     blockItems = e.detail.items
   }
 
-  function handleDndFinalize(e: CustomEvent<{ items: typeof blockItems }>) {
+  async function handleDndFinalize(e: CustomEvent<{ items: typeof blockItems }>) {
     blockItems = e.detail.items.map((b, i) => ({ ...b, order: i }))
-
-    // Update store FIRST while draggingBlocks is still true
-    updateSlideInDeck(slide.id, (s) => ({ ...s, blocks: blockItems }))
-
-    // NOW allow syncing again
     draggingBlocks = false
 
-    // Persist new order to API
+    // Group by zone and dispatch through mutation layer for undo/redo support
+    const byZone = new Map<string, string[]>()
     for (const item of blockItems) {
-      fetch(`${API_URL}/api/decks/${slide.deckId}/slides/${slide.id}/blocks/${item.id}`, {
-        method: 'PATCH',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ order: item.order }),
-      }).catch(console.error)
+      const z = item.zone ?? 'content'
+      if (!byZone.has(z)) byZone.set(z, [])
+      byZone.get(z)!.push(item.id)
+    }
+    for (const [z, order] of byZone) {
+      await applyMutation({ action: 'reorderBlocks', payload: { slideId: slide.id, zone: z, order } })
     }
   }
 

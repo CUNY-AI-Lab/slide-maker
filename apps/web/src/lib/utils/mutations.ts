@@ -376,6 +376,83 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
       break
     }
 
+    case 'moveBlockToZone': {
+      const slideId = payload.slideId as string
+      const blockId = payload.blockId as string
+      const fromZone = payload.fromZone as string
+      const toZone = payload.toZone as string
+      const order = payload.order as string[]
+
+      // Capture old state for undo
+      const slide = deck.slides.find((s) => s.id === slideId)
+      const movedBlock = slide?.blocks.find((b) => b.id === blockId)
+      const prevZone = movedBlock?.zone ?? fromZone
+      const prevOrder = (slide?.blocks ?? [])
+        .filter((b) => b.zone === prevZone)
+        .sort((a, b) => a.order - b.order)
+        .map((b) => b.id)
+
+      // Update store: move block to new zone, recompute orders
+      currentDeck.update((d) => {
+        if (!d) return d
+        return {
+          ...d,
+          slides: d.slides.map((s) => {
+            if (s.id !== slideId) return s
+            // Update the moved block's zone
+            const updatedBlocks = s.blocks.map((b) =>
+              b.id === blockId ? { ...b, zone: toZone } : b
+            )
+            // Reorder destination zone per the provided order
+            const idToBlock = new Map(updatedBlocks.map((b) => [b.id, b]))
+            const reorderedDest = order
+              .map((id, i) => {
+                const b = idToBlock.get(id)
+                return b ? { ...b, order: i, zone: toZone } : null
+              })
+              .filter(Boolean) as typeof s.blocks
+            // Reorder source zone (block removed, reindex)
+            const sourceBlocks = updatedBlocks
+              .filter((b) => b.zone === fromZone && b.id !== blockId)
+              .sort((a, b) => a.order - b.order)
+              .map((b, i) => ({ ...b, order: i }))
+            // Keep other zones untouched
+            const others = updatedBlocks.filter(
+              (b) => b.zone !== toZone && b.zone !== fromZone
+            )
+            return { ...s, blocks: [...others, ...sourceBlocks, ...reorderedDest] as typeof s.blocks }
+          }),
+        }
+      })
+
+      // Persist: update moved block zone + order, then reindex displaced blocks
+      await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${blockId}`, 'PATCH', {
+        zone: toZone,
+        order: order.indexOf(blockId),
+      })
+      // Reindex other blocks in destination zone
+      for (let i = 0; i < order.length; i++) {
+        if (order[i] !== blockId) {
+          await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${order[i]}`, 'PATCH', { order: i })
+        }
+      }
+      // Reindex source zone
+      const updatedDeck = get(currentDeck)
+      const updatedSlide = updatedDeck?.slides.find((s) => s.id === slideId)
+      const sourceBlocks = (updatedSlide?.blocks ?? [])
+        .filter((b) => b.zone === fromZone)
+        .sort((a, b) => a.order - b.order)
+      for (let i = 0; i < sourceBlocks.length; i++) {
+        await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${sourceBlocks[i].id}`, 'PATCH', { order: i })
+      }
+
+      history.pushMutation(mutation, {
+        action: 'moveBlockToZone',
+        payload: { slideId, blockId, fromZone: toZone, toZone: fromZone, order: prevOrder },
+      })
+      break
+    }
+
     case 'applyTemplate': {
       const templateId = payload.templateId as string
       const slideId = payload.slideId as string | undefined
@@ -623,6 +700,60 @@ async function applyMutationSilent(mutation: Record<string, unknown>): Promise<v
       for (let i = 0; i < order.length; i++) {
         const id = order[i]
         await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${id}`, 'PATCH', { order: i })
+      }
+      break
+    }
+    case 'moveBlockToZone': {
+      const slideId = payload.slideId as string
+      const blockId = payload.blockId as string
+      const toZone = payload.toZone as string
+      const fromZone = payload.fromZone as string
+      const order = payload.order as string[]
+
+      currentDeck.update((d) => {
+        if (!d) return d
+        return {
+          ...d,
+          slides: d.slides.map((s) => {
+            if (s.id !== slideId) return s
+            const updatedBlocks = s.blocks.map((b) =>
+              b.id === blockId ? { ...b, zone: toZone } : b
+            )
+            const idToBlock = new Map(updatedBlocks.map((b) => [b.id, b]))
+            const reorderedDest = order
+              .map((id, i) => {
+                const b = idToBlock.get(id)
+                return b ? { ...b, order: i, zone: toZone } : null
+              })
+              .filter(Boolean) as typeof s.blocks
+            const sourceBlocks = updatedBlocks
+              .filter((b) => b.zone === fromZone && b.id !== blockId)
+              .sort((a, b) => a.order - b.order)
+              .map((b, i) => ({ ...b, order: i }))
+            const others = updatedBlocks.filter(
+              (b) => b.zone !== toZone && b.zone !== fromZone
+            )
+            return { ...s, blocks: [...others, ...sourceBlocks, ...reorderedDest] as typeof s.blocks }
+          }),
+        }
+      })
+
+      await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${blockId}`, 'PATCH', {
+        zone: toZone,
+        order: order.indexOf(blockId),
+      })
+      for (let i = 0; i < order.length; i++) {
+        if (order[i] !== blockId) {
+          await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${order[i]}`, 'PATCH', { order: i })
+        }
+      }
+      const updatedDeck = get(currentDeck)
+      const updatedSlide = updatedDeck?.slides.find((s) => s.id === slideId)
+      const sourceBlocks = (updatedSlide?.blocks ?? [])
+        .filter((b) => b.zone === fromZone)
+        .sort((a, b) => a.order - b.order)
+      for (let i = 0; i < sourceBlocks.length; i++) {
+        await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${sourceBlocks[i].id}`, 'PATCH', { order: i })
       }
       break
     }

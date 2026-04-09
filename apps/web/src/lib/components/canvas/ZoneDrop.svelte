@@ -1,4 +1,7 @@
 <script lang="ts">
+  import { untrack } from 'svelte'
+  import { flip } from 'svelte/animate'
+  import { dndzone, TRIGGERS } from 'svelte-dnd-action'
   import ModuleRenderer from '$lib/components/renderers/ModuleRenderer.svelte'
   import ModulePicker from '$lib/components/outline/ModulePicker.svelte'
 
@@ -20,8 +23,10 @@
     slideId = '',
     onReorder,
     onModuleDataChange,
+    onModuleResize,
     onModuleDelete,
     onModuleStepChange,
+    onMoveToZone,
     onEditorReady,
   }: {
     modules: Module[]
@@ -31,8 +36,10 @@
     slideId?: string
     onReorder?: (zone: string, items: Module[]) => void
     onModuleDataChange?: (moduleId: string, data: Record<string, unknown>) => void
+    onModuleResize?: (moduleId: string, data: Record<string, unknown>) => void
     onModuleDelete?: (moduleId: string) => void
     onModuleStepChange?: (moduleId: string, stepOrder: number | null) => void
+    onMoveToZone?: (blockId: string, fromZone: string, toZone: string, newOrder: string[]) => void
     onEditorReady?: (editor: unknown) => void
   } = $props()
 
@@ -43,36 +50,57 @@
   let highlightedIds = $state<Set<string>>(new Set())
   let knownIds: Set<string> = new Set()
 
-  $effect(() => {
-    items = modules.map((m) => ({ ...m }))
+  // Guard to prevent store sync during drag — plain boolean, NOT $state
+  let dragging = false
 
-    const currentIds = new Set(modules.map((m) => m.id))
-    if (knownIds.size > 0) {
-      for (const id of currentIds) {
-        if (!knownIds.has(id)) {
-          highlightedIds = new Set([...highlightedIds, id])
-          setTimeout(() => {
-            highlightedIds = new Set([...highlightedIds].filter(h => h !== id))
-          }, 1500)
+  const flipDurationMs = 200
+
+  $effect(() => {
+    const mods = modules.map((m) => ({ ...m }))
+    if (untrack(() => !dragging)) {
+      items = mods
+
+      const currentIds = new Set(modules.map((m) => m.id))
+      if (knownIds.size > 0) {
+        for (const id of currentIds) {
+          if (!knownIds.has(id)) {
+            highlightedIds = new Set([...highlightedIds, id])
+            setTimeout(() => {
+              highlightedIds = new Set([...highlightedIds].filter(h => h !== id))
+            }, 1500)
+          }
         }
       }
+      knownIds = currentIds
     }
-    knownIds = currentIds
   })
 
-  function moveModule(modId: string, direction: 'up' | 'down') {
-    const idx = items.findIndex(m => m.id === modId)
-    if (idx < 0) return
-    const targetIdx = direction === 'up' ? idx - 1 : idx + 1
-    if (targetIdx < 0 || targetIdx >= items.length) return
+  function handleConsider(e: CustomEvent<{ items: Module[]; info: { trigger: string; id: string; source: string } }>) {
+    dragging = true
+    items = e.detail.items
+  }
 
-    const reordered = [...items]
-    const temp = reordered[idx]
-    reordered[idx] = reordered[targetIdx]
-    reordered[targetIdx] = temp
+  async function handleFinalize(e: CustomEvent<{ items: Module[]; info: { trigger: string; id: string; source: string } }>) {
+    const { info } = e.detail
+    items = e.detail.items.map((m, i) => ({ ...m, order: i }))
 
-    items = reordered.map((m, i) => ({ ...m, order: i }))
-    onReorder?.(zone, items)
+    if (info.trigger === TRIGGERS.DROPPED_INTO_ZONE) {
+      // This zone is the DESTINATION — check if item came from another zone
+      const movedItem = e.detail.items.find(m => m.id === info.id)
+      if (movedItem && movedItem.zone !== zone) {
+        const fromZone = movedItem.zone
+        items = items.map(m => m.id === info.id ? { ...m, zone } : m)
+        onMoveToZone?.(info.id, fromZone, zone, items.map(m => m.id))
+      } else {
+        // Same-zone reorder
+        onReorder?.(zone, items)
+      }
+    } else if (info.trigger === TRIGGERS.DROPPED_INTO_ANOTHER) {
+      // This zone is the SOURCE — item was taken away, sync the reduced list
+      onReorder?.(zone, items)
+    }
+
+    dragging = false
   }
 
   function togglePicker(e: MouseEvent) {
@@ -104,40 +132,55 @@
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   })
+
+  function transformDragPreview(el: HTMLElement) {
+    el.style.transform = 'scale(0.95)'
+    el.style.opacity = '0.9'
+    el.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)'
+    el.style.borderRadius = '8px'
+  }
 </script>
 
-<div class="zone-drop" class:editable>
-  {#if items.length === 0}
-    <div class="empty-zone">
-      {#if editable && deckId && slideId}
-        <button class="add-module-btn empty-add" onclick={(e) => { lastTrigger = e.currentTarget as HTMLElement; togglePicker(e) }} aria-haspopup="dialog" aria-expanded={showPicker}>+ Module</button>
-      {:else}
-        <div class="empty-hint">+ Add module</div>
-      {/if}
-    </div>
-  {:else}
+<div class="zone-drop" class:editable aria-label="{zone} zone">
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div
+    class="zone-drop-list"
+    use:dndzone={{
+      items,
+      flipDurationMs,
+      type: `canvas-zone-${slideId}`,
+      dropFromOthersDisabled: false,
+      dragHandleSelector: '.canvas-drag-handle',
+      dropTargetStyle: {},
+      dropTargetClasses: ['zone-drop-active'],
+      morphDisabled: true,
+      centreDraggedOnCursor: true,
+      transformDraggedElement: transformDragPreview,
+    }}
+    onconsider={handleConsider}
+    onfinalize={handleFinalize}
+  >
     {#each items as mod, i (mod.id)}
-      <div class="module-item" class:just-added={highlightedIds.has(mod.id)}>
+      <div class="module-item" class:just-added={highlightedIds.has(mod.id)} animate:flip={{ duration: flipDurationMs }}>
         <ModuleRenderer
           module={mod}
           {slideId}
           {editable}
           onchange={(newData) => onModuleDataChange?.(mod.id, newData)}
+          onresize={(newData) => onModuleResize?.(mod.id, newData)}
           ondelete={() => onModuleDelete?.(mod.id)}
-          onmoveup={() => moveModule(mod.id, 'up')}
-          onmovedown={() => moveModule(mod.id, 'down')}
           onstepchange={(step) => onModuleStepChange?.(mod.id, step)}
-          isFirst={i === 0}
-          isLast={i === items.length - 1}
           oneditorready={onEditorReady}
         />
       </div>
     {/each}
-    {#if editable && deckId && slideId}
-      <div class="add-module-row">
-        <button class="add-module-btn" onclick={(e) => { lastTrigger = e.currentTarget as HTMLElement; togglePicker(e) }} aria-haspopup="dialog" aria-expanded={showPicker}>+ Module</button>
-      </div>
-    {/if}
+  </div>
+  {#if editable && deckId && slideId}
+    <div class="add-module-row">
+      <button class="add-module-btn" class:empty-add={items.length === 0} onclick={(e) => { lastTrigger = e.currentTarget as HTMLElement; togglePicker(e) }} aria-haspopup="dialog" aria-expanded={showPicker}>+ Module</button>
+    </div>
+  {:else if items.length === 0}
+    <div class="empty-hint">+ Add module</div>
   {/if}
 </div>
 
@@ -163,12 +206,10 @@
     container-type: inline-size;
   }
 
-  .empty-zone {
+  .zone-drop-list {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
+    gap: 12px;
     min-height: 2.5rem;
   }
 
@@ -193,7 +234,6 @@
     border-radius: var(--radius-sm, 4px);
     font-size: 0.875rem;
     color: inherit;
-    /* Allow long URLs/text to wrap at word boundaries */
     word-break: normal;
     overflow-wrap: break-word;
     hyphens: manual;
@@ -211,6 +251,23 @@
   @keyframes module-glow {
     0% { box-shadow: 0 0 0 3px rgba(59, 115, 230, 0.5); }
     100% { box-shadow: 0 0 0 0 rgba(59, 115, 230, 0); }
+  }
+
+  /* DnD shadow element (drop placeholder) */
+  .zone-drop-list :global([data-is-dnd-shadow-item-internal]) {
+    background: rgba(59, 115, 230, 0.08);
+    border: 2px dashed rgba(59, 115, 230, 0.35);
+    border-radius: 6px;
+    opacity: 0.6;
+    min-height: 40px;
+  }
+
+  /* Zone highlight when dragging over */
+  :global(.zone-drop-active) {
+    outline: 2px solid rgba(59, 115, 230, 0.25);
+    outline-offset: 2px;
+    border-radius: 8px;
+    background: rgba(59, 115, 230, 0.03);
   }
 
   .add-module-row {

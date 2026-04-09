@@ -72,6 +72,10 @@ import { applyMutation } from '$lib/utils/mutations'
     await applyMutation({ action: 'reorderBlocks', payload: { slideId: slide.id, zone, order } })
   }
 
+  async function handleModuleResize(moduleId: string, newData: Record<string, unknown>) {
+    await applyMutation({ action: 'updateBlock', payload: { slideId: slide.id, blockId: moduleId, data: newData } })
+  }
+
   function handleModuleDataChange(moduleId: string, newData: Record<string, unknown>) {
     updateSlideInDeck(slide.id, (s) => ({
       ...s,
@@ -99,6 +103,10 @@ import { applyMutation } from '$lib/utils/mutations'
 
   async function handleModuleDelete(moduleId: string) {
     await applyMutation({ action: 'removeBlock', payload: { slideId: slide.id, blockId: moduleId } })
+  }
+
+  async function handleMoveToZone(blockId: string, fromZone: string, toZone: string, newOrder: string[]) {
+    await applyMutation({ action: 'moveBlockToZone', payload: { slideId: slide.id, blockId, fromZone, toZone, order: newOrder } })
   }
 
   function handleRatioChange(newRatio: number) {
@@ -132,8 +140,10 @@ import { applyMutation } from '$lib/utils/mutations'
         slideId={slide.id}
         onReorder={handleReorder}
         onModuleDataChange={handleModuleDataChange}
-          onModuleDelete={handleModuleDelete}
-          onModuleStepChange={handleModuleStepChange}
+        onModuleResize={handleModuleResize}
+        onModuleDelete={handleModuleDelete}
+        onModuleStepChange={handleModuleStepChange}
+        onMoveToZone={handleMoveToZone}
         {onEditorReady}
       />
     </div>
@@ -149,8 +159,10 @@ import { applyMutation } from '$lib/utils/mutations'
           slideId={slide.id}
           onReorder={handleReorder}
           onModuleDataChange={handleModuleDataChange}
+          onModuleResize={handleModuleResize}
           onModuleDelete={handleModuleDelete}
           onModuleStepChange={handleModuleStepChange}
+          onMoveToZone={handleMoveToZone}
           {onEditorReady}
         />
       </div>
@@ -164,8 +176,10 @@ import { applyMutation } from '$lib/utils/mutations'
           slideId={slide.id}
           onReorder={handleReorder}
           onModuleDataChange={handleModuleDataChange}
+          onModuleResize={handleModuleResize}
           onModuleDelete={handleModuleDelete}
           onModuleStepChange={handleModuleStepChange}
+          onMoveToZone={handleMoveToZone}
           {onEditorReady}
         />
       </div>
@@ -181,8 +195,10 @@ import { applyMutation } from '$lib/utils/mutations'
         slideId={slide.id}
         onReorder={handleReorder}
         onModuleDataChange={handleModuleDataChange}
-          onModuleDelete={handleModuleDelete}
-          onModuleStepChange={handleModuleStepChange}
+        onModuleResize={handleModuleResize}
+        onModuleDelete={handleModuleDelete}
+        onModuleStepChange={handleModuleStepChange}
+        onMoveToZone={handleMoveToZone}
         {onEditorReady}
       />
     </div>

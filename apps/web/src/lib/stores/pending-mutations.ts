@@ -29,6 +29,7 @@ export function summarizeMutation(m: Record<string, unknown>): string {
     case 'updateBlock': return 'Update module'
     case 'updateSlide': return 'Update slide properties'
     case 'reorderSlides': return 'Reorder slides'
+    case 'moveBlockToZone': return 'Move module to different zone'
     case 'setTheme': return 'Change theme'
     case 'applyTemplate': return 'Apply template'
     case 'updateMetadata': return 'Update deck name'

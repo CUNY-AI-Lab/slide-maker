@@ -40,7 +40,7 @@ export interface CardData { content: string; variant?: 'cyan' | 'navy' | 'defaul
 export interface LabelData { text: string; color: 'cyan' | 'blue' | 'navy' | 'red' | 'amber' | 'green' }
 export interface TipBoxData { content: string; title?: string }
 export interface PromptBlockData { content: string; quality?: 'good' | 'mid' | 'bad'; language?: string }
-export interface ImageData { src: string; alt: string; caption?: string; fit?: 'cover' | 'contain' }
+export interface ImageData { src: string; alt: string; caption?: string; fit?: 'cover' | 'contain'; width?: string; height?: string }
 export interface CarouselData { items: { src: string; caption?: string }[]; syncSteps?: boolean }
 export interface ComparisonData { panels: { title: string; content: string }[] }
 export interface CardGridData { cards: { title: string; content: string; icon?: string; color?: string }[]; columns?: 2 | 3 | 4 }
