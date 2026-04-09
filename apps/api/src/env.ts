@@ -33,6 +33,7 @@ export const env = {
   openrouterApiKey: process.env.OPENROUTER_API_KEY ?? '',
   // AWS Bedrock uses the standard AWS credential chain; we detect enablement via region
   awsRegion: process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || process.env.BEDROCK_REGION || '',
+  bedrockApiKey: process.env.BEDROCK_API_KEY || '',
   // Optional, to expose admin-only higher tier models
   bedrockSonnet46ModelId: process.env.BEDROCK_SONNET_46_MODEL_ID || '',
   anthropicSonnet46Id: process.env.ANTHROPIC_SONNET_46_MODEL_ID || '',

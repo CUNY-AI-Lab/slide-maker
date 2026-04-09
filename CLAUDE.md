@@ -1,8 +1,8 @@
 # CLAUDE.md
 
-Check `TODO.md` for the current task list when planning work, but default to the operator's instructions, especially if they involve birds.
-
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+Check `TODO.md` for the current task list when planning work, but default to the operator's instructions, especially if they involve birds.
 
 ## What This Is
 
@@ -22,13 +22,16 @@ templates/    — Seeded slide template JSON files (zone-based)
 **Stack:**
 - **Frontend:** SvelteKit 2, Svelte 5 (runes), TipTap rich text editor
 - **Backend:** Hono on Node (@hono/node-server), SQLite via better-sqlite3 + Drizzle ORM, Lucia v3 for auth
-- **AI:** Two providers — Anthropic SDK (Claude Sonnet 4, Claude Haiku 4.5) and OpenAI SDK for OpenRouter (Kimi K2.5, GLM 5, Gemini 3.1 Flash, Qwen 3.5 Flash). Model selection via dropdown. SSE streaming for chat responses with live mutation application. Provider config at `apps/api/src/providers/`.
+- **AI:** Three providers — Anthropic SDK (Claude Sonnet 4, Haiku 4.5), OpenAI SDK for OpenRouter (Kimi K2.5, GLM 5, Gemini 3.1 Flash, Qwen 3.5 Flash), and AWS Bedrock (Haiku 4.5, admin-only Sonnet 4.6). Model selection via dropdown. SSE streaming for chat responses with live mutation application. Provider config at `apps/api/src/providers/`.
 
 ## Dev Commands
 
 ```bash
 pnpm install          # install all deps
 pnpm dev              # run both API + web via turborepo
+pnpm dev:bedrock      # run with AWS Bedrock provider
+pnpm dev:anthropic    # run with Anthropic SDK provider
+pnpm dev:openrouter   # run with OpenRouter provider
 pnpm build            # production build (both apps)
 pnpm db:push          # push Drizzle schema changes to SQLite
 pnpm db:seed          # seed templates, default theme, and admin users
@@ -39,7 +42,7 @@ npx vitest run tests/framework-css.test.ts  # run a single test file
 npx vitest --watch    # watch mode
 ```
 
-**Env:** `.env` at workspace root, must be symlinked to `apps/api/.env` (`ln -s ../../.env apps/api/.env`). The API loads env via `dotenv/config` from its own CWD — without the symlink, no API keys are found and chat won't work. See `.env.example` for all vars. At minimum set `OPENROUTER_API_KEY` or `ANTHROPIC_API_KEY`.
+**Env:** `.env` at workspace root, must be symlinked to `apps/api/.env` (`ln -s ../../.env apps/api/.env`). The API loads env via `dotenv/config` from its own CWD — without the symlink, no API keys are found and chat won't work. See `.env.example` for all vars. At minimum set one provider: `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY`, or `AWS_REGION` (with valid AWS credentials). Provider can be forced via `AI_PROVIDER=bedrock|anthropic|openrouter` env var.
 
 **Deploy to staging:** `./deploy-staging.sh` (requires Tailscale/CUNY VPN connection).
 
@@ -75,7 +78,7 @@ Do NOT invent new ones. Each module MUST specify a `zone` matching the layout.
 |--------|-----------|-----|
 | `heading` | `{ text, level: 1-4 }` | Titles, subtitles |
 | `text` | `{ markdown?, html? }` | Paragraphs, formatted text (TipTap editing) |
-| `card` | `{ content, variant?: 'cyan'\|'navy'\|'default' }` | Colored info cards |
+| `card` | `{ title?, body?\|content, variant?: 'cyan'\|'navy'\|'default' }` | Colored info cards |
 | `label` | `{ text, color: 'cyan'\|'blue'\|'navy'\|'red'\|'amber'\|'green' }` | Section tag badges |
 | `tip-box` | `{ content, title? }` | Callout/note boxes |
 | `prompt-block` | `{ content, quality?: 'good'\|'mid'\|'bad', language? }` | Code/prompt display |
@@ -85,7 +88,7 @@ Do NOT invent new ones. Each module MUST specify a `zone` matching the layout.
 | `card-grid` | `{ cards: [{title, content, color?}], columns?: 2-4 }` | Multi-card grid |
 | `flow` | `{ nodes: [{label, description?}] }` | Process flow with arrows |
 | `stream-list` | `{ items: string[] }` | Styled bullet list |
-| `artifact` | `{ artifactName?, rawSource?, config?, alt?, width?, height? }` | Interactive JS viz (native canvas or iframe fallback) |
+| `artifact` | `{ artifactName?, rawSource?, config?, alt?, width?, height?, autoSize?, aspectRatio? }` | Interactive JS viz (native canvas or iframe fallback) |
 | `video` | `{ url, caption? }` | Embedded video (YouTube, Vimeo, Loom) — auto-converts URLs to embeds |
 
 Renderers: `apps/web/src/lib/components/renderers/`. Dispatched by `ModuleRenderer.svelte`.
@@ -93,7 +96,7 @@ Artifact config utilities: `apps/web/src/lib/utils/artifact-config.ts` (resolves
 
 ### Artifacts (Two Rendering Paths)
 Artifacts render interactive visualizations. Two paths:
-- **Native** — pure JS rendered into a div (no iframe). Registered in `apps/web/src/lib/modules/artifacts/` (client) and `apps/api/src/export/artifacts.ts` (export). Names listed in `NATIVE_ARTIFACT_NAMES`. Includes: A* Pathfinding, Boids, Flow Field, Harmonograph, Langton's Ant, Leaflet Map, Lorenz Attractor, Molnar, Nake, Rossler, Sprott, Truchet Tiles.
+- **Native** — pure JS rendered into a div (no iframe). Registered in `apps/web/src/lib/modules/artifacts/` (client) and `apps/api/src/export/artifacts.ts` (export). Names listed in `NATIVE_ARTIFACT_NAMES`. Includes: A* Pathfinding, Boids, Flow Field, Harmonograph, Langton's Ant, Leaflet Map, Lorenz Attractor, Molnar, Nake, Rossler, Sprott, Timeline, Truchet Tiles.
 - **Iframe fallback** — for HTML-source artifacts with `rawSource`. Used when no native factory matches. Export extracts these to `artifacts/` folder in the zip.
 
 When adding a new artifact: create a factory in `apps/web/src/lib/modules/artifacts/`, import it in `ArtifactModule.svelte`, add the equivalent vanilla JS `register()` call in `apps/api/src/export/artifacts.ts`, and add the name to `NATIVE_ARTIFACT_NAMES`.
@@ -102,7 +105,8 @@ When adding a new artifact: create a factory in `apps/web/src/lib/modules/artifa
 Modules flow vertically within zones. No absolute x/y positioning.
 - Layout defines which zones exist (see `LAYOUT_ZONES` in `packages/shared/src/block-types.ts`)
 - Each module has a `zone` field
-- Modules reorder via ▲/▼ buttons on hover
+- Modules reorder via drag-and-drop (svelte-dnd-action on canvas, grip handle at top-left)
+- Cross-zone drops supported in `layout-split` (content <-> stage). Scoped per-slide via `type: canvas-zone-${slideId}`
 - Modules resize via corner drag (bottom-right, pointer events with setPointerCapture) — image and artifact modules persist dimensions via `applyMutation` (supports undo/redo). Shift-drag locks aspect ratio. Other modules scale visually via CSS `transform: scale()` (session-local)
 
 ### Canvas Rendering (Two Modes)
@@ -113,8 +117,8 @@ The canvas has two modes (`CanvasMode = 'edit' | 'view'`):
 
 ### Canvas Editing (Edit Mode)
 - **Format toolbar** (fixed above slide): heading levels (Normal/H1-H4), font size, bold, italic, link, bullet list, ordered list, align left/center/right
-- **Corner resize** (bottom-right handle): drag to resize module, content scales proportionally (both up and down via CSS `transform: scale()`)
-- **▲/▼ buttons**: move module up/down within its zone
+- **Drag handle** (top-left grip `⠿`): drag to reorder within zone or across zones (layout-split)
+- **Corner resize** (bottom-right handle): drag to resize module. Image/artifact persist dimensions; others scale via `transform: scale()`. Shift-drag locks aspect ratio
 - **✕ button**: delete module (double-click to confirm)
 - **Step order dropdown**: set progressive reveal order (1-5) per module
 - **+ Module button**: opens module picker overlay per zone (fixed position, not constrained by slide frame)
@@ -253,7 +257,8 @@ Full admin panel at `/admin` with:
 ### Undo/Redo
 - `Ctrl+Z` / `Ctrl+Shift+Z` in the editor
 - History store at `apps/web/src/lib/stores/history.ts`
-- Tracks addSlide, addBlock, updateBlock mutations with reverse operations
+- Tracks addSlide, addBlock, updateBlock, reorderBlocks, reorderSlides, moveBlockToZone mutations with reverse operations
+- All DnD reorder/cross-zone and resize operations go through `applyMutation` for undo support
 
 ### Security
 - CSP + security headers via `apps/web/src/hooks.server.ts`
@@ -289,10 +294,20 @@ Buttons across the app follow a ghost pattern: transparent background, 1px borde
 
 ## Testing
 
-Vitest at root level. Config: `vitest.config.ts`. Tests: `tests/**/*.test.ts`.
+Vitest at root level. Config: `vitest.config.ts`. Tests: `tests/**/*.test.ts`. Currently 220 tests across 13 files.
 
 - `tests/artifact-config.test.ts` — artifact config resolution (`getResolvedConfig`, `buildAtRef`)
+- `tests/artifact-runtime.test.ts` — artifact runtime helpers
+- `tests/canonical-template.test.ts` — template structure validation
+- `tests/export-artifacts.test.ts` — artifact export pipeline
+- `tests/export-zip-integration.test.ts` — full export ZIP structure
 - `tests/framework-css.test.ts` — CSS specificity, layout rules, variant correctness
+- `tests/html-renderer-modules.test.ts` — HTML renderer output for all 14 module types
+- `tests/module-type-parity.test.ts` — renderer/prompt/phantom type parity across shared package
+- `tests/rich-text.test.ts` — rich text pipeline (markdown, HTML, sanitization)
+- `tests/slide-layout.test.ts` — layout zone validation
+- `tests/ssrf-guard.test.ts` — SSRF protection for URL fetching
+- `tests/system-prompt-*.test.ts` — system prompt docs and render diagnostics
 
 Tests import directly from `packages/shared/src/` and `apps/web/src/lib/utils/`. SvelteKit aliases (`$lib/`) don't resolve in vitest — test only pure TS utilities, not Svelte components.
 

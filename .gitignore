@@ -33,6 +33,7 @@ apps/api/uploads/
 
 # Local planning
 TODO.md
+TEST-CHECKLIST.md
 
 # Playwright
 e2e/.auth/

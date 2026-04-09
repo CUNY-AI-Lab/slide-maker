@@ -34,7 +34,8 @@
   // Live streams indexed by id
   let streams = $state<Record<string, StreamCard>>({})
   let streamOrder = $state<string[]>([])
-  let transcripts = $state<any[]>(data?.transcripts ?? [])
+  let transcripts = $state<any[]>([])
+  $effect(() => { transcripts = data?.transcripts ?? [] })
 
   // Filters
   let filterModel = $state('')
@@ -231,7 +232,7 @@
           {#each streamOrder as id}
             {#if streams[id]}
               {@const s = streams[id]}
-              <div class="stream-card {s.fade ? 'fade' : ''} {s.collapsed ? 'collapsed' : ''}" onclick={() => s.collapsed = !s.collapsed}>
+              <button type="button" class="stream-card {s.fade ? 'fade' : ''} {s.collapsed ? 'collapsed' : ''}" onclick={() => s.collapsed = !s.collapsed}>
                 <div class="header">
                   <span class="badge">{s.model}</span>
                   <span class="meta">{s.userEmail}</span>
@@ -247,7 +248,7 @@
                 <div class="body" aria-live="polite">
                   {@html highlightedText(s.text)}
                 </div>
-              </div>
+              </button>
             {/if}
           {/each}
         </div>
@@ -333,7 +334,7 @@
   .panel h2 { margin: 0 0 .5rem; font-size: .95rem; color: var(--color-primary-dark); }
 
   .streams { display: flex; flex-direction: column; gap: 8px; }
-  .stream-card { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 8px; cursor: pointer; }
+  .stream-card { border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: 8px; cursor: pointer; background: var(--color-bg); text-align: left; }
   .stream-card.fade { opacity: .6; }
   .stream-card.collapsed .body { display: none; }
   .header { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -342,7 +343,6 @@
   .error { color: var(--color-error); font-weight: 600; font-size: 12px; }
   .metrics { display: flex; gap: 12px; font-size: 12px; color: var(--color-text-secondary); margin: 4px 0; }
   .body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; font-size: 12px; line-height: 1.5; max-height: 220px; overflow: auto; padding: 6px; background: var(--color-bg-secondary); border-radius: var(--radius-sm); }
-  .mutation-block { background: rgba(99, 102, 241, 0.14); display: inline-block; padding: 2px 4px; border-radius: 4px; }
   .empty { color: var(--color-text-muted); font-size: 13px; padding: 8px; }
 
   .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
@@ -361,4 +361,3 @@
   .plain { white-space: pre-wrap; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); padding: 6px; }
   .kv { margin: 4px 0; color: var(--color-text-secondary); }
 </style>
-

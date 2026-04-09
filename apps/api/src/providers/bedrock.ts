@@ -34,7 +34,11 @@ export async function* streamBedrock(
   const region = env.awsRegion || process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION
   if (!region) throw new Error('AWS region not configured. Set AWS_REGION in .env')
 
-  const client = new BedrockRuntimeClient({ region })
+  const clientConfig: Record<string, any> = { region }
+  if (env.bedrockApiKey) {
+    clientConfig.token = { token: env.bedrockApiKey }
+  }
+  const client = new BedrockRuntimeClient(clientConfig)
 
   const payload = {
     anthropic_version: 'bedrock-2023-05-31',

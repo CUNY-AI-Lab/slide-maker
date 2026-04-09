@@ -1,15 +1,23 @@
 import { Hono } from 'hono'
+import type { Session, User } from 'lucia'
 import { env } from '../env.js'
 import { ANTHROPIC_MODELS } from '../providers/anthropic.js'
 import { OPENROUTER_MODELS } from '../providers/openrouter.js'
 import { BEDROCK_MODELS } from '../providers/bedrock.js'
 import { authMiddleware } from '../middleware/auth.js'
 
-const providers = new Hono()
+type AuthEnv = {
+  Variables: {
+    user: User
+    session: Session
+  }
+}
+
+const providers = new Hono<AuthEnv>()
 
 // GET / — List available models (filtered by which API keys are configured)
 providers.get('/', authMiddleware, (c) => {
-  const user = c.get('user') as { role?: string } | undefined
+  const user = c.get('user')
   const isAdmin = user?.role === 'admin'
 
   const list: any[] = []
