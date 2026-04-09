@@ -20,7 +20,7 @@ templates/    — Seeded slide template JSON files (zone-based)
 ```
 
 **Stack:**
-- **Frontend:** SvelteKit 2, Svelte 5 (runes), TipTap rich text editor, @chenglou/pretext for text measurement/reflow
+- **Frontend:** SvelteKit 2, Svelte 5 (runes), TipTap rich text editor
 - **Backend:** Hono on Node (@hono/node-server), SQLite via better-sqlite3 + Drizzle ORM, Lucia v3 for auth
 - **AI:** Two providers — Anthropic SDK (Claude Sonnet 4, Claude Haiku 4.5) and OpenAI SDK for OpenRouter (Kimi K2.5, GLM 5, Gemini 3.1 Flash, Qwen 3.5 Flash). Model selection via dropdown. SSE streaming for chat responses with live mutation application. Provider config at `apps/api/src/providers/`.
 
@@ -79,7 +79,7 @@ Do NOT invent new ones. Each module MUST specify a `zone` matching the layout.
 | `label` | `{ text, color: 'cyan'\|'blue'\|'navy'\|'red'\|'amber'\|'green' }` | Section tag badges |
 | `tip-box` | `{ content, title? }` | Callout/note boxes |
 | `prompt-block` | `{ content, quality?: 'good'\|'mid'\|'bad', language? }` | Code/prompt display |
-| `image` | `{ src, alt, caption? }` | Images (API URLs auto-prefixed) |
+| `image` | `{ src, alt, caption?, fit?, width?, height? }` | Images (API URLs auto-prefixed) |
 | `carousel` | `{ items: [{src, caption?}], syncSteps? }` | Image slider |
 | `comparison` | `{ panels: [{title, content}] }` | Side-by-side panels |
 | `card-grid` | `{ cards: [{title, content, color?}], columns?: 2-4 }` | Multi-card grid |
@@ -103,7 +103,7 @@ Modules flow vertically within zones. No absolute x/y positioning.
 - Layout defines which zones exist (see `LAYOUT_ZONES` in `packages/shared/src/block-types.ts`)
 - Each module has a `zone` field
 - Modules reorder via ▲/▼ buttons on hover
-- Modules resize via corner drag (bottom-right) — content scales down via CSS `transform: scale()`
+- Modules resize via corner drag (bottom-right, pointer events with setPointerCapture) — image and artifact modules persist dimensions via `applyMutation` (supports undo/redo). Shift-drag locks aspect ratio. Other modules scale visually via CSS `transform: scale()` (session-local)
 
 ### Canvas Rendering (Two Modes)
 The canvas has two modes (`CanvasMode = 'edit' | 'view'`):
@@ -306,8 +306,8 @@ Tests import directly from `packages/shared/src/` and `apps/web/src/lib/utils/`.
 
 ## Known Issues / Tech Debt
 
-- PreTeXtBook/pretext is a server-side Python toolchain, NOT a browser JS library. Only chenglou/pretext (`@chenglou/pretext`) is integrated for text measurement.
-- svelte-dnd-action used for slide reordering in outline only. Zone module reordering uses ▲/▼ buttons (drag conflicts with resize).
+- PreTeXtBook/pretext is a server-side Python toolchain, NOT a browser JS library. `@chenglou/pretext` was previously used for text measurement but was removed — its inline styles were overridden by `framework-preview.css` `!important` rules, making it entirely inert. All text sizing uses CSS `clamp()` with `cqi` units.
+- svelte-dnd-action used for both outline (slide/block reorder) and canvas (module drag-and-drop with cross-zone support in layout-split). Drag handle (`.canvas-drag-handle`) at top-left of modules, resize handle at bottom-right — no gesture conflict. All DnD operations go through `applyMutation` for undo/redo support.
 - Step reveals render in both inline preview (via `slide-html.ts` `wrapStep()`) and full deck preview (via export `stepAttrs()`). The inline preview CSS overrides `step-hidden` to `opacity: 1` so all steps are visible; the full deck preview uses navigation JS to reveal steps on click/arrow.
 - Export doesn't include speaker notes panel yet.
 - No real-time collaborative editing — uses pessimistic locking (5-min TTL with heartbeat).
