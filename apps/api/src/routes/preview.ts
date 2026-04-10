@@ -87,13 +87,20 @@ previewRouter.get('/:id/preview', async (c) => {
   }
 
   // Render HTML — use same-origin artifact endpoint so previews send Referer
-  const htmlTemplate = renderDeckHtml(deck.name, slidesWithBlocks, theme, undefined, { artifactEndpoint: '/api/artifact' })
+  const publicUrl = process.env.PUBLIC_URL || ''
+  const apiBase = publicUrl ? `${publicUrl}/slide-maker` : ''
+  const htmlTemplate = renderDeckHtml(deck.name, slidesWithBlocks, theme, undefined, { artifactEndpoint: `${apiBase}/api/artifact` })
 
   // Replace the external CSS link with an inline <style> block
-  const html = htmlTemplate.replace(
+  // Rewrite /api/ URLs to include the base path so images resolve behind the /slide-maker/ proxy
+  let html = htmlTemplate.replace(
     '<link rel="stylesheet" href="css/styles.css">',
     `<style>${FRAMEWORK_CSS}</style>`
   )
+  if (apiBase) {
+    html = html.replace(/src="\/api\//g, `src="${apiBase}/api/`)
+  }
+
 
   return new Response(html, {
     headers: {
