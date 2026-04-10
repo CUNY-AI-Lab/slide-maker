@@ -118,14 +118,18 @@
     }
   }
 
-  // Corner resize — pointer events with capture, shift-drag aspect lock
-  const PERSISTABLE_RESIZE_TYPES = ['artifact', 'image', 'video']
+  // Corner resize — two modes:
+  // 1. Dimension resize (artifact, image, video) — persists width/height
+  // 2. Font-size resize (text modules) — scales font size up/down
+  const DIMENSION_RESIZE_TYPES = ['artifact', 'image', 'video']
+  const TEXT_RESIZE_TYPES = ['heading', 'text', 'card', 'tip-box', 'prompt-block', 'stream-list', 'label', 'comparison', 'card-grid', 'flow']
   let wrapperEl: HTMLDivElement | undefined = $state()
   let customW = $state<number | null>(null)
   let customH = $state<number | null>(null)
   let resizing = $state(false)
   let scaleFactor = $state(1)
   let resizeLabel = $state('')
+  let liveFontSize = $state<number | null>(null)
 
   // Captured at drag start
   let _resizeStartX = 0
@@ -135,7 +139,7 @@
   let _resizeNaturalW = 0
   let _resizeNaturalH = 0
   let _resizeAspect = 1
-
+  let _resizeStartFontSize = 16
   let _resizeCorner: 'tl' | 'tr' | 'bl' | 'br' = 'br'
 
   function handleResizeDown(e: PointerEvent) {
@@ -152,44 +156,65 @@
     _resizeNaturalW = wrapperEl!.scrollWidth
     _resizeNaturalH = wrapperEl!.scrollHeight
     _resizeAspect = _resizeStartW / Math.max(_resizeStartH, 1)
+    // Capture starting font size for text resize mode
+    const current = Number(module.data?.fontSize) || parseFloat(getComputedStyle(wrapperEl!).fontSize) || 16
+    _resizeStartFontSize = current
   }
 
   function handleResizeMove(e: PointerEvent) {
     if (!resizing) return
     const dx = e.clientX - _resizeStartX
     const dy = e.clientY - _resizeStartY
-    // Flip delta direction based on which corner is dragged
     const sx = _resizeCorner.includes('l') ? -1 : 1
     const sy = _resizeCorner.includes('t') ? -1 : 1
-    let newW = Math.max(160, _resizeStartW + dx * sx)
-    let newH = Math.max(60, _resizeStartH + dy * sy)
-    if (e.shiftKey) {
-      newH = newW / _resizeAspect
-      if (newH < 60) { newH = 60; newW = newH * _resizeAspect }
+
+    if (TEXT_RESIZE_TYPES.includes(module.type)) {
+      // Font-size mode: vertical drag scales font size
+      const delta = dy * sy
+      const scale = 1 + delta / 200
+      const newSize = Math.round(Math.max(8, Math.min(96, _resizeStartFontSize * scale)))
+      liveFontSize = newSize
+      resizeLabel = `${newSize}px`
+    } else {
+      // Dimension mode (artifact/image/video)
+      let newW = Math.max(160, _resizeStartW + dx * sx)
+      let newH = Math.max(60, _resizeStartH + dy * sy)
+      if (e.shiftKey) {
+        newH = newW / _resizeAspect
+        if (newH < 60) { newH = 60; newW = newH * _resizeAspect }
+      }
+      customW = newW
+      customH = newH
+      resizeLabel = `${Math.round(newW)} × ${Math.round(newH)}${e.shiftKey ? ' ⊟' : ''}`
+      const scaleX = newW / Math.max(_resizeNaturalW, 1)
+      const scaleY = newH / Math.max(_resizeNaturalH, 1)
+      scaleFactor = Math.min(scaleX, scaleY, 1)
     }
-    customW = newW
-    customH = newH
-    resizeLabel = `${Math.round(newW)} × ${Math.round(newH)}${e.shiftKey ? ' ⊟' : ''}`
-    const scaleX = newW / Math.max(_resizeNaturalW, 1)
-    const scaleY = newH / Math.max(_resizeNaturalH, 1)
-    scaleFactor = Math.min(scaleX, scaleY, 1)
   }
 
   function handleResizeUp(e: PointerEvent) {
     if (!resizing) return
     resizing = false
     resizeLabel = ''
-    // Persist resize for artifact/image via mutation-routed callback
-    if (customW && customH && PERSISTABLE_RESIZE_TYPES.includes(module.type)) {
+
+    if (TEXT_RESIZE_TYPES.includes(module.type) && liveFontSize) {
+      // Persist font size
+      onchange?.({ ...module.data, fontSize: `${liveFontSize}px` })
+      liveFontSize = null
+    } else if (customW && customH && DIMENSION_RESIZE_TYPES.includes(module.type)) {
       const next: Record<string, unknown> = { ...module.data, width: `${Math.round(customW)}px`, height: `${Math.round(customH)}px` }
       if (module.type === 'artifact') next.autoSize = false
       onresize?.(next)
     }
-    // Always reset visual state — non-persisted types lose resize on release
     customW = null
     customH = null
     scaleFactor = 1
   }
+
+  // Resolved font size: live drag value > persisted value > default
+  const resolvedFontSize = $derived(
+    liveFontSize ? `${liveFontSize}px` : (module.data?.fontSize as string) || undefined
+  )
 </script>
 
 <div
@@ -252,7 +277,7 @@
     <span class="step-badge">Step {module.stepOrder + 1}</span>
   {/if}
 
-  <div class="module-content" style:transform={scaleFactor !== 1 ? `scale(${scaleFactor})` : undefined} style:transform-origin={scaleFactor !== 1 ? 'top center' : undefined}>
+  <div class="module-content" style:transform={scaleFactor !== 1 ? `scale(${scaleFactor})` : undefined} style:transform-origin={scaleFactor !== 1 ? 'top center' : undefined} style:font-size={resolvedFontSize}>
     {#if Renderer}
       {#if module.type === 'artifact'}
         <ArtifactModule data={module.data} moduleId={module.id} {slideId} {editable} {onchange} />
