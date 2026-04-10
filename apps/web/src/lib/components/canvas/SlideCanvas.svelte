@@ -261,14 +261,15 @@
   .slide-frame {
     width: 100%;
     max-width: 960px;
-    height: auto;
-    max-height: 100%;
     aspect-ratio: 16 / 9;
     background: white;
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    /* Prevent content from stretching frame past 16:9 */
+    min-height: 0;
+    flex-shrink: 0;
   }
   .no-slide {
     color: var(--color-text-muted);
