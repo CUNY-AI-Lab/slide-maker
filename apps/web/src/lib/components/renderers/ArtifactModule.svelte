@@ -143,6 +143,19 @@
     }, DEFAULT_ARTIFACT_RENDER_TIMEOUT_MS)
   }
 
+  function handleSrcdocLoad() {
+    clearRenderTimer()
+    const latest = get(renderDiagnostics)[moduleId]
+    if (!latest || latest.status === 'loading') {
+      markModuleRenderStatus({
+        moduleId,
+        slideId,
+        surface: 'edit',
+        status: 'ready',
+      })
+    }
+  }
+
   function handleIframeLoad() {
     if (!iframeSrc) return
     clearRenderTimer()
@@ -356,8 +369,8 @@
       class:no-interact={editable}
       sandbox="allow-scripts"
       title={alt}
-      loading="lazy"
       referrerpolicy="origin-when-cross-origin"
+      onload={handleSrcdocLoad}
     ></iframe>
   {:else if iframeSrc}
     <iframe
