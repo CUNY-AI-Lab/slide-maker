@@ -164,4 +164,34 @@ auth.get('/me', authMiddleware, async (c) => {
   })
 })
 
+// POST /change-password
+auth.post('/change-password', authMiddleware, async (c) => {
+  const user = c.get('user')
+  const body = await c.req.json()
+  const { currentPassword, newPassword } = body
+
+  if (!currentPassword || !newPassword) {
+    return c.json({ error: 'Current password and new password are required' }, 400)
+  }
+
+  if (typeof newPassword !== 'string' || newPassword.length < 8) {
+    return c.json({ error: 'New password must be at least 8 characters' }, 400)
+  }
+
+  const dbUser = await db.select().from(users).where(eq(users.id, user.id)).get()
+  if (!dbUser) {
+    return c.json({ error: 'User not found' }, 404)
+  }
+
+  const valid = await verify(dbUser.passwordHash, currentPassword)
+  if (!valid) {
+    return c.json({ error: 'Current password is incorrect' }, 403)
+  }
+
+  const newHash = await hash(newPassword)
+  await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, user.id))
+
+  return c.json({ message: 'Password changed successfully' })
+})
+
 export default auth
