@@ -288,6 +288,8 @@
     position: relative;
     width: 100%;
     overflow: visible;
+    display: flex;
+    flex-direction: column;
   }
   .module-wrapper.editable {
     border-radius: var(--radius-sm, 6px);
@@ -324,6 +326,9 @@
 
   .module-content {
     width: 100%;
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
   }
   .module-wrapper.editable > .module-content {
     padding-top: 20px;
