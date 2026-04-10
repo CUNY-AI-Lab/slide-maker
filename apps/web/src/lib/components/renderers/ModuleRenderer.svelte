@@ -136,10 +136,13 @@
   let _resizeNaturalH = 0
   let _resizeAspect = 1
 
+  let _resizeCorner: 'tl' | 'tr' | 'bl' | 'br' = 'br'
+
   function handleResizeDown(e: PointerEvent) {
     e.preventDefault()
     e.stopPropagation()
     ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+    _resizeCorner = ((e.currentTarget as HTMLElement).dataset.corner as typeof _resizeCorner) || 'br'
     resizing = true
     _resizeStartX = e.clientX
     _resizeStartY = e.clientY
@@ -153,9 +156,13 @@
 
   function handleResizeMove(e: PointerEvent) {
     if (!resizing) return
-    let newW = Math.max(160, _resizeStartW + (e.clientX - _resizeStartX))
-    let newH = Math.max(60, _resizeStartH + (e.clientY - _resizeStartY))
-    // Shift-drag locks aspect ratio
+    const dx = e.clientX - _resizeStartX
+    const dy = e.clientY - _resizeStartY
+    // Flip delta direction based on which corner is dragged
+    const sx = _resizeCorner.includes('l') ? -1 : 1
+    const sy = _resizeCorner.includes('t') ? -1 : 1
+    let newW = Math.max(160, _resizeStartW + dx * sx)
+    let newH = Math.max(60, _resizeStartH + dy * sy)
     if (e.shiftKey) {
       newH = newW / _resizeAspect
       if (newH < 60) { newH = 60; newW = newH * _resizeAspect }
@@ -163,7 +170,6 @@
     customW = newW
     customH = newH
     resizeLabel = `${Math.round(newW)} × ${Math.round(newH)}${e.shiftKey ? ' ⊟' : ''}`
-    // Scale content down only — enlarging gives more reflow space instead of zooming
     const scaleX = newW / Math.max(_resizeNaturalW, 1)
     const scaleY = newH / Math.max(_resizeNaturalH, 1)
     scaleFactor = Math.min(scaleX, scaleY, 1)
@@ -259,15 +265,18 @@
   </div>
 
   {#if editable}
-    <div
-      class="corner-resize"
-      role="separator"
-      aria-label="Resize module"
-      onpointerdown={handleResizeDown}
-      onpointermove={handleResizeMove}
-      onpointerup={handleResizeUp}
-      onpointercancel={handleResizeUp}
-    ></div>
+    {#each ['tl', 'tr', 'bl', 'br'] as corner (corner)}
+      <div
+        class="corner-resize corner-{corner}"
+        data-corner={corner}
+        role="separator"
+        aria-label="Resize module"
+        onpointerdown={handleResizeDown}
+        onpointermove={handleResizeMove}
+        onpointerup={handleResizeUp}
+        onpointercancel={handleResizeUp}
+      ></div>
+    {/each}
     {#if resizeLabel}
       <div class="resize-tooltip">{resizeLabel}</div>
     {/if}
@@ -501,14 +510,11 @@
     border-color: var(--color-error);
   }
 
-  /* Corner resize — fade in on hover */
+  /* Corner resize handles — all four corners, fade in on hover */
   .corner-resize {
     position: absolute;
-    bottom: 0;
-    right: 0;
     width: 16px;
     height: 16px;
-    cursor: nwse-resize;
     z-index: 10;
     opacity: 0;
     transition: opacity 0.15s ease;
@@ -517,15 +523,19 @@
   .corner-resize::after {
     content: '';
     position: absolute;
-    bottom: 2px;
-    right: 2px;
     width: 8px;
     height: 8px;
-    border-right: 2px solid var(--color-primary);
-    border-bottom: 2px solid var(--color-primary);
     opacity: 0.5;
     transition: opacity 0.1s;
   }
+  .corner-br { bottom: 0; right: 0; cursor: nwse-resize; }
+  .corner-br::after { bottom: 2px; right: 2px; border-right: 2px solid var(--color-primary); border-bottom: 2px solid var(--color-primary); }
+  .corner-bl { bottom: 0; left: 0; cursor: nesw-resize; }
+  .corner-bl::after { bottom: 2px; left: 2px; border-left: 2px solid var(--color-primary); border-bottom: 2px solid var(--color-primary); }
+  .corner-tr { top: 0; right: 0; cursor: nesw-resize; }
+  .corner-tr::after { top: 2px; right: 2px; border-right: 2px solid var(--color-primary); border-top: 2px solid var(--color-primary); }
+  .corner-tl { top: 0; left: 0; cursor: nwse-resize; }
+  .corner-tl::after { top: 2px; left: 2px; border-left: 2px solid var(--color-primary); border-top: 2px solid var(--color-primary); }
   .module-wrapper.editable:hover .corner-resize {
     opacity: 1;
   }
