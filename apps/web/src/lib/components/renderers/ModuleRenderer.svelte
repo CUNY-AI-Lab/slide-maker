@@ -316,6 +316,9 @@
   .module-content {
     width: 100%;
   }
+  .module-wrapper.editable > .module-content {
+    padding-top: 20px;
+  }
 
   /* Drag handle — top-left, appears on hover */
   .canvas-drag-handle {

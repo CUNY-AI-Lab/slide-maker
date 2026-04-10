@@ -67,7 +67,7 @@
   .label-amber { color: #d4a017; }
   .label-green { color: #2d8a4e; }
   .label[contenteditable="true"]:focus {
-    outline: 1px dashed var(--color-primary);
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary, #3B73E6) 45%, transparent);
   }
 </style>

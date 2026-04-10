@@ -445,28 +445,30 @@
     display: flex;
     flex-direction: column;
     width: 100%;
-    border: 1px solid var(--color-border, rgba(255, 255, 255, 0.08));
-    border-radius: 4px;
-    overflow: hidden;
-    background: rgba(0, 0, 0, 0.02);
+    border: 1px solid var(--theme-border, rgba(17, 24, 39, 0.12));
+    border-radius: 8px;
+    overflow: visible;
+    background: var(--theme-card-bg, rgba(255, 255, 255, 0.03));
     position: relative;
   }
   .artifact-header {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 3px 8px;
-    background: rgba(0, 0, 0, 0.04);
-    border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.06));
-    min-height: 20px;
+    padding: 4px 10px;
+    background: color-mix(in srgb, var(--theme-card-bg, rgba(255,255,255,0.03)) 50%, transparent);
+    border-bottom: 1px solid var(--theme-border, rgba(17, 24, 39, 0.12));
+    min-height: 22px;
   }
   .artifact-label {
-    font-size: 9px;
-    font-weight: 500;
-    color: var(--color-text-muted, #6b7280);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--theme-secondary-label, #6b7280);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-transform: none;
+    letter-spacing: 0.2px;
   }
   .edit-data-btn {
     font-size: 10px;
@@ -506,9 +508,9 @@
     align-items: center;
     justify-content: center;
     height: 200px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px dashed rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.4);
+    background: var(--theme-card-bg, rgba(255,255,255,0.03));
+    border: 1px dashed var(--theme-border, rgba(17,24,39,0.12));
+    color: var(--theme-text-muted, rgba(240,240,240,0.65));
     font-size: 0.9rem;
     gap: 8px;
   }
@@ -698,22 +700,23 @@
     bottom: 8px;
     display: flex;
     flex-direction: column;
-    gap: 2px;
-    padding: 8px 10px;
-    border-radius: 6px;
+    gap: 4px;
+    padding: 8px 12px;
+    border-radius: 8px;
     font-size: 11px;
     line-height: 1.35;
-    backdrop-filter: blur(4px);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+    backdrop-filter: saturate(140%) blur(6px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(17, 24, 39, 0.18);
+    background: rgba(255, 255, 255, 0.92);
+    color: #111827;
   }
-  .artifact-status.loading {
-    background: rgba(15, 23, 42, 0.72);
-    color: rgba(255, 255, 255, 0.86);
-  }
+  .artifact-status.loading strong { color: #374151; }
   .artifact-status.error {
-    background: rgba(127, 29, 29, 0.9);
-    color: #fee2e2;
+    border-color: color-mix(in srgb, var(--color-error, #dc2626) 35%, rgba(17,24,39,0.18));
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--color-error, #dc2626) 25%, transparent);
   }
+  .artifact-status.error strong { color: var(--color-error, #dc2626); }
   .artifact-status strong {
     font-size: 10px;
     letter-spacing: 0.03em;

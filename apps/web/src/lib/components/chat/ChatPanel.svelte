@@ -354,7 +354,7 @@
   <div class="messages" bind:this={messagesContainer} aria-live="polite">
     {#if $chatMessages.length === 0}
       <div class="empty-state">
-        <p>Ask the AI to build slides for you.</p>
+        <p>Start a conversation to create your deck.</p>
       </div>
     {:else}
       {#each $chatMessages as msg (msg.id)}

@@ -122,13 +122,26 @@
     if (!deck) return
 
     try {
+      // Normalize modules for consistency (e.g., artifacts auto-size by ratio)
+      const normalizedModules = template.modules.map((m) => {
+        if (m.type === 'artifact') {
+          const data = { ...(m.data || {}) }
+          // Remove fixed height from older templates; prefer auto-size + aspect ratio
+          if ('height' in data) delete (data as Record<string, unknown>).height
+          if (data.autoSize === undefined) (data as Record<string, unknown>).autoSize = true
+          if (data.aspectRatio === undefined) (data as Record<string, unknown>).aspectRatio = 16 / 9
+          return { ...m, data }
+        }
+        return m
+      })
+
       const res = await fetch(`${API_URL}/api/decks/${deck.id}/slides`, {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           layout: template.layout,
-          modules: template.modules,
+          modules: normalizedModules,
         }),
       })
 

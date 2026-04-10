@@ -39,7 +39,7 @@
   let hasSlides = $derived(!!$currentDeck && ($currentDeck.slides?.length ?? 0) > 0)
   let placeholderText = $derived.by(() => {
     if (!hasSlides) return 'Describe your first slide — AI will create it'
-    return $activeSlideId ? 'Ask AI to edit slides + resources' : 'Select a slide to enable AI edits (or type /search)'
+    return $activeSlideId ? 'Describe changes to this slide…' : 'Select a slide to enable edits (or type /search)'
   })
   let canSend = $derived.by(() => {
     const trimmed = plainText.trim()
