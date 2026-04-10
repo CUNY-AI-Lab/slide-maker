@@ -87,7 +87,7 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 }
 
 /* ── Layout: Full Dark ───────────────────────────────────────────── */
-.layout-full-dark { background: #0d1117; align-items: center; justify-content: center; gap: 24px; }
+.layout-full-dark { background: #0d1117; color: #f0f0f0; align-items: center; justify-content: center; gap: 24px; }
 
 /* ── Layout: Divider ─────────────────────────────────────────────── */
 .layout-divider {
