@@ -11,6 +11,7 @@
     "seed:admin": "tsx src/db/seed.ts --admin"
   },
   "dependencies": {
+    "@aws-sdk/client-bedrock-runtime": "^3.676.0",
     "@anthropic-ai/sdk": "^0.39.0",
     "@hono/node-server": "^1.19.11",
     "@lucia-auth/adapter-drizzle": "^1.1.0",

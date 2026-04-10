@@ -1,21 +1,18 @@
 import { env } from '../env.js'
-import OpenAI from 'openai'
 
 /**
- * AWS Bedrock via the OpenAI-compatible Mantle API.
- * Uses BEDROCK_API_KEY as a bearer token against the regional Mantle endpoint.
- * See: https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html
+ * AWS Bedrock via native SDK with IAM credentials.
+ * Supports both IAM auth (AWS_ACCESS_KEY_ID/SECRET) and ABSK bearer token (Mantle API).
+ * Set AWS_REGION and provide credentials via env vars or AWS credential chain.
  */
 
-function getClient() {
-  const region = env.awsRegion || 'us-gov-east-1'
-  const apiKey = env.bedrockApiKey
-  if (!apiKey) throw new Error('BEDROCK_API_KEY not set')
-
-  return new OpenAI({
-    apiKey,
-    baseURL: `https://bedrock-mantle.${region}.api.aws/v1`,
-  })
+// Lazy import to avoid requiring the package unless used
+async function loadBedrock() {
+  const mod = await import('@aws-sdk/client-bedrock-runtime')
+  return {
+    BedrockRuntimeClient: mod.BedrockRuntimeClient,
+    ConverseStreamCommand: mod.ConverseStreamCommand,
+  }
 }
 
 export async function* streamBedrock(
@@ -23,21 +20,45 @@ export async function* streamBedrock(
   messages: { role: 'user' | 'assistant'; content: string }[],
   model: string = 'anthropic.claude-3-5-haiku-20241022-v1:0',
 ): AsyncGenerator<string> {
-  const client = getClient()
+  const { BedrockRuntimeClient, ConverseStreamCommand } = await loadBedrock()
 
-  const stream = await client.chat.completions.create({
-    model,
-    stream: true,
-    max_tokens: 4096,
-    messages: [
-      { role: 'system', content: systemPrompt },
-      ...messages,
-    ],
+  const region = env.awsRegion || process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || 'us-east-1'
+
+  const clientConfig: Record<string, unknown> = { region }
+
+  // Explicit IAM credentials from env (takes precedence over credential chain)
+  const accessKey = process.env.AWS_ACCESS_KEY_ID
+  const secretKey = process.env.AWS_SECRET_ACCESS_KEY
+  if (accessKey && secretKey) {
+    clientConfig.credentials = {
+      accessKeyId: accessKey,
+      secretAccessKey: secretKey,
+      ...(process.env.AWS_SESSION_TOKEN ? { sessionToken: process.env.AWS_SESSION_TOKEN } : {}),
+    }
+  }
+
+  const client = new BedrockRuntimeClient(clientConfig)
+
+  const command = new ConverseStreamCommand({
+    modelId: model,
+    system: [{ text: systemPrompt }],
+    messages: messages.map((m) => ({
+      role: m.role,
+      content: [{ text: m.content }],
+    })),
+    inferenceConfig: {
+      maxTokens: 4096,
+    },
   })
 
-  for await (const chunk of stream) {
-    const text = chunk.choices?.[0]?.delta?.content
-    if (text) yield text
+  const res = await client.send(command)
+
+  if (res.stream) {
+    for await (const event of res.stream) {
+      if (event.contentBlockDelta?.delta?.text) {
+        yield event.contentBlockDelta.delta.text
+      }
+    }
   }
 }
 
