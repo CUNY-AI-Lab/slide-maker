@@ -39,22 +39,21 @@
 
 <style>
   .tip-box {
-    background: rgba(121, 192, 255, 0.1);
-    border-left: 4px solid #79c0ff;
-    padding: clamp(1rem, 2.3cqi, 1.6rem);
-    border-radius: 0 8px 8px 0;
+    background: rgba(100, 181, 246, 0.05);
+    border: 1px solid rgba(100, 181, 246, 0.12);
+    border-radius: 8px;
+    padding: clamp(14px, 2.5cqi, 20px) clamp(16px, 3cqi, 24px);
     font-family: var(--font-body);
-    min-height: clamp(120px, 16cqi, 200px);
   }
   .tip-box strong {
     display: block;
-    font-weight: 700;
-    color: #79c0ff;
-    margin-bottom: 0.5rem;
-    font-size: clamp(0.95rem, 1.6cqi, 1.15rem);
+    font-weight: 500;
+    color: var(--accent-cyan, #64b5f6);
+    margin-bottom: 6px;
+    font-size: clamp(0.85rem, 1.3cqi, 1rem);
   }
   .tip-box-content {
-    font-size: clamp(0.95rem, 1.6cqi, 1.1rem);
-    line-height: 1.65;
+    font-size: clamp(0.85rem, 1.3cqi, 1rem);
+    line-height: 1.6;
   }
 </style>

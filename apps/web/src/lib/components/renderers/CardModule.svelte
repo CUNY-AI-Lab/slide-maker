@@ -38,26 +38,24 @@
 
 <style>
   .card {
-    border-left: 4px solid var(--teal, #2FB8D6);
-    padding: clamp(1rem, 2.5cqi, 1.75rem);
-    background: rgba(47, 184, 214, 0.06);
-    border-radius: 0 8px 8px 0;
-    font-size: clamp(0.95rem, 1.8cqi, 1.15rem);
-    line-height: 1.65;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: clamp(16px, 3cqi, 24px);
+    font-size: clamp(0.85rem, 1.3cqi, 1rem);
+    line-height: 1.45;
     font-family: var(--font-body);
-    min-height: clamp(120px, 16cqi, 220px);
+    color: rgba(240, 240, 240, 0.65);
   }
   .card h3 {
-    font-size: clamp(1rem, 1.8cqi, 1.3rem);
-    margin: 0 0 0.5rem 0;
+    font-size: clamp(0.95rem, 1.6cqi, 1.3rem);
+    margin: 0 0 8px 0;
     font-family: var(--font-display);
   }
   .card-navy {
-    border-left-color: var(--navy, #1D3A83);
-    background: rgba(29, 58, 131, 0.06);
+    border-left: 3px solid var(--accent-navy, #1e3a5f);
   }
   .card-cyan {
-    border-left-color: var(--teal, #2FB8D6);
-    background: rgba(47, 184, 214, 0.06);
+    border-left: 3px solid var(--accent-cyan, #64b5f6);
   }
 </style>

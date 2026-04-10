@@ -56,25 +56,17 @@
     font-family: var(--font-body);
   }
   .stream-list li {
-    padding: 0.35rem 0 0.35rem 1.25rem;
-    position: relative;
+    padding: clamp(8px, 1.5cqi, 12px) clamp(12px, 2cqi, 16px);
+    border-left: 2px solid var(--accent-cyan, #64b5f6);
+    margin-bottom: clamp(4px, 0.8cqi, 6px);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 0 6px 6px 0;
     font-size: clamp(0.8rem, 1.3cqi, 1rem);
-    line-height: 1.6;
+    line-height: 1.5;
     outline: none;
-  }
-  .stream-list li::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0.75rem;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--teal, #2FB8D6);
   }
   .stream-list li[contenteditable="true"]:focus {
     outline: none;
-    border-radius: 3px;
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary, #3B73E6) 45%, transparent);
   }
 </style>

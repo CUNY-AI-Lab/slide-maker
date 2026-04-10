@@ -45,19 +45,28 @@
 <style>
   .flow {
     display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
   }
   .flow-node {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: clamp(10px, 1.8cqi, 14px) clamp(14px, 2.8cqi, 22px);
+    font-size: clamp(0.8rem, 1.3cqi, 1rem);
+    text-align: center;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
+    gap: 4px;
   }
   .flow-icon {
     width: 1.8rem;
     height: 1.8rem;
     border-radius: 50%;
-    background: var(--teal, #2FB8D6);
+    background: var(--accent-cyan, #64b5f6);
     color: white;
     display: flex;
     align-items: center;
@@ -68,24 +77,24 @@
     font-family: var(--font-display);
   }
   .flow-arrow {
-    width: 2px;
-    height: 0.6rem;
-    background: var(--teal, #2FB8D6);
-    margin-left: 0.9rem;
-    opacity: 0.4;
+    font-size: 1.2rem;
+    color: rgba(240, 240, 240, 0.65);
+  }
+  .flow-arrow::after {
+    content: '→';
   }
   .flow-body {
     min-width: 0;
   }
   .flow-label {
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: clamp(0.8rem, 1.3cqi, 1rem);
     font-family: var(--font-display);
     line-height: 1.2;
   }
   .flow-desc {
-    font-size: 0.75rem;
-    color: var(--color-text-secondary);
+    font-size: clamp(0.7rem, 1cqi, 0.85rem);
+    color: rgba(240, 240, 240, 0.65);
     font-family: var(--font-body);
     line-height: 1.4;
   }

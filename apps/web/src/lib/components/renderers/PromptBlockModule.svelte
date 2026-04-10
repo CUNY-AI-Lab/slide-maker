@@ -48,20 +48,20 @@
 
 <style>
   .prompt-block {
-    background: #0b0e14;
-    color: rgba(255, 255, 255, 0.92);
+    background: rgba(0, 0, 0, 0.3);
+    color: var(--text-primary, #f0f0f0);
     font-family: 'JetBrains Mono', monospace;
-    padding: clamp(0.75rem, 1.5cqi, 1.25rem);
-    border-radius: 6px;
-    border-left: 4px solid #79c0ff;
-    font-size: clamp(0.7rem, 1.1cqi, 0.85rem);
-    line-height: 1.6;
+    padding: clamp(14px, 2.5cqi, 20px) clamp(16px, 3cqi, 24px);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    font-size: clamp(0.8rem, 1.3cqi, 1.05rem);
+    line-height: 1.5;
     white-space: pre-wrap;
     position: relative;
   }
-  .prompt-good { border-left-color: #6bcf7f; }
-  .prompt-mid { border-left-color: #ffd93d; }
-  .prompt-bad { border-left-color: #ff6b6b; }
+  .prompt-good { border-color: rgba(110, 231, 183, 0.3); background: rgba(110, 231, 183, 0.04); }
+  .prompt-mid { border-color: rgba(251, 191, 36, 0.3); background: rgba(251, 191, 36, 0.04); }
+  .prompt-bad { border-color: rgba(248, 113, 113, 0.3); background: rgba(248, 113, 113, 0.04); }
 
   pre {
     margin: 0;

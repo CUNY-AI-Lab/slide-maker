@@ -35,38 +35,27 @@
 
 <style>
   .comparison {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(45%, 1fr));
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    overflow: hidden;
+    display: flex;
+    gap: clamp(12px, 2.5cqi, 20px);
+    width: 100%;
     font-family: var(--font-body);
   }
   .comparison-panel {
-    padding: clamp(0.75rem, 1.5cqi, 1.25rem);
-  }
-  .comparison-panel + .comparison-panel {
-    border-left: 1px solid var(--color-border);
+    flex: 1;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: clamp(14px, 3cqi, 24px);
   }
   .comparison-panel h3 {
-    color: #79c0ff;
-    font-weight: 700;
-    margin: 0 0 0.5rem 0;
-    font-size: clamp(0.8rem, 1.2cqi, 1rem);
+    font-size: clamp(0.9rem, 1.6cqi, 1.3rem);
+    margin: 0 0 8px 0;
     font-family: var(--font-display);
+    font-weight: 600;
   }
   .panel-content {
-    font-size: clamp(0.75rem, 1.1cqi, 0.9rem);
-    line-height: 1.6;
-    color: var(--color-text-secondary);
-  }
-  @container (max-width: 500px) {
-    .comparison {
-      grid-template-columns: 1fr;
-    }
-    .comparison-panel + .comparison-panel {
-      border-left: none;
-      border-top: 1px solid var(--color-border);
-    }
+    font-size: clamp(0.8rem, 1.3cqi, 1rem);
+    line-height: 1.45;
+    color: rgba(240, 240, 240, 0.65);
   }
 </style>
