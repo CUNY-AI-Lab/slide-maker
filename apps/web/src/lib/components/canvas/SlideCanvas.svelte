@@ -25,31 +25,29 @@
   let activeEditor: Editor | null = $state(null)
   let editorToken = 0
 
-  // Overflow detection — the slide-frame uses a fixed pixel height (width * 9/16).
-  // We measure the inner content via a wrapper div to detect overflow.
+  // Overflow detection — compare inner content height against frame's CSS height
   let slideFrameEl: HTMLDivElement | undefined = $state()
   let slideInnerEl: HTMLDivElement | undefined = $state()
   let overflowing = $state(false)
-  let frameHeight = $state<number | undefined>(undefined)
+
+  function checkOverflow() {
+    const frame = slideFrameEl
+    const inner = slideInnerEl
+    if (!frame || !inner) { overflowing = false; return }
+    // Frame height is set by CSS aspect-ratio: 16/9
+    const frameH = frame.clientHeight
+    const contentH = inner.scrollHeight
+    overflowing = contentH > frameH + 4
+  }
 
   $effect(() => {
-    const outer = slideFrameEl
     const inner = slideInnerEl
-    if (!outer || !inner) { overflowing = false; return }
-    const check = () => {
-      if (!outer || !inner) return
-      const w = outer.clientWidth
-      const h = Math.floor(w * 9 / 16)
-      frameHeight = h
-      // Inner content height vs the 16:9 frame height
-      overflowing = inner.scrollHeight > h + 4
-    }
-    const ro = new ResizeObserver(check)
-    ro.observe(outer)
+    if (!inner) { overflowing = false; return }
+    const ro = new ResizeObserver(() => checkOverflow())
     ro.observe(inner)
-    const mo = new MutationObserver(() => requestAnimationFrame(check))
+    const mo = new MutationObserver(() => requestAnimationFrame(checkOverflow))
     mo.observe(inner, { childList: true, subtree: true })
-    requestAnimationFrame(check)
+    requestAnimationFrame(checkOverflow)
     return () => { ro.disconnect(); mo.disconnect() }
   })
 
@@ -190,8 +188,8 @@
     {#if activeSlide}
       {#if canvasMode === 'edit'}
         <div class="slide-frame-outer">
-          <div class="slide-frame" data-theme={themeMode} style="{themeStyle}; {frameHeight ? `height: ${frameHeight}px` : ''}" bind:this={slideFrameEl}>
-            <div bind:this={slideInnerEl}>
+          <div class="slide-frame" data-theme={themeMode} style={themeStyle} bind:this={slideFrameEl}>
+            <div class="slide-inner" bind:this={slideInnerEl}>
               <SlideRenderer slide={activeSlide} {editable} onEditorReady={handleEditorReady} onEditorBlur={handleEditorBlur} />
             </div>
           </div>
@@ -282,6 +280,10 @@
     border: 1px solid var(--color-border);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+  }
+  .slide-inner {
+    width: 100%;
+    height: 100%;
   }
   .no-slide {
     color: var(--color-text-muted);
