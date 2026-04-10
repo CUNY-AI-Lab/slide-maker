@@ -1,25 +1,21 @@
 import { env } from '../env.js'
+import OpenAI from 'openai'
 
-// Lazy import to avoid requiring the package unless used
-async function loadBedrock() {
-  try {
-    const mod = await import('@aws-sdk/client-bedrock-runtime')
-    return {
-      BedrockRuntimeClient: (mod as any).BedrockRuntimeClient,
-      InvokeModelWithResponseStreamCommand: (mod as any).InvokeModelWithResponseStreamCommand,
-    }
-  } catch {
-    return { BedrockRuntimeClient: null, InvokeModelWithResponseStreamCommand: null }
-  }
-}
+/**
+ * AWS Bedrock via the OpenAI-compatible Mantle API.
+ * Uses BEDROCK_API_KEY as a bearer token against the regional Mantle endpoint.
+ * See: https://docs.aws.amazon.com/bedrock/latest/userguide/bedrock-mantle.html
+ */
 
-function toAnthropicMessages(
-  messages: { role: 'user' | 'assistant'; content: string }[],
-) {
-  return messages.map((m) => ({
-    role: m.role,
-    content: [{ type: 'text', text: m.content }],
-  }))
+function getClient() {
+  const region = env.awsRegion || 'us-gov-east-1'
+  const apiKey = env.bedrockApiKey
+  if (!apiKey) throw new Error('BEDROCK_API_KEY not set')
+
+  return new OpenAI({
+    apiKey,
+    baseURL: `https://bedrock-mantle.${region}.api.aws/v1`,
+  })
 }
 
 export async function* streamBedrock(
@@ -27,46 +23,21 @@ export async function* streamBedrock(
   messages: { role: 'user' | 'assistant'; content: string }[],
   model: string = 'anthropic.claude-3-5-haiku-20241022-v1:0',
 ): AsyncGenerator<string> {
-  const { BedrockRuntimeClient, InvokeModelWithResponseStreamCommand } = await loadBedrock()
-  if (!BedrockRuntimeClient || !InvokeModelWithResponseStreamCommand) {
-    throw new Error('AWS Bedrock SDK not installed. Run pnpm add -w @aws-sdk/client-bedrock-runtime')
-  }
-  const region = env.awsRegion || process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION
-  if (!region) throw new Error('AWS region not configured. Set AWS_REGION in .env')
+  const client = getClient()
 
-  const clientConfig: Record<string, any> = { region }
-  if (env.bedrockApiKey) {
-    clientConfig.token = { token: env.bedrockApiKey }
-  }
-  const client = new BedrockRuntimeClient(clientConfig)
-
-  const payload = {
-    anthropic_version: 'bedrock-2023-05-31',
+  const stream = await client.chat.completions.create({
+    model,
+    stream: true,
     max_tokens: 4096,
-    system: systemPrompt,
-    messages: toAnthropicMessages(messages),
-  }
-
-  const command = new InvokeModelWithResponseStreamCommand({
-    modelId: model,
-    contentType: 'application/json',
-    accept: 'application/json',
-    body: JSON.stringify(payload),
+    messages: [
+      { role: 'system', content: systemPrompt },
+      ...messages,
+    ],
   })
 
-  const res = await client.send(command)
-  // res.body is an async iterable of events
-  for await (const evt of res.body) {
-    if (!evt?.chunk?.bytes) continue
-    try {
-      const j = JSON.parse(Buffer.from(evt.chunk.bytes).toString('utf8'))
-      if (j.type === 'content_block_delta' && j.delta?.type === 'text_delta') {
-        const text = j.delta.text as string
-        if (text) yield text
-      }
-    } catch {
-      // ignore malformed chunks
-    }
+  for await (const chunk of stream) {
+    const text = chunk.choices?.[0]?.delta?.content
+    if (text) yield text
   }
 }
 
