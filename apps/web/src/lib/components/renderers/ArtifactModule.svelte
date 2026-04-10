@@ -179,6 +179,8 @@
   }
 
   function handleArtifactMessage(event: MessageEvent) {
+    // Validate origin: accept only same-origin or 'null' (srcdoc iframes)
+    if (event.origin !== 'null' && event.origin !== window.location.origin) return
     const payload = event.data
     if (!payload || typeof payload !== 'object') return
     if ((payload as { type?: string }).type !== ARTIFACT_RENDER_EVENT) return

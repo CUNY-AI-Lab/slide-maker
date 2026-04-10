@@ -49,8 +49,11 @@ export function isPrivateIp(ip: string): boolean {
   return false
 }
 
-/** Validates a URL is safe to fetch (not targeting private/internal resources). */
-export async function validateUrlForSsrf(url: string): Promise<void> {
+/**
+ * Validates a URL is safe to fetch (not targeting private/internal resources).
+ * Returns the resolved IP so callers can pin the connection (mitigates DNS rebinding).
+ */
+export async function validateUrlForSsrf(url: string): Promise<{ resolvedIp: string }> {
   const parsed = new URL(url)
 
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
@@ -64,7 +67,7 @@ export async function validateUrlForSsrf(url: string): Promise<void> {
     if (isPrivateIp(hostname)) {
       throw new Error('URL points to a private IP address')
     }
-    return // public IPv4 literal is OK
+    return { resolvedIp: hostname }
   }
 
   // Reject bracketed IPv6 literals
@@ -77,4 +80,12 @@ export async function validateUrlForSsrf(url: string): Promise<void> {
   if (isPrivateIp(address)) {
     throw new Error('URL resolves to a private IP address')
   }
+
+  // Double-resolve to mitigate DNS rebinding TOCTOU
+  const { address: address2 } = await lookup(hostname)
+  if (isPrivateIp(address2)) {
+    throw new Error('URL resolves to a private IP address (rebind check)')
+  }
+
+  return { resolvedIp: address }
 }

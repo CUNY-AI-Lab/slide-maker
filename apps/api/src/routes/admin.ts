@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { eq, and, gte, sql, desc } from 'drizzle-orm'
 import { hash } from '@node-rs/argon2'
 import { createId } from '@paralleldrive/cuid2'
+import { isValidCunyEmail } from '@slide-maker/shared'
 import type { Session, User } from 'lucia'
 import { db } from '../db/index.js'
 import { users, decks, deckAccess, chatMessages, tokenUsage } from '../db/schema.js'
@@ -207,6 +208,10 @@ admin.post('/users', async (c) => {
 
   if (typeof email !== 'string' || !email.includes('@')) {
     return c.json({ error: 'Invalid email address' }, 400)
+  }
+
+  if (!isValidCunyEmail(email)) {
+    return c.json({ error: 'Only *.cuny.edu email addresses are allowed' }, 400)
   }
 
   if (typeof password !== 'string' || password.length < 8) {

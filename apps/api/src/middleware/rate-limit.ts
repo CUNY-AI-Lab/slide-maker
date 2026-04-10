@@ -58,7 +58,15 @@ const heartbeatLimiter = new RateLimiterMemory({
   keyPrefix: 'heartbeat',
 })
 
+// Password change: 5 attempts per 15 minutes per IP
+const passwordChangeLimiter = new RateLimiterMemory({
+  points: 5,
+  duration: 15 * 60,
+  keyPrefix: 'password-change',
+})
+
 export const loginRateLimit = createRateLimitMiddleware(loginLimiter)
 export const registerRateLimit = createRateLimitMiddleware(registerLimiter)
 export const chatRateLimit = createRateLimitMiddleware(chatLimiter)
 export const heartbeatRateLimit = createRateLimitMiddleware(heartbeatLimiter)
+export const passwordChangeRateLimit = createRateLimitMiddleware(passwordChangeLimiter)

@@ -8,7 +8,7 @@ import { db } from '../db/index.js'
 import { users, emailVerifications } from '../db/schema.js'
 import { lucia } from '../auth/lucia.js'
 import { authMiddleware } from '../middleware/auth.js'
-import { loginRateLimit, registerRateLimit } from '../middleware/rate-limit.js'
+import { loginRateLimit, registerRateLimit, passwordChangeRateLimit } from '../middleware/rate-limit.js'
 import { sendVerificationEmail } from '../email/index.js'
 
 type AuthEnv = {
@@ -165,7 +165,7 @@ auth.get('/me', authMiddleware, async (c) => {
 })
 
 // POST /change-password
-auth.post('/change-password', authMiddleware, async (c) => {
+auth.post('/change-password', authMiddleware, passwordChangeRateLimit, async (c) => {
   const user = c.get('user')
   const body = await c.req.json()
   const { currentPassword, newPassword } = body

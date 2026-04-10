@@ -13,7 +13,7 @@ export const handle: Handle = async ({ event, resolve }) => {
       "script-src 'self' 'unsafe-inline' https://*.qzz.io",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https: http://localhost:*",
+      "img-src 'self' data: blob: https://*.qzz.io https://*.cuny.edu https://images.pexels.com https://*.pexels.com http://localhost:*",
       "connect-src 'self' http://localhost:* https://*.cuny.edu https://*.qzz.io",
       "frame-src 'self' blob: https://www.youtube.com https://player.vimeo.com https://www.loom.com",
       "object-src 'none'",

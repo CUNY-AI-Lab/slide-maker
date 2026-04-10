@@ -229,7 +229,7 @@ filesRouter.get('/:deckId/files/:fileId', async (c) => {
     const safeName = path.basename(file.filename).replace(/[^\w.\-]/g, '_')
     c.header('Content-Disposition', `attachment; filename="${safeName}"`)
   }
-  c.header('Cache-Control', 'public, max-age=86400')
+  c.header('Cache-Control', 'private, max-age=86400')
   return c.body(data)
 })
 
