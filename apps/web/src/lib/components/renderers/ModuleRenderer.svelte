@@ -119,7 +119,7 @@
   }
 
   // Corner resize — pointer events with capture, shift-drag aspect lock
-  const PERSISTABLE_RESIZE_TYPES = ['artifact', 'image']
+  const PERSISTABLE_RESIZE_TYPES = ['artifact', 'image', 'text', 'heading', 'card', 'tip-box', 'prompt-block', 'comparison', 'card-grid', 'flow', 'stream-list', 'carousel', 'label', 'video']
   let wrapperEl: HTMLDivElement | undefined = $state()
   let customW = $state<number | null>(null)
   let customH = $state<number | null>(null)
