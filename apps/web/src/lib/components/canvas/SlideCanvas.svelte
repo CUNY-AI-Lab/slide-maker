@@ -34,11 +34,8 @@
     if (!el) { overflowing = false; return }
     const check = () => {
       if (!el) return
-      // Temporarily allow overflow so scrollHeight reflects true content height
-      el.style.overflow = 'auto'
-      const isOver = el.scrollHeight > el.clientHeight + 4
-      el.style.overflow = ''
-      overflowing = isOver
+      // With contain:size, scrollHeight reflects content even when clipped
+      overflowing = el.scrollHeight > el.clientHeight + 4
     }
     const ro = new ResizeObserver(check)
     ro.observe(el)
@@ -184,14 +181,16 @@
   <div class="canvas-area">
     {#if activeSlide}
       {#if canvasMode === 'edit'}
-        <div class="slide-frame" data-theme={themeMode} style={themeStyle} bind:this={slideFrameEl}>
-          <SlideRenderer slide={activeSlide} {editable} onEditorReady={handleEditorReady} onEditorBlur={handleEditorBlur} />
-        </div>
-        {#if overflowing}
-          <div class="overflow-warning" role="alert">
-            Content extends beyond the slide — some modules may not be visible in the presentation
+        <div class="slide-frame-outer">
+          <div class="slide-frame" data-theme={themeMode} style={themeStyle} bind:this={slideFrameEl}>
+            <SlideRenderer slide={activeSlide} {editable} onEditorReady={handleEditorReady} onEditorBlur={handleEditorBlur} />
           </div>
-        {/if}
+          {#if overflowing}
+            <div class="overflow-warning" role="alert">
+              Content overflows the slide — some modules won't be visible in the presentation
+            </div>
+          {/if}
+        </div>
       {:else}
         <div class="slide-frame view-mode" data-theme={themeMode} style={themeStyle}>
           <SlideRenderer slide={activeSlide} editable={false} />
@@ -258,18 +257,22 @@
   .slide-frame.view-mode:hover .edit-hint {
     opacity: 1;
   }
-  .slide-frame {
+  .slide-frame-outer {
     width: 100%;
     max-width: 960px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .slide-frame {
+    width: 100%;
     aspect-ratio: 16 / 9;
     background: white;
     border-radius: var(--radius-md);
     border: 1px solid var(--color-border);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    /* Prevent content from stretching frame past 16:9 */
-    min-height: 0;
-    flex-shrink: 0;
+    contain: size layout;
   }
   .no-slide {
     color: var(--color-text-muted);
