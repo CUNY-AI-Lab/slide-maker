@@ -239,9 +239,12 @@ import { applyMutation } from '$lib/utils/mutations'
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
     text-align: center;
     gap: clamp(1rem, 2.5cqi, 2rem);
+  }
+
+  .zone-centered > :global(:only-child) {
+    margin-block: auto;
   }
 
   .zone-split {
@@ -278,8 +281,13 @@ import { applyMutation } from '$lib/utils/mutations'
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    /* margin-based centering instead of justify-content: center
+       so content scrolls from top instead of clipping when it overflows */
     gap: clamp(1rem, 2cqi, 24px);
+  }
+
+  .zone-main > :global(:only-child) {
+    margin-block: auto;
   }
 
   /* ── Branding logo ── */

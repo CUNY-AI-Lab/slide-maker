@@ -339,7 +339,10 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
       for (const item of items) {
         const o = item as Record<string, unknown>
         const text = typeof item === 'string' ? item : String(o.text || o.content || o.label || o.title || JSON.stringify(item))
-        html += `<li>${inlineMd(text)}</li>`
+        const inner = containsHtmlMarkup(text)
+          ? sanitize(text).replace(/^<p>(.*)<\/p>$/s, '$1')
+          : inlineMd(text)
+        html += `<li>${inner}</li>`
       }
       html += `</ul>`
       return html
