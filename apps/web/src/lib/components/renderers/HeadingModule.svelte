@@ -91,20 +91,20 @@
   }
 
   /* ── Level-specific sizes ── */
-  .heading-wrapper.heading-1, .heading-wrapper.heading-1 :global(.tiptap), .heading-wrapper.heading-1 :global(.tiptap p) {
+  .heading-wrapper.heading-1, .heading-wrapper.heading-1 .heading, .heading-wrapper.heading-1 :global(.tiptap), .heading-wrapper.heading-1 :global(.tiptap p) {
     font-size: clamp(2rem, 5cqi, 3.5rem);
     font-weight: 800;
     letter-spacing: -0.02em;
   }
-  .heading-wrapper.heading-2, .heading-wrapper.heading-2 :global(.tiptap), .heading-wrapper.heading-2 :global(.tiptap p) {
+  .heading-wrapper.heading-2, .heading-wrapper.heading-2 .heading, .heading-wrapper.heading-2 :global(.tiptap), .heading-wrapper.heading-2 :global(.tiptap p) {
     font-size: clamp(1.5rem, 3.5cqi, 2.5rem);
     font-weight: 700;
   }
-  .heading-wrapper.heading-3, .heading-wrapper.heading-3 :global(.tiptap), .heading-wrapper.heading-3 :global(.tiptap p) {
+  .heading-wrapper.heading-3, .heading-wrapper.heading-3 .heading, .heading-wrapper.heading-3 :global(.tiptap), .heading-wrapper.heading-3 :global(.tiptap p) {
     font-size: clamp(1.1rem, 2.5cqi, 1.75rem);
     font-weight: 600;
   }
-  .heading-wrapper.heading-4, .heading-wrapper.heading-4 :global(.tiptap), .heading-wrapper.heading-4 :global(.tiptap p) {
+  .heading-wrapper.heading-4, .heading-wrapper.heading-4 .heading, .heading-wrapper.heading-4 :global(.tiptap), .heading-wrapper.heading-4 :global(.tiptap p) {
     font-size: clamp(0.95rem, 2cqi, 1.25rem);
     font-weight: 600;
     text-transform: uppercase;
