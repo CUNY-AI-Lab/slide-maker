@@ -42,7 +42,7 @@
       type="button"
       class="label-preview label label-{color}"
       onclick={(e) => { clickCoords = { x: e.clientX, y: e.clientY }; editContent = sanitizedText || text; editorActive = true }}
-    >{sanitizedText || text}</button>
+    >{@html sanitizedText || text}</button>
   {:else}
     <span class="label label-{color}">{@html sanitizedText}</span>
   {/if}

@@ -10,6 +10,16 @@
   let language = $derived(typeof data.language === 'string' ? data.language : '')
 
   let copied = $state(false)
+  let saveTimer: ReturnType<typeof setTimeout> | undefined
+
+  function handleInput(e: Event) {
+    const target = e.target as HTMLElement
+    const newText = target.textContent ?? ''
+    clearTimeout(saveTimer)
+    saveTimer = setTimeout(() => {
+      onchange?.({ ...data, content: newText })
+    }, 500)
+  }
 
   async function copyToClipboard() {
     try {
@@ -43,7 +53,10 @@
   {#if language}
     <span class="language-label">{language}</span>
   {/if}
-  <pre>{content}</pre>
+  <pre
+    contenteditable={editable ? 'true' : undefined}
+    oninput={editable ? handleInput : undefined}
+  >{content}</pre>
 </div>
 
 <style>
@@ -70,6 +83,11 @@
     line-height: inherit;
     white-space: pre-wrap;
     word-break: break-word;
+    outline: none;
+  }
+  pre[contenteditable="true"]:focus {
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary, #3B73E6) 45%, transparent);
+    border-radius: 4px;
   }
 
   .copy-btn {

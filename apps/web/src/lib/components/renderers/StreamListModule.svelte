@@ -1,11 +1,15 @@
 <script lang="ts">
+  import RichTextEditor from './RichTextEditor.svelte'
   import { inlineMarkdown } from '$lib/utils/markdown'
   import DOMPurify from 'dompurify'
+  import type { Editor } from '@tiptap/core'
 
-  let { data = {}, editable = false, onchange }: {
+  let { data = {}, editable = false, onchange, oneditorready, oneditorblur }: {
     data: Record<string, unknown>;
     editable: boolean;
     onchange?: (newData: Record<string, unknown>) => void;
+    oneditorready?: (editor: Editor) => void;
+    oneditorblur?: () => void;
   } = $props()
 
   let items: string[] = $derived(
@@ -21,30 +25,41 @@
       : []
   )
 
-  let saveTimer: ReturnType<typeof setTimeout> | undefined
+  let activeItemIndex: number | null = $state(null)
+  let editContent = $state('')
+  let clickCoords: { x: number; y: number } | null = $state(null)
 
-  function handleItemInput(index: number, e: Event) {
-    const target = e.target as HTMLElement
-    const newText = target.textContent ?? ''
+  function handleItemChange(index: number, html: string) {
+    editContent = html
     const newItems = [...items]
-    newItems[index] = newText
-    clearTimeout(saveTimer)
-    saveTimer = setTimeout(() => {
-      onchange?.({ ...data, items: newItems })
-    }, 500)
+    newItems[index] = html
+    onchange?.({ ...data, items: newItems })
   }
 </script>
 
 <ul class="stream-list">
   {#each items as item, i}
-    {#if editable}
-      <li
-        contenteditable="true"
-        oninput={(e) => handleItemInput(i, e)}
-      >{item}</li>
-    {:else}
-      <li>{@html DOMPurify.sanitize(inlineMarkdown(item))}</li>
-    {/if}
+    <li>
+      {#if editable && activeItemIndex === i}
+        <RichTextEditor
+          content={editContent}
+          {editable}
+          placeholder="List item..."
+          onchange={(html) => handleItemChange(i, html)}
+          {oneditorready}
+          {oneditorblur}
+          initialClickCoords={clickCoords}
+        />
+      {:else if editable}
+        <button
+          type="button"
+          class="item-preview"
+          onclick={(e) => { clickCoords = { x: e.clientX, y: e.clientY }; editContent = item; activeItemIndex = i }}
+        >{@html DOMPurify.sanitize(inlineMarkdown(item))}</button>
+      {:else}
+        {@html DOMPurify.sanitize(inlineMarkdown(item))}
+      {/if}
+    </li>
   {/each}
 </ul>
 
@@ -63,10 +78,25 @@
     border-radius: 0 6px 6px 0;
     font-size: clamp(0.8rem, 1.3cqi, 1rem);
     line-height: 1.5;
-    outline: none;
   }
-  .stream-list li[contenteditable="true"]:focus {
+  .item-preview {
+    cursor: text;
+    background: transparent;
+    border: none;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    width: 100%;
+    display: block;
+    padding: 0;
     outline: none;
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary, #3B73E6) 45%, transparent);
+    line-height: inherit;
+  }
+  .stream-list li :global(.tiptap),
+  .stream-list li :global(.tiptap p) {
+    font-size: inherit;
+    line-height: inherit;
+    font-family: inherit;
+    margin: 0;
   }
 </style>
