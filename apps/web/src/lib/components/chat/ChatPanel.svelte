@@ -21,6 +21,7 @@
   import { pendingMutations, autoApply, addPendingMutation, acceptMutation, rejectMutation } from '$lib/stores/pending-mutations'
   import { streamChat } from '$lib/utils/sse'
   import { extractMutations, applyMutation } from '$lib/utils/mutations'
+  import { planWizardOpen } from '$lib/stores/plan-wizard'
 
   let { onCollapse }: { onCollapse?: () => void } = $props()
 
@@ -372,6 +373,7 @@
     {#if $chatMessages.length === 0}
       <div class="empty-state">
         <p>Start a conversation to create your deck.</p>
+        <button class="import-outline-btn" onclick={() => planWizardOpen.set(true)}>Import Outline</button>
       </div>
     {:else}
       {#each $chatMessages as msg (msg.id)}
@@ -519,5 +521,20 @@
     font-size: 13px;
     color: var(--color-text-muted);
     line-height: 1.5;
+  }
+
+  .import-outline-btn {
+    margin-top: 12px;
+    padding: 6px 14px;
+    font-size: 12px;
+    border: 1px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--color-primary);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .import-outline-btn:hover {
+    background: var(--color-ghost-bg);
   }
 </style>

@@ -4,8 +4,10 @@
   import SlideOutline from '$lib/components/outline/SlideOutline.svelte'
   import SlideCanvas from '$lib/components/canvas/SlideCanvas.svelte'
   import ResourcePanel from '$lib/components/resources/ResourcePanel.svelte'
+  import PlanWizard from '$lib/components/plan/PlanWizard.svelte'
   import { base } from '$app/paths'
   import { switchToChat } from '$lib/stores/chat'
+  import { planWizardOpen } from '$lib/stores/plan-wizard'
 
   let { editable = true }: { editable?: boolean } = $props()
 
@@ -148,6 +150,10 @@
   </div>
 
   <footer class="app-footer"></footer>
+
+  {#if $planWizardOpen}
+    <PlanWizard onclose={() => planWizardOpen.set(false)} />
+  {/if}
 </div>
 
 <style>

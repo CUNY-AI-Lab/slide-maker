@@ -128,6 +128,18 @@ export const api = {
       body: JSON.stringify({ messages }),
     }),
 
+  // Plan
+  planDeck: (deckId: string, fileId: string, fidelity: string, modelId: string, slideRange?: { min: number; max: number }) =>
+    request<{ plan: any; warnings?: string[]; hasExistingSlides: boolean }>(`/api/decks/${deckId}/plan`, {
+      method: 'POST',
+      body: JSON.stringify({ fileId, fidelity, modelId, slideRange }),
+    }),
+  applyPlan: (deckId: string, plan: any) =>
+    request<{ slides: any[] }>(`/api/decks/${deckId}/plan/apply`, {
+      method: 'POST',
+      body: JSON.stringify({ plan }),
+    }),
+
   // Debug
   listTranscripts: (params?: { limit?: number; deck?: string; model?: string }) => {
     const q = new URLSearchParams()

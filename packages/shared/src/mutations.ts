@@ -11,9 +11,11 @@ export type Mutation =
   | { action: 'moveBlockToZone'; payload: { slideId: string; blockId: string; fromZone: string; toZone: string; order: string[] } }
   | { action: 'moveBlockToSlide'; payload: { fromSlideId: string; toSlideId: string; blockId: string; toZone: Zone; toIndex?: number } }
   | { action: 'applyTemplate'; payload: { slideId?: string; templateId: string } }
+  | { action: 'updateSlide'; payload: { slideId: string; layout?: SlideLayout; splitRatio?: string; notes?: string } }
   | { action: 'setTheme'; payload: { themeId: string } }
   | { action: 'updateMetadata'; payload: { name?: string } }
   | { action: 'updateArtifactConfig'; payload: { artifactName: string; config: Record<string, unknown> } }
+  | { action: 'searchImage'; payload: { query: string; slideId: string; zone: Zone; alt: string; blockId?: string } }
 
 export interface AddSlidePayload {
   layout: SlideLayout
