@@ -89,8 +89,11 @@ previewRouter.get('/:id/preview', async (c) => {
   // Render HTML for preview. No artifactEndpoint — artifacts use srcdoc iframes
   // instead of the /api/artifact?b64= GET endpoint, which breaks for large artifacts
   // (Frappe charts etc. produce 90KB+ base64 URLs exceeding browser limits).
-  // Derive base path from PUBLIC_URL (same logic as svelte.config.js).
-  const basePath = process.env.PUBLIC_URL?.includes('/slide-maker') ? '/slide-maker' : ''
+  // Derive base path from PUBLIC_API_URL (e.g., https://tools.cuny.qzz.io/slide-maker → /slide-maker)
+  const apiUrl = process.env.PUBLIC_API_URL || ''
+  const basePath = (() => {
+    try { return new URL(apiUrl).pathname.replace(/\/+$/, '') } catch { return '' }
+  })()
   const htmlTemplate = renderDeckHtml(deck.name, slidesWithBlocks, theme)
 
   // Replace the external CSS link with an inline <style> block
