@@ -86,12 +86,12 @@ previewRouter.get('/:id/preview', async (c) => {
     theme = await db.select().from(themes).where(eq(themes.id, deck.themeId)).get() || null
   }
 
-  // Render HTML — use same-origin artifact endpoint so previews send Referer.
-  // Derive the base path from PUBLIC_URL (same logic as svelte.config.js).
-  // In dev PUBLIC_URL is the frontend origin (no /slide-maker) so basePath = ''.
-  // On staging PUBLIC_URL includes /slide-maker so basePath = '/slide-maker'.
+  // Render HTML for preview. No artifactEndpoint — artifacts use srcdoc iframes
+  // instead of the /api/artifact?b64= GET endpoint, which breaks for large artifacts
+  // (Frappe charts etc. produce 90KB+ base64 URLs exceeding browser limits).
+  // Derive base path from PUBLIC_URL (same logic as svelte.config.js).
   const basePath = process.env.PUBLIC_URL?.includes('/slide-maker') ? '/slide-maker' : ''
-  const htmlTemplate = renderDeckHtml(deck.name, slidesWithBlocks, theme, undefined, { artifactEndpoint: `${basePath}/api/artifact` })
+  const htmlTemplate = renderDeckHtml(deck.name, slidesWithBlocks, theme)
 
   // Replace the external CSS link with an inline <style> block
   // Rewrite /api/ URLs to include the base path so images resolve behind the proxy
