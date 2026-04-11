@@ -265,7 +265,7 @@
   </div>
 
   {#if editable}
-    {#each ['tl', 'tr', 'bl', 'br'] as corner (corner)}
+    {#each ['bl', 'br'] as corner (corner)}
       <div
         class="corner-resize corner-{corner}"
         data-corner={corner}
@@ -326,7 +326,7 @@
     width: 100%;
   }
   .module-wrapper.editable > .module-content {
-    padding-top: 20px;
+    padding-top: 26px;
   }
 
   /* Drag handle — top-left, appears on hover */
@@ -334,19 +334,19 @@
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 16px;
-    height: 16px;
+    width: 22px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 12px;
     line-height: 1;
     background: rgba(255, 255, 255, 0.78);
     border: 1px solid rgba(17, 24, 39, 0.18);
     border-radius: 3px;
     color: #1f2937; /* slate-800 */
     cursor: grab;
-    z-index: 10;
+    z-index: 12;
     opacity: 0;
     pointer-events: auto;
     touch-action: none;
@@ -363,12 +363,12 @@
     position: absolute;
     top: 2px;
     right: 2px;
-    width: 16px;
-    height: 16px;
+    width: 22px;
+    height: 22px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 12px;
     line-height: 1;
     letter-spacing: 1px;
     background: rgba(255, 255, 255, 0.78);
@@ -376,7 +376,7 @@
     border-radius: 3px;
     color: #1f2937;
     cursor: pointer;
-    z-index: 10;
+    z-index: 12;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.12s, background 0.12s, color 0.12s, border-color 0.12s;
@@ -387,7 +387,7 @@
   .module-trigger::after {
     content: '';
     position: absolute;
-    inset: -14px;
+    inset: -11px;
   }
   .module-trigger.active {
     opacity: 1;
@@ -532,10 +532,6 @@
   .corner-br::after { bottom: 2px; right: 2px; border-right: 2px solid var(--color-primary); border-bottom: 2px solid var(--color-primary); }
   .corner-bl { bottom: 0; left: 0; cursor: nesw-resize; }
   .corner-bl::after { bottom: 2px; left: 2px; border-left: 2px solid var(--color-primary); border-bottom: 2px solid var(--color-primary); }
-  .corner-tr { top: 0; right: 0; cursor: nesw-resize; }
-  .corner-tr::after { top: 2px; right: 2px; border-right: 2px solid var(--color-primary); border-top: 2px solid var(--color-primary); }
-  .corner-tl { top: 0; left: 0; cursor: nwse-resize; }
-  .corner-tl::after { top: 2px; left: 2px; border-left: 2px solid var(--color-primary); border-top: 2px solid var(--color-primary); }
   .module-wrapper.editable:hover .corner-resize {
     opacity: 1;
   }
