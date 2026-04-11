@@ -2,6 +2,7 @@
   import { api, API_URL } from '$lib/api'
   import { applyMutation } from '$lib/utils/mutations'
   import { activeSlideId } from '$lib/stores/ui'
+  import { planWizardOpen } from '$lib/stores/plan-wizard'
 
   let { deckId }: { deckId: string } = $props()
 
@@ -139,6 +140,9 @@
     <button class="upload-btn" onclick={() => fileInput?.click()} disabled={uploading || !deckId}>
       {uploading ? 'Uploading...' : 'Upload File'}
     </button>
+    <button class="outline-btn" onclick={() => planWizardOpen.set(true)} disabled={!deckId}>
+      Import Outline
+    </button>
     <input
       bind:this={fileInput}
       type="file"
@@ -224,6 +228,9 @@
 
   .toolbar {
     flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
   }
 
   .upload-btn {
@@ -244,6 +251,28 @@
   }
 
   .upload-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .outline-btn {
+    width: 100%;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-primary, #3564d0);
+    background: transparent;
+    border: 1px solid var(--color-primary, #3564d0);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .outline-btn:hover:not(:disabled) {
+    background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
+  }
+
+  .outline-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }

@@ -321,15 +321,15 @@
 
   .wizard-modal {
     position: relative;
-    background: var(--color-surface, #1a1a2e);
-    border: 1px solid var(--color-border, #2a2a4a);
+    background: var(--color-bg, #ffffff);
+    border: 1px solid var(--color-border, #e2e8f0);
     border-radius: 12px;
     width: 560px;
     max-width: 90vw;
     max-height: 85vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
   }
 
   .wizard-header {
@@ -343,19 +343,19 @@
     font-size: 16px;
     font-weight: 600;
     margin: 0;
-    color: var(--color-text, #e0e0e0);
+    color: var(--color-text, #333333);
   }
 
   .wizard-close {
     background: transparent;
     border: none;
     font-size: 20px;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted, #636b75);
     cursor: pointer;
     padding: 0 4px;
     line-height: 1;
   }
-  .wizard-close:hover { color: var(--color-text, #e0e0e0); }
+  .wizard-close:hover { color: var(--color-text, #333333); }
 
   .wizard-steps {
     display: flex;
@@ -369,12 +369,12 @@
     width: 24px;
     height: 24px;
     border-radius: 50%;
-    border: 1px solid var(--color-border, #2a2a4a);
+    border: 1px solid var(--color-border, #e2e8f0);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 11px;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted, #636b75);
     background: transparent;
     flex-shrink: 0;
   }
@@ -391,7 +391,7 @@
   .step-line {
     width: 40px;
     height: 1px;
-    background: var(--color-border, #2a2a4a);
+    background: var(--color-border, #e2e8f0);
   }
   .step-line.done {
     background: var(--color-primary, #3B73E6);
@@ -408,12 +408,12 @@
     font-size: 14px;
     font-weight: 600;
     margin: 0 0 4px;
-    color: var(--color-text, #e0e0e0);
+    color: var(--color-text, #333333);
   }
 
   .step-desc {
     font-size: 12px;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted, #636b75);
     margin: 0 0 12px;
     line-height: 1.5;
   }
@@ -422,10 +422,10 @@
     display: block;
     width: 100%;
     padding: 10px;
-    border: 1px dashed var(--color-border, #2a2a4a);
+    border: 1px dashed var(--color-border, #e2e8f0);
     border-radius: var(--radius-sm, 6px);
-    background: transparent;
-    color: var(--color-text, #e0e0e0);
+    background: var(--color-bg-secondary, #f8fafc);
+    color: var(--color-text, #333333);
     font-size: 12px;
     margin-bottom: 12px;
   }
@@ -446,14 +446,14 @@
   .config-group label {
     display: block;
     font-size: 12px;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted, #636b75);
     margin-bottom: 4px;
   }
   .config-group select, .config-group input[type="number"] {
-    background: var(--color-surface, #1a1a2e);
-    border: 1px solid var(--color-border, #2a2a4a);
+    background: var(--color-bg-secondary, #f8fafc);
+    border: 1px solid var(--color-border, #e2e8f0);
     border-radius: var(--radius-sm, 6px);
-    color: var(--color-text, #e0e0e0);
+    color: var(--color-text, #333333);
     padding: 6px 8px;
     font-size: 12px;
     width: 100%;
@@ -482,7 +482,7 @@
   .plan-list {
     max-height: 300px;
     overflow-y: auto;
-    border: 1px solid var(--color-border, #2a2a4a);
+    border: 1px solid var(--color-border, #e2e8f0);
     border-radius: var(--radius-sm, 6px);
     margin-bottom: 12px;
   }
@@ -492,7 +492,7 @@
     align-items: center;
     gap: 8px;
     padding: 6px 10px;
-    border-bottom: 1px solid var(--color-border, #2a2a4a);
+    border-bottom: 1px solid var(--color-border, #e2e8f0);
     font-size: 12px;
   }
   .plan-slide:last-child { border-bottom: none; }
@@ -507,7 +507,7 @@
   .plan-slide-check input { accent-color: var(--color-primary, #3B73E6); }
   .plan-slide-num {
     font-size: 10px;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted, #636b75);
     min-width: 16px;
   }
 
@@ -521,7 +521,7 @@
   }
 
   .plan-slide-title {
-    color: var(--color-text, #e0e0e0);
+    color: var(--color-text, #333333);
     font-weight: 500;
     white-space: nowrap;
     overflow: hidden;
@@ -550,13 +550,13 @@
 
   .plan-slide-modules {
     font-size: 10px;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted, #636b75);
     margin-left: auto;
   }
 
   .omissions {
     font-size: 11px;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted, #636b75);
     margin-bottom: 12px;
   }
   .omissions summary { cursor: pointer; }
@@ -586,10 +586,10 @@
   .ghost-btn {
     padding: 6px 14px;
     font-size: 12px;
-    border: 1px solid var(--color-border, #2a2a4a);
+    border: 1px solid var(--color-border, #e2e8f0);
     border-radius: var(--radius-sm, 6px);
     background: transparent;
-    color: var(--color-text-muted, #888);
+    color: var(--color-text-muted, #636b75);
     cursor: pointer;
     transition: background 0.15s, color 0.15s, border-color 0.15s;
   }
