@@ -86,6 +86,12 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
   align-items: center; gap: 24px;
 }
 
+/* ── Zone: main (layout-content, layout-grid, layout-full-dark) ── */
+.slide > .main {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 24px;
+}
+
 /* ── Layout: Full Dark ───────────────────────────────────────────── */
 .layout-full-dark { background: #0d1117; color: #f0f0f0; align-items: center; justify-content: center; gap: 24px; }
 
