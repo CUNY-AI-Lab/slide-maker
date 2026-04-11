@@ -18,7 +18,7 @@ async function loadBedrock() {
 export async function* streamBedrock(
   systemPrompt: string,
   messages: { role: 'user' | 'assistant'; content: string }[],
-  model: string = 'anthropic.claude-3-5-haiku-20241022-v1:0',
+  model: string = 'us.anthropic.claude-haiku-4-5-20251001-v1:0',
 ): AsyncGenerator<string> {
   const { BedrockRuntimeClient, ConverseStreamCommand } = await loadBedrock()
 

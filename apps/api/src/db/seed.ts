@@ -318,7 +318,6 @@ async function seedAdmin(args: string[]) {
   })
 
   console.log(`Admin user created: ${email}`)
-  console.log(`Password: ${password}`)
 }
 
 async function main() {

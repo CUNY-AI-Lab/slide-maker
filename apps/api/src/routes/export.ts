@@ -4,6 +4,7 @@ import type { Session, User } from 'lucia'
 import { db } from '../db/index.js'
 import { decks, deckAccess, slides, contentBlocks, themes, uploadedFiles } from '../db/schema.js'
 import { authMiddleware } from '../middleware/auth.js'
+import { exportRateLimit } from '../middleware/rate-limit.js'
 import { exportDeckAsZip } from '../export/index.js'
 import { resolveArtifactSources } from '../utils/resolve-artifacts.js'
 
@@ -19,9 +20,9 @@ const exportRouter = new Hono<AuthEnv>()
 exportRouter.use('*', authMiddleware)
 
 // POST /:id/export — Export deck as zip
-exportRouter.post('/:id/export', async (c) => {
+exportRouter.post('/:id/export', exportRateLimit, async (c) => {
   const user = c.get('user')
-  const deckId = c.req.param('id')
+  const deckId = c.req.param('id')!
 
   // Check access
   const access = await db

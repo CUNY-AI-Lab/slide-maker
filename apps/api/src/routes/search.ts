@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { eq, and } from 'drizzle-orm'
 import type { Session, User } from 'lucia'
 import { authMiddleware } from '../middleware/auth.js'
+import { searchRateLimit } from '../middleware/rate-limit.js'
 import { env } from '../env.js'
 import { db } from '../db/index.js'
 import { deckAccess } from '../db/schema.js'
@@ -17,6 +18,7 @@ type AuthEnv = {
 const search = new Hono<AuthEnv>()
 
 search.use('*', authMiddleware)
+search.use('*', searchRateLimit)
 
 /** Strip HTML tags from external API response strings (Brave returns <strong> highlights, etc.) */
 function stripHtmlTags(s: string): string {

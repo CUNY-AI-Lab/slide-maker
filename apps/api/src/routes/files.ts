@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { db } from '../db/index.js'
 import { uploadedFiles, deckAccess } from '../db/schema.js'
 import { authMiddleware } from '../middleware/auth.js'
+import { uploadRateLimit } from '../middleware/rate-limit.js'
 
 type AuthEnv = {
   Variables: {
@@ -72,7 +73,7 @@ function guessMimeFromFilename(name: string): string | null {
 const filesRouter = new Hono<AuthEnv>()
 
 // POST /:deckId/files — Upload a file
-filesRouter.post('/:deckId/files', authMiddleware, async (c) => {
+filesRouter.post('/:deckId/files', uploadRateLimit, authMiddleware, async (c) => {
   const user = c.get('user')
   const deckId = c.req.param('deckId')!
 

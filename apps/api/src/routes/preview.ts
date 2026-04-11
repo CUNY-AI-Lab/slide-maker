@@ -9,6 +9,8 @@ import { FRAMEWORK_CSS } from '../export/framework-css.js'
 import { FRAMEWORK_CSS_PREVIEW } from '@slide-maker/shared'
 import { resolveArtifactSources } from '../utils/resolve-artifacts.js'
 
+const isDev = process.env.NODE_ENV !== 'production'
+
 type AuthEnv = {
   Variables: {
     user: User
@@ -111,7 +113,7 @@ previewRouter.get('/:id/preview', async (c) => {
   return new Response(html, {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
-      'Content-Security-Policy': "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https: http://localhost:*; frame-src 'self' blob: https://www.youtube.com https://player.vimeo.com https://www.loom.com; object-src 'none'; frame-ancestors 'none';",
+      'Content-Security-Policy': `default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:${isDev ? ' http://localhost:*' : ''}; frame-src 'self' blob: https://www.youtube.com https://player.vimeo.com https://www.loom.com; object-src 'none'; frame-ancestors 'none';`,
       'X-Frame-Options': 'DENY',
       'X-Content-Type-Options': 'nosniff',
     },

@@ -1,5 +1,8 @@
 import type { Handle } from '@sveltejs/kit'
 
+const isDev = process.env.NODE_ENV !== 'production'
+const localhost = isDev ? ' http://localhost:*' : ''
+
 export const handle: Handle = async ({ event, resolve }) => {
   const response = await resolve(event)
 
@@ -13,8 +16,8 @@ export const handle: Handle = async ({ event, resolve }) => {
       "script-src 'self' 'unsafe-inline' https://*.qzz.io",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
-      "img-src 'self' data: blob: https://*.qzz.io https://*.cuny.edu https://images.pexels.com https://*.pexels.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com http://localhost:*",
-      "connect-src 'self' http://localhost:* https://*.cuny.edu https://*.qzz.io",
+      `img-src 'self' data: blob: https://*.qzz.io https://*.cuny.edu https://images.pexels.com https://*.pexels.com https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com${localhost}`,
+      `connect-src 'self'${localhost} https://*.cuny.edu https://*.qzz.io`,
       "frame-src 'self' blob: https://www.youtube.com https://player.vimeo.com https://www.loom.com",
       "object-src 'none'",
       "base-uri 'self'",

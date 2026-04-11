@@ -65,8 +65,32 @@ const passwordChangeLimiter = new RateLimiterMemory({
   keyPrefix: 'password-change',
 })
 
+// File uploads: 10 per 15 minutes per IP
+const uploadLimiter = new RateLimiterMemory({
+  points: 10,
+  duration: 15 * 60,
+  keyPrefix: 'upload',
+})
+
+// Export: 5 per minute per IP
+const exportLimiter = new RateLimiterMemory({
+  points: 5,
+  duration: 60,
+  keyPrefix: 'export',
+})
+
+// Search (web + image + download): 15 per minute per IP
+const searchLimiter = new RateLimiterMemory({
+  points: 15,
+  duration: 60,
+  keyPrefix: 'search',
+})
+
 export const loginRateLimit = createRateLimitMiddleware(loginLimiter)
 export const registerRateLimit = createRateLimitMiddleware(registerLimiter)
 export const chatRateLimit = createRateLimitMiddleware(chatLimiter)
 export const heartbeatRateLimit = createRateLimitMiddleware(heartbeatLimiter)
 export const passwordChangeRateLimit = createRateLimitMiddleware(passwordChangeLimiter)
+export const uploadRateLimit = createRateLimitMiddleware(uploadLimiter)
+export const exportRateLimit = createRateLimitMiddleware(exportLimiter)
+export const searchRateLimit = createRateLimitMiddleware(searchLimiter)
