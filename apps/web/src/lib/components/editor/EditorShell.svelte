@@ -9,20 +9,16 @@
   let { editable = true }: { editable?: boolean } = $props()
 
   let leftWidth = $state(280)
-  let rightWidth = $state(260)
   let leftCollapsed = $state(false)
-  let rightCollapsed = $state(false)
-  let leftTab = $state<'chat' | 'slides'>('chat')
+  let leftTab = $state<'chat' | 'slides' | 'resources'>('chat')
 
   let draggingLeft = $state(false)
-  let draggingRight = $state(false)
 
   // Canvas mode — bound to SlideCanvas
   let canvasMode = $state<'edit' | 'view'>('edit')
 
   // Saved panel state for view/edit toggle
   let savedLeft = false
-  let savedRight = false
 
   // Only react to canvasMode changes, not panel state
   $effect(() => {
@@ -30,12 +26,9 @@
     untrack(() => {
       if (mode === 'view') {
         savedLeft = leftCollapsed
-        savedRight = rightCollapsed
         leftCollapsed = true
-        rightCollapsed = true
       } else {
         leftCollapsed = savedLeft
-        rightCollapsed = savedRight
       }
     })
   })
@@ -62,35 +55,14 @@
     window.addEventListener('mouseup', onUp)
   }
 
-  function startRightResize(e: MouseEvent) {
-    e.preventDefault()
-    draggingRight = true
-    const startX = e.clientX
-    const startW = rightWidth
-
-    function onMove(e: MouseEvent) {
-      const newW = Math.min(MAX_PANEL, Math.max(MIN_PANEL, startW - (e.clientX - startX)))
-      rightWidth = newW
-    }
-    function onUp() {
-      draggingRight = false
-      window.removeEventListener('mousemove', onMove)
-      window.removeEventListener('mouseup', onUp)
-    }
-    window.addEventListener('mousemove', onMove)
-    window.addEventListener('mouseup', onUp)
-  }
-
   // Ensure slides (center) remain visible on narrow viewports
   const NARROW_BP = 1024
   function handleResize() {
     const narrow = window.innerWidth < NARROW_BP
     if (narrow) {
       leftCollapsed = true
-      rightCollapsed = true
     } else {
       leftCollapsed = savedLeft
-      rightCollapsed = savedRight
     }
   }
 
@@ -129,12 +101,21 @@
             aria-selected={leftTab === 'slides'}
             onclick={() => leftTab = 'slides'}
           >Slides</button>
+          <button
+            class="left-tab-btn"
+            class:active={leftTab === 'resources'}
+            role="tab"
+            aria-selected={leftTab === 'resources'}
+            onclick={() => leftTab = 'resources'}
+          >Resources</button>
         </div>
-        <div class="left-tab-content" role="tabpanel" aria-label={leftTab === 'chat' ? 'Chat' : 'Slides'}>
+        <div class="left-tab-content" role="tabpanel" aria-label={leftTab === 'chat' ? 'Chat' : leftTab === 'slides' ? 'Slides' : 'Resources'}>
           {#if leftTab === 'chat'}
             <ChatPanel />
-          {:else}
+          {:else if leftTab === 'slides'}
             <SlideOutline />
+          {:else if leftTab === 'resources'}
+            <ResourcePanel />
           {/if}
         </div>
       </div>
@@ -144,7 +125,7 @@
       </div>
     {/if}
 
-    <div class="editor-shell" class:resizing={draggingLeft || draggingRight}>
+    <div class="editor-shell" class:resizing={draggingLeft}>
       <button class="collapse-btn left-collapse" onclick={() => { if (canvasMode === 'view') { canvasMode = 'edit' } else { leftCollapsed = !leftCollapsed } }} title={leftCollapsed ? 'Show panels & edit' : 'Hide left panel'}>
         {leftCollapsed ? '▶' : '◀'}
       </button>
@@ -153,20 +134,7 @@
         <SlideCanvas {editable} bind:canvasMode />
       </main>
 
-      <button class="collapse-btn right-collapse" onclick={() => { if (canvasMode === 'view') { canvasMode = 'edit' } else { rightCollapsed = !rightCollapsed } }} title={rightCollapsed ? 'Show panels & edit' : 'Hide right panel'}>
-        {rightCollapsed ? '◀' : '▶'}
-      </button>
     </div>
-
-    {#if !rightCollapsed}
-      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-      <div class="resize-handle right-handle" role="separator" aria-orientation="vertical" aria-label="Resize right panel" onmousedown={startRightResize}>
-        <div class="handle-line"></div>
-      </div>
-      <div class="right-panel" style:width="{rightWidth}px" style:min-width="{rightWidth}px">
-        <ResourcePanel />
-      </div>
-    {/if}
   </div>
 
   <footer class="app-footer"></footer>
@@ -337,14 +305,6 @@
     min-width: 320px;
   }
 
-  .right-panel {
-    border-left: 1px solid var(--color-border);
-    display: flex;
-    flex-direction: column;
-    background: var(--color-bg);
-    overflow: hidden;
-  }
-
   /* Resize handles */
   .resize-handle {
     width: 6px;
@@ -414,12 +374,6 @@
     border-left: none;
   }
 
-  .right-collapse {
-    right: 0;
-    border-radius: var(--radius-sm) 0 0 var(--radius-sm);
-    border-right: none;
-  }
-
   /* App footer */
   .app-footer {
     flex-shrink: 0;
@@ -437,23 +391,16 @@
     .left-panel {
       max-width: 240px;
     }
-    .right-panel {
-      max-width: 220px;
-    }
   }
 
   @media (max-width: 860px) {
     .left-panel {
       max-width: 200px;
     }
-    .right-panel {
-      max-width: 180px;
-    }
   }
 
   @media (max-width: 640px) {
-    .left-panel,
-    .right-panel {
+    .left-panel {
       display: none;
     }
     .center-panel {
