@@ -233,28 +233,7 @@
     gap: 6px;
   }
 
-  .upload-btn {
-    width: 100%;
-    padding: 8px 14px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #fff;
-    background: var(--color-primary, #2563eb);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.15s;
-  }
-
-  .upload-btn:hover:not(:disabled) {
-    background: var(--color-primary-hover, #1d4ed8);
-  }
-
-  .upload-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
+  .upload-btn,
   .outline-btn {
     width: 100%;
     padding: 8px 14px;
@@ -263,15 +242,17 @@
     color: var(--color-primary, #3564d0);
     background: transparent;
     border: 1px solid var(--color-primary, #3564d0);
-    border-radius: 6px;
+    border-radius: var(--radius-sm, 6px);
     cursor: pointer;
     transition: background 0.15s;
   }
 
+  .upload-btn:hover:not(:disabled),
   .outline-btn:hover:not(:disabled) {
     background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
   }
 
+  .upload-btn:disabled,
   .outline-btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -288,7 +269,7 @@
     align-items: center;
     justify-content: center;
     background: rgba(37, 99, 235, 0.08);
-    border: 2px dashed var(--color-primary, #2563eb);
+    border: 2px dashed var(--color-primary, #3564d0);
     border-radius: 8px;
     z-index: 10;
     pointer-events: none;
@@ -297,7 +278,7 @@
   .drop-zone-overlay p {
     font-size: 14px;
     font-weight: 600;
-    color: var(--color-primary, #2563eb);
+    color: var(--color-primary, #3564d0);
   }
 
   .upload-overlay {
@@ -317,7 +298,7 @@
     width: 24px;
     height: 24px;
     border: 3px solid var(--color-border, #e5e7eb);
-    border-top-color: var(--color-primary, #2563eb);
+    border-top-color: var(--color-primary, #3564d0);
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
@@ -375,8 +356,8 @@
   }
 
   .file-card.clickable:hover {
-    border-color: var(--color-primary, #2563eb);
-    box-shadow: 0 0 0 1px var(--color-primary, #2563eb);
+    border-color: var(--color-primary, #3564d0);
+    box-shadow: 0 0 0 1px var(--color-primary, #3564d0);
   }
 
   .delete-btn {

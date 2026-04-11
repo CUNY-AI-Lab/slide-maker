@@ -379,12 +379,12 @@
     flex-shrink: 0;
   }
   .step-dot.active {
-    border-color: var(--color-primary, #3B73E6);
-    color: var(--color-primary, #3B73E6);
+    border-color: var(--color-primary, #3564d0);
+    color: var(--color-primary, #3564d0);
   }
   .step-dot.done {
-    background: var(--color-primary, #3B73E6);
-    border-color: var(--color-primary, #3B73E6);
+    background: var(--color-primary, #3564d0);
+    border-color: var(--color-primary, #3564d0);
     color: #fff;
   }
 
@@ -394,7 +394,7 @@
     background: var(--color-border, #e2e8f0);
   }
   .step-line.done {
-    background: var(--color-primary, #3B73E6);
+    background: var(--color-primary, #3564d0);
   }
 
   .wizard-body {
@@ -431,8 +431,8 @@
   }
   .file-input::file-selector-button {
     background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
-    border: 1px solid var(--color-primary, #3B73E6);
-    color: var(--color-primary, #3B73E6);
+    border: 1px solid var(--color-primary, #3564d0);
+    color: var(--color-primary, #3564d0);
     border-radius: var(--radius-sm, 6px);
     padding: 4px 10px;
     font-size: 11px;
@@ -459,7 +459,7 @@
     width: 100%;
   }
   .config-group input[type="checkbox"] {
-    accent-color: var(--color-primary, #3B73E6);
+    accent-color: var(--color-primary, #3564d0);
     margin-right: 4px;
   }
 
@@ -504,7 +504,7 @@
     gap: 4px;
     flex-shrink: 0;
   }
-  .plan-slide-check input { accent-color: var(--color-primary, #3B73E6); }
+  .plan-slide-check input { accent-color: var(--color-primary, #3564d0); }
   .plan-slide-num {
     font-size: 10px;
     color: var(--color-text-muted, #636b75);
@@ -539,13 +539,13 @@
   }
   .layout-badge {
     background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
-    color: var(--color-primary, #3B73E6);
-    border: 1px solid color-mix(in srgb, var(--color-primary, #3B73E6) 30%, transparent);
+    color: var(--color-primary, #3564d0);
+    border: 1px solid color-mix(in srgb, var(--color-primary, #3564d0) 30%, transparent);
   }
   .purpose-badge {
-    background: rgba(45, 212, 191, 0.08);
-    color: rgb(45, 212, 191);
-    border: 1px solid rgba(45, 212, 191, 0.3);
+    background: color-mix(in srgb, var(--color-accent, #2FB8D6) 8%, transparent);
+    color: var(--color-accent, #2FB8D6);
+    border: 1px solid color-mix(in srgb, var(--color-accent, #2FB8D6) 30%, transparent);
   }
 
   .plan-slide-modules {
@@ -567,12 +567,12 @@
   .warnings { margin-bottom: 8px; }
   .warn-text {
     font-size: 11px;
-    color: #f59e0b;
+    color: var(--color-warning, #ffb81c);
   }
 
   .error-msg {
     font-size: 12px;
-    color: #ef4444;
+    color: var(--color-error, #ef4444);
     margin: 8px 0;
   }
 
@@ -595,17 +595,17 @@
   }
   .ghost-btn:hover {
     background: var(--color-ghost-bg, rgba(59, 115, 230, 0.08));
-    color: var(--color-primary, #3B73E6);
-    border-color: var(--color-primary, #3B73E6);
+    color: var(--color-primary, #3564d0);
+    border-color: var(--color-primary, #3564d0);
   }
 
   .primary-btn {
     padding: 6px 14px;
     font-size: 12px;
-    border: 1px solid var(--color-primary, #3B73E6);
+    border: 1px solid var(--color-primary, #3564d0);
     border-radius: var(--radius-sm, 6px);
     background: transparent;
-    color: var(--color-primary, #3B73E6);
+    color: var(--color-primary, #3564d0);
     cursor: pointer;
     transition: background 0.15s;
   }
