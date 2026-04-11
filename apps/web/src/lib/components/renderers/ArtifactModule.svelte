@@ -13,6 +13,22 @@
     markModuleRenderStatus,
     renderDiagnostics,
   } from '$lib/stores/render-diagnostics'
+  import { getArtifactByAny, type ArtifactController } from '$lib/modules/artifacts/index'
+
+  // Side-effect imports: register all native artifact factories
+  import '$lib/modules/artifacts/astar'
+  import '$lib/modules/artifacts/boids'
+  import '$lib/modules/artifacts/flow'
+  import '$lib/modules/artifacts/harmonograph'
+  import '$lib/modules/artifacts/langton'
+  import '$lib/modules/artifacts/leaflet'
+  import '$lib/modules/artifacts/lorenz'
+  import '$lib/modules/artifacts/molnar'
+  import '$lib/modules/artifacts/nake'
+  import '$lib/modules/artifacts/rossler'
+  import '$lib/modules/artifacts/sprott'
+  import '$lib/modules/artifacts/timeline'
+  import '$lib/modules/artifacts/truchet'
 
   type ArtifactFactoryLike = {
     kind?: string
@@ -22,6 +38,7 @@
   let { data, moduleId, slideId, editable = false, onchange, editTrigger = 0 } = $props<{
     data: {
       registryId?: string
+      artifactName?: string
       src?: string
       url?: string
       rawSource?: string
@@ -279,6 +296,35 @@
     clearResizeObserver()
   })
 
+  // --- Native artifact rendering ---
+  const nativeFactory = $derived(
+    getArtifactByAny(data.artifactName as string) ?? getArtifactByAny(data.registryId),
+  )
+  let nativeContainer: HTMLDivElement | null = $state(null)
+  let nativeController: ArtifactController | null = null
+
+  $effect(() => {
+    const factory = nativeFactory
+    const container = nativeContainer
+    if (!factory || !container) return
+
+    // Clean up previous controller
+    if (nativeController?.destroy) nativeController.destroy()
+    container.replaceChildren()
+
+    const resolvedConfig = (data.config && typeof data.config === 'object')
+      ? { ...data.config }
+      : {}
+    nativeController = factory(container, resolvedConfig)
+
+    markModuleRenderStatus({ moduleId, slideId, surface: 'edit', status: 'ready' })
+
+    return () => {
+      if (nativeController?.destroy) nativeController.destroy()
+      nativeController = null
+    }
+  })
+
   let showEditor = $state(false)
   let editorMode = $state<'data' | 'source'>('data')
   let editorContent = $state('')
@@ -365,7 +411,13 @@
     </div>
   {/if}
 
-  {#if useSrcdoc}
+  {#if nativeFactory}
+    <div
+      class="artifact-native"
+      class:no-interact={editable}
+      bind:this={nativeContainer}
+    ></div>
+  {:else if useSrcdoc}
     <iframe
       srcdoc={srcdocContent}
       class="artifact-iframe"
@@ -499,6 +551,15 @@
   }
   .edit-data-btn:hover {
     background: rgba(59, 130, 246, 0.08);
+  }
+  .artifact-native {
+    width: 100%;
+    flex: 1;
+    min-height: 200px;
+    overflow: hidden;
+  }
+  .artifact-native.no-interact {
+    pointer-events: none;
   }
   .artifact-iframe {
     display: block;

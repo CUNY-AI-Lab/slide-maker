@@ -16,3 +16,14 @@ export function getArtifact(name?: string | null): ArtifactFactory | undefined {
   return registry[name]
 }
 
+/** Look up a factory by display name or registryId (e.g. 'artifact-timeline' → 'Timeline') */
+export function getArtifactByAny(nameOrId?: string | null): ArtifactFactory | undefined {
+  if (!nameOrId) return undefined
+  if (registry[nameOrId]) return registry[nameOrId]
+  for (const [name, factory] of Object.entries(registry)) {
+    const id = 'artifact-' + name.toLowerCase().replace(/['']/g, '').replace(/\s+/g, '-')
+    if (id === nameOrId) return factory
+  }
+  return undefined
+}
+

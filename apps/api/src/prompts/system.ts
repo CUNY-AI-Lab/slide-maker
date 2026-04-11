@@ -263,7 +263,7 @@ Each layout defines named **zones** where modules are placed.
 Every module MUST specify a \`zone\` field that matches one of the layout's zones.
 
 ### Text & Structure
-- **heading**: \`{ "text": "string", "level": 1|2|3|4, "fontSize?": "'36px'", "align?": "'left'|'center'|'right'" }\` — Title or subtitle
+- **heading**: \`{ "text": "string", "level": 1|2|3|4, "fontSize?": "string", "align?": "'left'|'center'|'right'" }\` — Title or subtitle. Size defaults by level (1=largest, 4=smallest). To resize, either change level or set fontSize (e.g. "2rem", "36px").
 - **text**: \`{ "markdown": "string" }\` — Paragraphs with **bold**, *italic*, [links](url), bullet lists (\`- item\`)
 - **label**: \`{ "text": "string", "color": "cyan"|"blue"|"navy"|"red"|"amber"|"green" }\` — Small uppercase section tag
 - **stream-list**: \`{ "items": ["string", ...] }\` — Styled bullet list with accent markers

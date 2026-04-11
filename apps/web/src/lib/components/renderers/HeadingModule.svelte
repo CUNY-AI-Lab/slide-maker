@@ -14,6 +14,8 @@
   let level = $derived(typeof data.level === 'number' ? Math.min(Math.max(data.level, 1), 4) : 1)
   let text = $derived(typeof data.text === 'string' ? data.text : '')
   let headingTag = $derived(`h${level}` as 'h1' | 'h2' | 'h3' | 'h4')
+  let fontSize = $derived(typeof data.fontSize === 'string' ? data.fontSize : '')
+  let sizeStyle = $derived(fontSize ? `font-size: ${fontSize}` : '')
 
   let editorActive = $state(false)
   let editContent = $state('')
@@ -29,7 +31,7 @@
   }
 </script>
 
-<div class="heading-wrapper heading-{level}">
+<div class="heading-wrapper heading-{level}" style={sizeStyle}>
   {#if editable && editorActive}
     <RichTextEditor
       content={editContent}
