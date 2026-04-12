@@ -2,19 +2,11 @@
   import { get } from 'svelte/store'
   import { currentDeck, addSlideToDeck } from '$lib/stores/deck'
   import { setActiveSlide } from '$lib/stores/ui'
-  import { API_URL } from '$lib/api'
   import { chatDraft } from '$lib/stores/chat'
+  import { API_URL } from '$lib/api'
+  import { templatesStore, ensureTemplatesLoaded, type TemplateData } from '$lib/stores/templates'
 
-  interface Template {
-    id: string
-    name: string
-    layout: string
-    modules: { type: string; zone: string; data: Record<string, unknown>; stepOrder?: number }[]
-    thumbnail: string | null
-    builtIn: boolean
-  }
-
-  let templates = $state<Template[]>([])
+  let templates = $derived($templatesStore)
   let loading = $state(true)
   let error = $state<string | null>(null)
 
@@ -31,7 +23,7 @@
   const groupOrder = ['title-slide', 'layout-split', 'layout-content', 'layout-grid', 'layout-full-dark', 'layout-divider', 'closing-slide']
 
   let grouped = $derived.by(() => {
-    const groups: Record<string, Template[]> = {}
+    const groups: Record<string, TemplateData[]> = {}
     for (const t of templates) {
       if (!groups[t.layout]) groups[t.layout] = []
       groups[t.layout].push(t)
@@ -100,24 +92,16 @@
   let previewMode = $derived<'dark' | 'light'>($editorDarkMode ? 'dark' : 'light')
 
   $effect(() => {
-    fetch(`${API_URL}/api/templates`, { credentials: 'include' })
-      .then((res) => res.json())
-      .then((data) => {
-        templates = data.templates ?? []
-        loading = false
-      })
-      .catch((err) => {
-        console.error('Failed to fetch templates:', err)
-        error = 'Failed to load templates'
-        loading = false
-      })
+    ensureTemplatesLoaded()
+      .then(() => { loading = false })
+      .catch(() => { error = 'Failed to load templates'; loading = false })
   })
 
-  function injectTemplateRef(template: Template) {
+  function injectTemplateRef(template: TemplateData) {
     chatDraft.set(`@template:${template.name}`)
   }
 
-  async function applyTemplate(template: Template) {
+  async function applyTemplate(template: TemplateData) {
     const deck = get(currentDeck)
     if (!deck) return
 

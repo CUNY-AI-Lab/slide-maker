@@ -56,3 +56,48 @@ export function isDark(hex: string): boolean {
   const b = parseInt(hex.slice(5, 7), 16)
   return (r * 0.299 + g * 0.587 + b * 0.114) < 128
 }
+
+export interface CreateThemeInput {
+  name: string
+  colors: { primary: string; secondary: string; accent: string; bg: string }
+  fonts: { heading: string; body: string }
+}
+
+/** Create a new custom theme and add it to the store */
+export async function createTheme(input: CreateThemeInput): Promise<ThemeData | null> {
+  try {
+    const res = await fetch(`${API_URL}/api/themes`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      if (data.theme) {
+        themesStore.update((t) => [...t, data.theme])
+        return data.theme
+      }
+    }
+  } catch (err) {
+    console.error('Failed to create theme:', err)
+  }
+  return null
+}
+
+/** Delete a custom theme and remove it from the store */
+export async function deleteTheme(themeId: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/api/themes/${themeId}`, {
+      method: 'DELETE',
+      credentials: 'include',
+    })
+    if (res.ok) {
+      themesStore.update((t) => t.filter((th) => th.id !== themeId))
+      return true
+    }
+  } catch (err) {
+    console.error('Failed to delete theme:', err)
+  }
+  return false
+}

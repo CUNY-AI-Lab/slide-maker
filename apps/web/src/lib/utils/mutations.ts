@@ -530,8 +530,9 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
       const resolvedSlideId = slideId ? (resolveSlideRef(slideId) || slideId) : undefined
 
       // Fetch template details
-      const templateData = await apiCall('/api/templates', 'GET')
-      const template = (templateData?.templates ?? []).find((t: any) => t.id === templateId)
+      const { ensureTemplatesLoaded, findTemplateById } = await import('../stores/templates')
+      await ensureTemplatesLoaded()
+      const template = findTemplateById(templateId)
       if (!template) {
         console.error('Template not found:', templateId)
         break
@@ -549,7 +550,7 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
             await apiCall(`/api/decks/${deck.id}/slides/${resolvedSlideId}/blocks/${block.id}`, 'DELETE')
           }
           await apiCall(`/api/decks/${deck.id}/slides/${resolvedSlideId}`, 'PATCH', { layout: template.layout })
-          const newBlocks = []
+          const newBlocks: any[] = []
           for (const mod of template.modules) {
             const result = await apiCall(`/api/decks/${deck.id}/slides/${resolvedSlideId}/blocks`, 'POST', {
               type: mod.type,
@@ -985,8 +986,9 @@ async function applyMutationSilent(mutation: Record<string, unknown>): Promise<v
       // Redo path: re-apply template to slide
       const templateId = payload.templateId as string
       const slideId = payload.slideId as string
-      const templateData = await apiCall('/api/templates', 'GET')
-      const template = (templateData?.templates ?? []).find((t: any) => t.id === templateId)
+      const { ensureTemplatesLoaded, findTemplateById } = await import('../stores/templates')
+      await ensureTemplatesLoaded()
+      const template = findTemplateById(templateId)
       if (!template) break
       if (slideId) {
         const slide = deck.slides.find((s) => s.id === slideId)
@@ -1027,7 +1029,7 @@ async function applyMutationSilent(mutation: Record<string, unknown>): Promise<v
           await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks/${block.id}`, 'DELETE')
         }
         await apiCall(`/api/decks/${deck.id}/slides/${slideId}`, 'PATCH', { layout })
-        const newBlocks = []
+        const newBlocks: any[] = []
         for (const mod of modules) {
           const result = await apiCall(`/api/decks/${deck.id}/slides/${slideId}/blocks`, 'POST', {
             type: mod.type,

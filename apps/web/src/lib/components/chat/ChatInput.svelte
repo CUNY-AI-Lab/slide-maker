@@ -2,10 +2,9 @@
   import { chatStreaming, chatDraft } from '$lib/stores/chat'
   import { currentDeck } from '$lib/stores/deck'
   import { api } from '$lib/api'
-  import { API_URL } from '$lib/api'
   import { get } from 'svelte/store'
   import { activeSlideId } from '$lib/stores/ui'
-  import { artifactsStore, ensureArtifactsLoaded } from '$lib/stores/artifacts'
+  import { artifactsStore, templatesStore, ensureAllResourcesLoaded } from '$lib/stores/resources'
   import ChatRichTextEditor from './ChatRichTextEditor.svelte'
   import ChatFormattingToolbar from './ChatFormattingToolbar.svelte'
   import type { Editor } from '@tiptap/core'
@@ -56,26 +55,19 @@
   let mentionAtPos = $state(-1) // ProseMirror position of the @
   let mentionIndex = $state(0)
   let mentionDataLoaded = $state(false)
-  let mentionTemplates = $state<MentionItem[]>([])
 
   async function loadMentionData() {
     if (mentionDataLoaded) return
     mentionDataLoaded = true
-    await ensureArtifactsLoaded()
-    try {
-      const res = await fetch(`${API_URL}/api/templates`, { credentials: 'include' })
-      if (res.ok) {
-        const data = await res.json()
-        mentionTemplates = (data.templates ?? []).map((t: any) => ({ name: t.name, prefix: 'template' as const }))
-      }
-    } catch { /* non-fatal */ }
+    await ensureAllResourcesLoaded()
   }
 
   let mentionItems = $derived.by((): MentionItem[] => {
     if (mentionQuery === null) return []
     const q = mentionQuery.toLowerCase()
     const artifacts = ($artifactsStore ?? []).map((a) => ({ name: a.name, prefix: 'artifact' as const }))
-    const all: MentionItem[] = [...artifacts, ...mentionTemplates]
+    const templates = ($templatesStore ?? []).map((t) => ({ name: t.name, prefix: 'template' as const }))
+    const all: MentionItem[] = [...artifacts, ...templates]
     return q ? all.filter((m) => m.name.toLowerCase().includes(q)) : all
   })
 
