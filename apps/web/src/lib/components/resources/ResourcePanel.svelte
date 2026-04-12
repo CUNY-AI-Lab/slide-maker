@@ -9,7 +9,7 @@
 
   const tabs: { key: 'files' | 'templates' | 'artifacts'; label: string }[] = [
     { key: 'files', label: 'Files' },
-    { key: 'templates', label: 'Tmpl' },
+    { key: 'templates', label: 'Templates' },
     { key: 'artifacts', label: 'Visuals' },
   ]
 

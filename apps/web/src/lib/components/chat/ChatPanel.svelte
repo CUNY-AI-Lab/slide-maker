@@ -83,7 +83,7 @@
               )
             )
             const successful = downloads
-              .filter((d): d is PromiseFulfilledResult<any> => d.status === 'fulfilled' && d.value?.file)
+              .filter((d): d is PromiseFulfilledResult<any> => d.status === 'fulfilled' && !!d.value?.file)
               .map(d => d.value)
 
             if (successful.length) {

@@ -129,7 +129,7 @@
   // Guard against external content changes (e.g., undo/redo, AI mutations)
   $effect(() => {
     if (editor && content !== lastEmittedHtml && content !== editor.getHTML()) {
-      editor.commands.setContent(content, false)
+      editor.commands.setContent(content, { emitUpdate: false })
     }
   })
 

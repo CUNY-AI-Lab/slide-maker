@@ -155,7 +155,8 @@
     return () => ro.disconnect()
   })
 
-  function transformDragPreview(el: HTMLElement) {
+  function transformDragPreview(el?: HTMLElement) {
+    if (!el) return
     el.style.opacity = '0.9'
     el.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3)'
     el.style.borderRadius = '8px'

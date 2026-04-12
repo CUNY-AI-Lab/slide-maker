@@ -23,7 +23,13 @@
     fade?: boolean
   }
 
-  let { data } = $props<{ data: { transcripts: any[] } }>()
+  interface Transcript {
+    id: string; model: string; deckId: string; userMessage: string; assistantMessage: string
+    timestamp: string; userEmail: string; durationMs: number; inputTokens: number; outputTokens: number
+    error: string | null; provider: string; systemPromptChars: number; historyLength: number
+    mutations: string[]; [key: string]: unknown
+  }
+  let { data } = $props<{ data: { transcripts: Transcript[] } }>()
 
   let user = $state<any>(null)
   let accessDenied = $state(false)
@@ -34,7 +40,7 @@
   // Live streams indexed by id
   let streams = $state<Record<string, StreamCard>>({})
   let streamOrder = $state<string[]>([])
-  let transcripts = $derived(data?.transcripts ?? [])
+  let transcripts = $state<Transcript[]>(data?.transcripts ?? [])
 
   // Filters
   let filterModel = $state('')

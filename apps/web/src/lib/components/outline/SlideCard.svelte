@@ -37,7 +37,8 @@
 
   let deleting = $state(false)
   let expanded = $state(false)
-  let blockItems = $state([])
+  type Block = typeof slide.blocks[number]
+  let blockItems = $state<Block[]>([])
   let draggingBlocks = false  // plain boolean — invisible to reactive system
 
   $effect(() => {
@@ -73,9 +74,9 @@
     if (active) expanded = true
   })
 
-  function handleClick(e: MouseEvent) {
+  function handleClick(e?: MouseEvent) {
     // Ignore clicks on the delete button (Svelte 5 event delegation)
-    if ((e.target as HTMLElement).closest('.delete-btn')) return
+    if (e && (e.target as HTMLElement).closest('.delete-btn')) return
     if (active) {
       expanded = !expanded
     } else {

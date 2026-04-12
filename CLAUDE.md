@@ -307,7 +307,7 @@ Buttons across the app follow a ghost pattern: transparent background, 1px borde
 
 ## Testing
 
-Vitest at root level. Config: `vitest.config.ts`. Tests: `tests/**/*.test.ts`. Currently 484 tests across 15 files. Shell check scripts (8) in `tests/*.sh` via `tests/run_all.sh`. Playwright E2E specs (5) in `e2e/`.
+Vitest at root level. Config: `vitest.config.ts`. Tests: `tests/**/*.test.ts`. Currently 613 tests across 18 files. Shell check scripts (8) in `tests/*.sh` via `tests/run_all.sh`. Playwright E2E specs (5) in `e2e/`.
 
 - `tests/artifact-config.test.ts` — artifact config resolution (`getResolvedConfig`, `buildAtRef`)
 - `tests/artifact-runtime.test.ts` — artifact runtime helpers
@@ -318,8 +318,11 @@ Vitest at root level. Config: `vitest.config.ts`. Tests: `tests/**/*.test.ts`. C
 - `tests/framework-css.test.ts` — CSS specificity, layout rules, variant correctness
 - `tests/html-renderer-modules.test.ts` — HTML renderer output for all 14 module types
 - `tests/module-type-parity.test.ts` — renderer/prompt/phantom type parity across shared package
+- `tests/outline-parser.test.ts` — outline markdown parsing
+- `tests/outline-pipeline-10.test.ts` — outline import pipeline (slide generation from parsed outline)
 - `tests/resource-registry.test.ts` — resource registry validation
 - `tests/rich-text.test.ts` — rich text pipeline (markdown, HTML, sanitization)
+- `tests/slide-budget.test.ts` — slide budget estimation from outline
 - `tests/slide-layout.test.ts` — layout zone validation
 - `tests/ssrf-guard.test.ts` — SSRF protection for URL fetching
 - `tests/system-prompt-*.test.ts` — system prompt docs and render diagnostics
@@ -342,6 +345,16 @@ Tests import directly from `packages/shared/src/` and `apps/web/src/lib/utils/`.
 - `POST /api/themes` — create custom theme (auth required, validates hex colors and font names to prevent CSS injection)
 - `DELETE /api/themes/:id` — delete custom theme (owner only, not built-in)
 - `GET /api/artifacts` — all artifact definitions
+
+### Client-Side Resource Registry
+All resources (templates, themes, artifacts) are managed through centralized Svelte stores with fetch-once guards:
+
+- `apps/web/src/lib/stores/templates.ts` — `templatesStore`, `ensureTemplatesLoaded()`, `findTemplateById()`
+- `apps/web/src/lib/stores/themes.ts` — `themesStore`, `ensureThemesLoaded()`, `createTheme()`, `deleteTheme()`
+- `apps/web/src/lib/stores/artifacts.ts` — `artifactsStore`, `ensureArtifactsLoaded()`, `findArtifactByName()`
+- `apps/web/src/lib/stores/resources.ts` — unified aggregator, re-exports all stores + `ensureAllResourcesLoaded()`
+
+**Do not bypass these stores.** UI components should read via `$derived($store)` and call `ensure*Loaded()` in an `$effect`, not do their own `fetch()` calls. Mutations (create/delete theme) should use the store helpers, not inline fetch + `store.update()`. `mutations.ts` uses dynamic `import()` for store access to avoid circular dependencies.
 
 ## Known Issues / Tech Debt
 

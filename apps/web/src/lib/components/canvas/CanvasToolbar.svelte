@@ -5,7 +5,7 @@
   import { currentDeck } from '$lib/stores/deck'
   import { activeSlideId, setActiveSlide } from '$lib/stores/ui'
   import { editorDarkMode } from '$lib/stores/editor-theme'
-  import { themesStore, themesLoaded, ensureThemesLoaded, isDark, type ThemeData } from '$lib/stores/themes'
+  import { themesStore, themesLoaded, ensureThemesLoaded, isDark, createTheme, deleteTheme, type ThemeData } from '$lib/stores/themes'
   import { API_URL } from '$lib/api'
   import ShareDeckDialog from '$lib/components/gallery/ShareDeckDialog.svelte'
 
@@ -203,21 +203,12 @@
     if (!formName.trim() || saving) return
     saving = true
     try {
-      const res = await fetch(`${API_URL}/api/themes`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: formName.trim(),
-          colors: { primary: formPrimary, secondary: formSecondary, accent: formAccent, bg: formBg },
-          fonts: { heading: formHeadingFont, body: formBodyFont },
-        }),
+      const result = await createTheme({
+        name: formName.trim(),
+        colors: { primary: formPrimary, secondary: formSecondary, accent: formAccent, bg: formBg },
+        fonts: { heading: formHeadingFont, body: formBodyFont },
       })
-      if (res.ok) {
-        const data = await res.json()
-        if (data.theme) {
-          themesStore.update((t) => [...t, data.theme])
-        }
+      if (result) {
         showCreateForm = false
         formName = ''
       }
@@ -228,19 +219,13 @@
     }
   }
 
-  async function deleteTheme(themeId: string) {
+  async function handleDeleteTheme(themeId: string) {
     if (deleting) return
     deleting = themeId
     try {
-      const res = await fetch(`${API_URL}/api/themes/${themeId}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      })
-      if (res.ok) {
-        themesStore.update((t) => t.filter((th) => th.id !== themeId))
-        if (deckThemeId === themeId) {
-          await applyTheme('cuny-ai-lab-default')
-        }
+      const ok = await deleteTheme(themeId)
+      if (ok && deckThemeId === themeId) {
+        await applyTheme('cuny-ai-lab-default')
       }
     } catch (err) {
       console.error('Failed to delete theme:', err)
@@ -453,7 +438,7 @@
                       class="tp-delete-btn"
                       onclick={() => {
                         if (confirmDelete === variant.id) {
-                          deleteTheme(variant.id)
+                          handleDeleteTheme(variant.id)
                         } else {
                           confirmDelete = variant.id
                         }

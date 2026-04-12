@@ -165,7 +165,7 @@ apps/api/        — Hono API (Node, SQLite via better-sqlite3 + Drizzle, Lucia 
 apps/web/        — SvelteKit frontend (Svelte 5 runes, TipTap editor)
 packages/shared/ — Shared TypeScript types, constants, framework CSS
 templates/       — Seeded slide and artifact template JSON (35 files)
-tests/           — Vitest unit tests (484 tests, 15 files) + 8 shell check scripts
+tests/           — Vitest unit tests (613 tests, 18 files) + 8 shell check scripts
 e2e/             — Playwright E2E tests (5 specs)
 ```
 

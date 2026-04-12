@@ -3,25 +3,20 @@
   import { activeSlideId } from '$lib/stores/ui'
   import { applyMutation } from '$lib/utils/mutations'
   import { get } from 'svelte/store'
-  import { API_URL } from '$lib/api'
   import { chatDraft, switchToChat } from '$lib/stores/chat'
+  import { artifactsStore, ensureArtifactsLoaded, type ArtifactDef } from '$lib/stores/artifacts'
   import {
     getResolvedConfig,
-    type ArtifactRef,
   } from '$lib/utils/artifact-config'
-
-  interface Artifact extends ArtifactRef {
-    builtIn: boolean
-  }
 
   interface ArtifactGroup {
     key: string
     label: string
     badge: string
-    items: Artifact[]
+    items: ArtifactDef[]
   }
 
-  let artifacts = $state<Artifact[]>([])
+  let artifacts = $derived($artifactsStore)
   let loading = $state(true)
   let error = $state<string | null>(null)
   let inserting = $state<string | null>(null)
@@ -35,22 +30,14 @@
   let expandedGroups = $state<Set<string>>(new Set(['chart', 'diagram', 'map', 'visualization']))
 
   $effect(() => {
-    fetch(`${API_URL}/api/artifacts`, { credentials: 'include' })
-      .then((res) => res.json())
-      .then((data) => {
-        artifacts = data.artifacts ?? []
-        loading = false
-      })
-      .catch((err) => {
-        console.error('Failed to fetch artifacts:', err)
-        error = 'Failed to load artifacts'
-        loading = false
-      })
+    ensureArtifactsLoaded()
+      .then(() => { loading = false })
+      .catch(() => { error = 'Failed to load artifacts'; loading = false })
   })
 
   // Group artifacts by type
   let groups = $derived.by(() => {
-    const byType: Record<string, Artifact[]> = {}
+    const byType: Record<string, ArtifactDef[]> = {}
     for (const a of artifacts) {
       ;(byType[a.type] ??= []).push(a)
     }
@@ -93,7 +80,7 @@
     expandedGroups = next
   }
 
-  function openConfigEditor(artifact: Artifact) {
+  function openConfigEditor(artifact: ArtifactDef) {
     if (editingArtifactId === artifact.id) {
       editingArtifactId = null
       return
@@ -115,7 +102,7 @@
     return 'main'
   }
 
-  async function insertArtifact(artifact: Artifact, useConfig: boolean = false) {
+  async function insertArtifact(artifact: ArtifactDef, useConfig: boolean = false) {
     const slideId = get(activeSlideId)
     if (!slideId || inserting) return
 
@@ -156,24 +143,24 @@
 
   let copied = $state<string | null>(null)
 
-  async function copyConfig(artifact: Artifact) {
+  async function copyConfig(artifact: ArtifactDef) {
     const config = getResolvedConfig(artifact)
     await navigator.clipboard.writeText(JSON.stringify(config, null, 2))
     copied = artifact.id
     setTimeout(() => { if (copied === artifact.id) copied = null }, 1500)
   }
 
-  function injectAtRef(artifact: Artifact) {
+  function injectAtRef(artifact: ArtifactDef) {
     chatDraft.set(`@artifact:${artifact.name}`)
     switchToChat.set(true)
   }
 
-  function hasConfig(artifact: Artifact): boolean {
+  function hasConfig(artifact: ArtifactDef): boolean {
     const cfg = artifact.config as Record<string, unknown> | null
     return cfg != null && typeof cfg === 'object' && Object.keys(cfg).length > 0
   }
 
-  function buildArtifactReferenceData(artifact: Artifact, config: Record<string, unknown>) {
+  function buildArtifactReferenceData(artifact: ArtifactDef, config: Record<string, unknown>) {
     return {
       registryId: artifact.id,
       config,
