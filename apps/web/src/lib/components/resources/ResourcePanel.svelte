@@ -2,17 +2,15 @@
   import FilesTab from './FilesTab.svelte'
   import TemplatesTab from './TemplatesTab.svelte'
   import ArtifactsTab from './ArtifactsTab.svelte'
-  import ThemesTab from './ThemesTab.svelte'
   import { activeResourceTab } from '$lib/stores/ui'
 
   import { currentDeck } from '$lib/stores/deck'
   let deckId = $derived($currentDeck?.id ?? '')
 
-  const tabs: { key: 'files' | 'templates' | 'artifacts' | 'themes'; label: string }[] = [
+  const tabs: { key: 'files' | 'templates' | 'artifacts'; label: string }[] = [
     { key: 'files', label: 'Files' },
     { key: 'templates', label: 'Tmpl' },
     { key: 'artifacts', label: 'Visuals' },
-    { key: 'themes', label: 'Themes' },
   ]
 
   function setTab(key: typeof $activeResourceTab) {
@@ -42,8 +40,6 @@
       <TemplatesTab />
     {:else if $activeResourceTab === 'artifacts'}
       <ArtifactsTab />
-    {:else if $activeResourceTab === 'themes'}
-      <ThemesTab />
     {/if}
   </div>
 </div>
