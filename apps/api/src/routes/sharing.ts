@@ -362,6 +362,18 @@ sharing.post('/:id/presence', heartbeatRateLimit, async (c) => {
   return c.json({ presences })
 })
 
+// DELETE /:id/presence — Remove my presence (on leave)
+sharing.delete('/:id/presence', async (c) => {
+  const user = c.get('user')
+  const deckId = c.req.param('id')!
+
+  await db.delete(deckPresence).where(
+    and(eq(deckPresence.deckId, deckId), eq(deckPresence.userId, user.id))
+  )
+
+  return c.json({ ok: true })
+})
+
 // GET /:id/presence — Get who's online on this deck
 sharing.get('/:id/presence', async (c) => {
   const user = c.get('user')

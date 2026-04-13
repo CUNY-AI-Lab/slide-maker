@@ -5,14 +5,19 @@
   import { api, API_URL } from '$lib/api';
   import { currentDeck } from '$lib/stores/deck';
   import { activeSlideId } from '$lib/stores/ui';
+  import { currentUser } from '$lib/stores/auth';
   import { chatMessages } from '$lib/stores/chat';
   import { undo, redo } from '$lib/utils/mutations';
   import EditorShell from '$lib/components/editor/EditorShell.svelte';
+  import PresenceBar from '$lib/components/canvas/PresenceBar.svelte';
 
   let loading = $state(true);
   let error = $state('');
   let lockedByName = $state('');
+  let presenceUsers = $state<{ userId: string; userName: string; activeSlideId: string | null }[]>([]);
   let heartbeatInterval: ReturnType<typeof setInterval> | undefined;
+  let presenceInterval: ReturnType<typeof setInterval> | undefined;
+  let unsubActiveSlide: (() => void) | undefined;
   let deckId = '';
 
   async function releaseLockQuietly() {
@@ -20,6 +25,14 @@
       await api.releaseLock(deckId);
     } catch {
       // best effort
+    }
+  }
+
+  async function clearPresenceQuietly() {
+    try {
+      await api.deletePresence(deckId);
+    } catch {
+      // best effort — presence auto-expires in 2 min
     }
   }
 
@@ -44,9 +57,11 @@
   function handleBeforeUnload() {
     if (deckId) {
       // Use sendBeacon for reliable unload
-      const url = `${API_URL}/api/decks/${deckId}/lock`;
-      navigator.sendBeacon?.(url); // sendBeacon only does POST, so we also try fetch
-      fetch(url, { method: 'DELETE', credentials: 'include', keepalive: true }).catch(() => {});
+      const lockUrl = `${API_URL}/api/decks/${deckId}/lock`;
+      const presenceUrl = `${API_URL}/api/decks/${deckId}/presence`;
+      navigator.sendBeacon?.(lockUrl); // sendBeacon only does POST, so we also try fetch
+      fetch(lockUrl, { method: 'DELETE', credentials: 'include', keepalive: true }).catch(() => {});
+      fetch(presenceUrl, { method: 'DELETE', credentials: 'include', keepalive: true }).catch(() => {});
     }
   }
 
@@ -84,38 +99,53 @@
         if (!lockRes.locked) {
           // Someone else is editing — show a warning but allow editing
           lockedByName = lockRes.lockedBy?.name ?? 'another user';
-        }
-        // Start heartbeat every 2 minutes
-        heartbeatInterval = setInterval(async () => {
-          try {
-            await api.refreshLock(deckId);
-          } catch {
-            // Lock lost — try to re-acquire
+        } else {
+          // Only heartbeat if we actually hold the lock
+          heartbeatInterval = setInterval(async () => {
             try {
-              const relock = await api.acquireLock(deckId);
-              if (!relock.locked) {
-                lockedByName = relock.lockedBy?.name ?? 'another user';
-              } else {
-                lockedByName = '';
-              }
+              await api.refreshLock(deckId);
             } catch {
-              // Re-acquire failed — stop polling to avoid silent 403 spam
-              if (heartbeatInterval) {
-                clearInterval(heartbeatInterval);
-                heartbeatInterval = undefined;
+              // Lock lost — try to re-acquire
+              try {
+                const relock = await api.acquireLock(deckId);
+                if (!relock.locked) {
+                  lockedByName = relock.lockedBy?.name ?? 'another user';
+                } else {
+                  lockedByName = '';
+                }
+              } catch {
+                // Re-acquire failed — stop polling to avoid silent 403 spam
+                if (heartbeatInterval) {
+                  clearInterval(heartbeatInterval);
+                  heartbeatInterval = undefined;
+                }
               }
             }
-          }
-        }, 2 * 60 * 1000);
+          }, 2 * 60 * 1000);
+        }
       } catch {
         // If lock endpoint fails entirely, allow editing (graceful degradation)
       }
+
+      // Presence heartbeat — update every 30s so other users see who's here
+      const sendPresence = async () => {
+        try {
+          const slideId = $activeSlideId;
+          const res = await api.updatePresence(deckId, slideId);
+          const others = (res.presences ?? []).filter((p: any) => p.userId !== $currentUser?.id);
+          presenceUsers = others;
+        } catch {
+          // Non-critical
+        }
+      };
+      sendPresence(); // initial
+      presenceInterval = setInterval(sendPresence, 30 * 1000);
 
       window.addEventListener('beforeunload', handleBeforeUnload);
       window.addEventListener('keydown', handleKeyboard);
 
       // Persist active slide to sessionStorage so refresh restores it
-      activeSlideId.subscribe((id) => {
+      unsubActiveSlide = activeSlideId.subscribe((id) => {
         if (id && deckId) sessionStorage.setItem(`deck-active-slide-${deckId}`, id);
       });
     } catch (err: any) {
@@ -126,14 +156,15 @@
   });
 
   onDestroy(() => {
-    if (heartbeatInterval) {
-      clearInterval(heartbeatInterval);
-    }
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    if (presenceInterval) clearInterval(presenceInterval);
+    unsubActiveSlide?.();
     chatMessages.set([]);
     window.removeEventListener('beforeunload', handleBeforeUnload);
     window.removeEventListener('keydown', handleKeyboard);
     if (deckId) {
       releaseLockQuietly();
+      clearPresenceQuietly();
     }
   });
 </script>
@@ -157,6 +188,7 @@
       {lockedByName} is also editing this deck
     </div>
   {/if}
+  <PresenceBar otherUsers={presenceUsers} />
   <EditorShell editable={true} />
 {/if}
 

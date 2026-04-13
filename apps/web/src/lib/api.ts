@@ -49,6 +49,8 @@ export const api = {
     request<{ presences: any[] }>('/api/decks/' + deckId + '/presence', { method: 'POST', body: JSON.stringify({ activeSlideId }) }),
   getPresence: (deckId: string) =>
     request<{ presences: any[] }>('/api/decks/' + deckId + '/presence'),
+  deletePresence: (deckId: string) =>
+    request('/api/decks/' + deckId + '/presence', { method: 'DELETE' }),
 
   // Locking
   acquireLock: async (id: string): Promise<{ locked: boolean; by?: string; lockedBy?: { name: string; since: string } }> => {
