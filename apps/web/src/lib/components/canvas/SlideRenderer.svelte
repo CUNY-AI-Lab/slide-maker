@@ -239,12 +239,11 @@ import { applyMutation } from '$lib/utils/mutations'
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     text-align: center;
-    gap: clamp(12px, 2.5cqi, 2rem);
-  }
-
-  .zone-centered > :global(:only-child) {
-    margin-block: auto;
+    gap: 12px;
+    max-height: 100%;
+    overflow: hidden;
   }
 
   .zone-split {

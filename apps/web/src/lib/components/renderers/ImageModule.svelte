@@ -33,12 +33,14 @@
     max-width: 100%;
     max-height: 60vh;
     object-fit: contain;
-    border-radius: var(--radius-md);
+    border-radius: 6px;
     display: block;
     margin: 0 auto;
   }
   figcaption {
-    font-style: italic;
+    margin-top: 8px;
+    font-size: 0.85rem;
+    color: var(--text-muted, rgba(240, 240, 240, 0.65));
     font-family: var(--font-body);
   }
   .placeholder {

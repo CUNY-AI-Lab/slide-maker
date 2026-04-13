@@ -72,6 +72,7 @@
   .tip-box-content {
     font-size: clamp(0.85rem, 1.3cqi, 1rem);
     line-height: 1.6;
+    color: var(--text-muted, rgba(240, 240, 240, 0.65));
   }
   .tip-preview.editable {
     cursor: text;

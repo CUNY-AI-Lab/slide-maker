@@ -106,11 +106,8 @@
   }
   .carousel-slide img {
     width: 100%;
-    max-height: 55cqi;
-    object-fit: contain;
-    border-radius: 6px;
     display: block;
-    margin: 0 auto;
+    border-radius: 8px;
   }
   .carousel-slide figcaption {
     font-size: clamp(0.7rem, 1cqi, 0.85rem);
@@ -125,39 +122,36 @@
     top: 50%;
     transform: translateY(-50%);
     background: rgba(0, 0, 0, 0.4);
-    color: white;
+    backdrop-filter: blur(4px);
+    color: rgba(255, 255, 255, 0.8);
     border: none;
-    width: clamp(1.5rem, 3cqi, 2.5rem);
-    height: clamp(1.5rem, 3cqi, 2.5rem);
-    border-radius: 50%;
-    font-size: clamp(1rem, 2cqi, 1.5rem);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 1.2rem;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     z-index: 2;
-    transition: background 0.15s;
+    transition: background 0.2s;
   }
   .carousel-nav:hover {
     background: rgba(0, 0, 0, 0.6);
   }
-  .carousel-prev { left: 0.5rem; }
-  .carousel-next { right: 0.5rem; }
+  .carousel-prev { left: 8px; }
+  .carousel-next { right: 8px; }
   .carousel-dots {
     display: flex;
     justify-content: center;
-    gap: 0.4rem;
-    margin-top: 0.75rem;
+    gap: 6px;
+    padding: 10px 0;
   }
   .dot {
     width: 8px;
     height: 8px;
     border-radius: 50%;
     border: none;
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(255, 255, 255, 0.2);
     cursor: pointer;
     padding: 0;
-    transition: background 0.15s;
+    transition: background 0.2s;
   }
   .dot.active {
     background: var(--accent-cyan, #64b5f6);

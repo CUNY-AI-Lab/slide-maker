@@ -90,7 +90,7 @@
   }
   .label-cyan, .label-wrapper.label-cyan :global(.tiptap), .label-wrapper.label-cyan :global(.tiptap p) { color: #79c0ff; }
   .label-blue, .label-wrapper.label-blue :global(.tiptap), .label-wrapper.label-blue :global(.tiptap p) { color: var(--blue, #3B73E6); }
-  .label-navy, .label-wrapper.label-navy :global(.tiptap), .label-wrapper.label-navy :global(.tiptap p) { color: var(--navy, #1D3A83); }
+  .label-navy, .label-wrapper.label-navy :global(.tiptap), .label-wrapper.label-navy :global(.tiptap p) { color: #7b9fd4; }
   .label-red, .label-wrapper.label-red :global(.tiptap), .label-wrapper.label-red :global(.tiptap p) { color: #ff6b6b; }
   .label-amber, .label-wrapper.label-amber :global(.tiptap), .label-wrapper.label-amber :global(.tiptap p) { color: #d4a017; }
   .label-green, .label-wrapper.label-green :global(.tiptap), .label-wrapper.label-green :global(.tiptap p) { color: #2d8a4e; }

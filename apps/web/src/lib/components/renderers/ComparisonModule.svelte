@@ -108,8 +108,8 @@
   }
   .comparison-panel {
     flex: 1;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--theme-card-bg, rgba(255, 255, 255, 0.02));
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
     border-radius: 10px;
     padding: clamp(14px, 3cqi, 24px);
   }
@@ -122,7 +122,7 @@
   .panel-content {
     font-size: clamp(0.8rem, 1.3cqi, 1rem);
     line-height: 1.45;
-    color: rgba(240, 240, 240, 0.65);
+    color: var(--text-muted, rgba(240, 240, 240, 0.65));
   }
   .field-preview {
     cursor: text;
@@ -156,7 +156,7 @@
   .panel-content :global(.tiptap p) {
     font-size: clamp(0.8rem, 1.3cqi, 1rem);
     line-height: 1.45;
-    color: rgba(240, 240, 240, 0.65);
+    color: var(--text-muted, rgba(240, 240, 240, 0.65));
     margin: 0;
   }
 </style>

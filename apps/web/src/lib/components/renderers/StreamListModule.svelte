@@ -74,10 +74,11 @@
     padding: clamp(8px, 1.5cqi, 12px) clamp(12px, 2cqi, 16px);
     border-left: 2px solid var(--accent-cyan, #64b5f6);
     margin-bottom: clamp(4px, 0.8cqi, 6px);
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--theme-card-bg, rgba(255, 255, 255, 0.02));
     border-radius: 0 6px 6px 0;
     font-size: clamp(0.8rem, 1.3cqi, 1rem);
     line-height: 1.5;
+    color: var(--text-muted, rgba(240, 240, 240, 0.65));
   }
   .item-preview {
     cursor: text;

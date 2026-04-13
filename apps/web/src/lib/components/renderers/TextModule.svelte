@@ -61,12 +61,12 @@
     outline: none;
   }
   .text-block :global(a) {
-    color: var(--color-primary);
+    color: var(--accent-cyan, #64b5f6);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
   .text-block :global(a:hover) {
-    color: var(--blue-hover);
+    text-decoration-thickness: 2px;
   }
   .text-block :global(strong) {
     font-weight: 600;

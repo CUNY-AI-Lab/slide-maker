@@ -111,8 +111,8 @@
     width: 100%;
   }
   .card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--theme-card-bg, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
     border-radius: 10px;
     padding: clamp(16px, 3cqi, 24px);
   }
@@ -128,7 +128,7 @@
     margin: 0;
     font-size: clamp(0.85rem, 1.3cqi, 1rem);
     line-height: 1.45;
-    color: rgba(240, 240, 240, 0.65);
+    color: var(--text-muted, rgba(240, 240, 240, 0.65));
     font-family: var(--font-body);
   }
   .field-preview {
@@ -163,7 +163,7 @@
   .card-content :global(.tiptap p) {
     font-size: clamp(0.85rem, 1.3cqi, 1rem);
     line-height: 1.45;
-    color: rgba(240, 240, 240, 0.65);
+    color: var(--text-muted, rgba(240, 240, 240, 0.65));
     font-family: var(--font-body);
     margin: 0;
   }

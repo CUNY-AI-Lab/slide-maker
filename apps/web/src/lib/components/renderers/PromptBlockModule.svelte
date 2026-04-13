@@ -66,7 +66,7 @@
     font-family: 'JetBrains Mono', monospace;
     padding: clamp(14px, 2.5cqi, 20px) clamp(16px, 3cqi, 24px);
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
     font-size: clamp(0.8rem, 1.3cqi, 1.05rem);
     line-height: 1.5;
     white-space: pre-wrap;

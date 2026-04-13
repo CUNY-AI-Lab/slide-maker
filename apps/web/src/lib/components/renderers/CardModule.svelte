@@ -55,8 +55,8 @@
 
 <style>
   .card {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--theme-card-bg, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
     border-radius: 10px;
     padding: clamp(16px, 3cqi, 24px);
     font-size: clamp(0.85rem, 1.3cqi, 1rem);

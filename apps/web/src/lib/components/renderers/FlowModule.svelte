@@ -112,8 +112,8 @@
     justify-content: center;
   }
   .flow-node {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: var(--theme-card-bg, rgba(255, 255, 255, 0.03));
+    border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.06));
     border-radius: 8px;
     padding: clamp(10px, 1.8cqi, 14px) clamp(14px, 2.8cqi, 22px);
     font-size: clamp(0.8rem, 1.3cqi, 1rem);
@@ -139,7 +139,7 @@
   }
   .flow-arrow {
     font-size: 1.2rem;
-    color: rgba(240, 240, 240, 0.65);
+    color: var(--text-muted, rgba(240, 240, 240, 0.65));
   }
   .flow-arrow::after {
     content: '→';
@@ -158,7 +158,7 @@
   }
   .flow-desc {
     font-size: clamp(0.7rem, 1cqi, 0.85rem);
-    color: rgba(240, 240, 240, 0.65);
+    color: var(--text-muted, rgba(240, 240, 240, 0.65));
     font-family: var(--font-body);
     line-height: 1.4;
   }
@@ -196,7 +196,7 @@
   .flow-desc :global(.tiptap),
   .flow-desc :global(.tiptap p) {
     font-size: clamp(0.7rem, 1cqi, 0.85rem);
-    color: rgba(240, 240, 240, 0.65);
+    color: var(--text-muted, rgba(240, 240, 240, 0.65));
     font-family: var(--font-body);
     line-height: 1.4;
     margin: 0;

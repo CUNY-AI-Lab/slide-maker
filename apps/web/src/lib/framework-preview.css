@@ -192,6 +192,19 @@
 .slide-frame .flow-arrow { font-size: 1.2rem !important; color: var(--text-muted) !important; background: none !important; opacity: 1 !important; }
 .slide-frame .flow-arrow::after { content: '→'; }
 
+/* ── Module: Carousel ──────────────────────────────────────────── */
+.slide-frame .carousel { position: relative; width: 100%; overflow: hidden; border-radius: 8px; }
+.slide-frame .carousel-viewport { position: relative; display: flex; align-items: center; overflow: hidden; }
+.slide-frame .carousel-slide { margin: 0; text-align: center; width: 100%; flex: 1; }
+.slide-frame .carousel-slide img { width: 100% !important; display: block !important; border-radius: 8px !important; }
+.slide-frame .carousel-nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.4) !important; backdrop-filter: blur(4px); border: none !important; color: rgba(255,255,255,0.8) !important; font-size: 1.2rem !important; padding: 8px 12px !important; cursor: pointer; border-radius: 6px !important; z-index: 2; width: auto !important; height: auto !important; }
+.slide-frame .carousel-nav:hover { background: rgba(0,0,0,0.6) !important; }
+.slide-frame .carousel-prev { left: 8px !important; }
+.slide-frame .carousel-next { right: 8px !important; }
+.slide-frame .carousel-dots { display: flex !important; justify-content: center !important; gap: 6px !important; padding: 10px 0 !important; margin-top: 0 !important; }
+.slide-frame .dot, .slide-frame .carousel-dot { width: 8px !important; height: 8px !important; border-radius: 50% !important; background: rgba(255,255,255,0.2) !important; border: none !important; cursor: pointer; transition: background 0.2s; padding: 0 !important; }
+.slide-frame .dot.active, .slide-frame .carousel-dot.active { background: var(--accent-cyan) !important; }
+
 /* ── Module: Image ──────────────────────────────────────────────── */
 .slide-frame figure { text-align: center; margin: 0; }
 .slide-frame figure img { max-width: 100%; max-height: 60vh; border-radius: 6px; object-fit: contain; }
@@ -217,7 +230,7 @@
 .slide-frame blockquote cite { display: block; margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); font-style: normal; }
 
 /* ── Links (accessible) ────────────────────────────────────────── */
-.slide-frame a { color: var(--accent-cyan); text-decoration: underline; text-underline-offset: 2px; }
+.slide-frame a, .slide-frame .text-block a { color: var(--accent-cyan) !important; text-decoration: underline; text-underline-offset: 2px; }
 .slide-frame a:hover { text-decoration-thickness: 2px; }
 
 /* ── Zone drop areas (editor) ──────────────────────────────────── */
