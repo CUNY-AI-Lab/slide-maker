@@ -6,6 +6,7 @@ import { db } from '../db/index.js'
 import { decks, deckAccess, deckLocks, deckPresence, users } from '../db/schema.js'
 import { authMiddleware } from '../middleware/auth.js'
 import { heartbeatRateLimit } from '../middleware/rate-limit.js'
+import { sendDeckSharedEmail } from '../email/index.js'
 
 type AuthEnv = {
   Variables: {
@@ -111,6 +112,13 @@ sharing.post('/:id/share', async (c) => {
       role,
     })
   }
+
+  // Send notification email (fire-and-forget)
+  const deck = await db.select({ name: decks.name }).from(decks).where(eq(decks.id, deckId)).get()
+  const deckTitle = deck?.name || 'Untitled Deck'
+  sendDeckSharedEmail(targetUser.email, user.name, deckTitle, deckId, role).catch((err) => {
+    console.error('Failed to send share notification email:', err)
+  })
 
   return c.json({ message: 'Deck shared', userId: targetUser.id, name: targetUser.name, email: targetUser.email, role })
 })

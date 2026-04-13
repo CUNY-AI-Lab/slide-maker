@@ -39,3 +39,25 @@ export async function sendVerificationEmail(to: string, token: string): Promise<
     `,
   })
 }
+
+export async function sendDeckSharedEmail(
+  to: string,
+  sharedByName: string,
+  deckTitle: string,
+  deckId: string,
+  role: string,
+): Promise<void> {
+  const deckUrl = `${env.publicUrl}/deck/${deckId}`
+
+  await transporter.sendMail({
+    from: fromAddress,
+    to,
+    subject: `${sharedByName} shared a deck with you — "${deckTitle}"`,
+    html: `
+      <h2>You've been invited to collaborate</h2>
+      <p><strong>${sharedByName}</strong> shared the deck <strong>"${deckTitle}"</strong> with you as ${role === 'editor' ? 'an editor' : 'a viewer'}.</p>
+      <p><a href="${deckUrl}">Open deck</a></p>
+      <p>— CUNY AI Lab</p>
+    `,
+  })
+}
