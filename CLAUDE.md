@@ -348,8 +348,15 @@ Tests import directly from `packages/shared/src/` and `apps/web/src/lib/utils/`.
 - `DELETE /api/decks/:id/share/:userId` — revoke shared access
 - `GET /api/decks/:id/collaborators` — list deck collaborators
 - `POST /api/decks/:id/lock` — acquire pessimistic edit lock (5-min TTL)
-- `POST /api/decks/:id/heartbeat` — refresh lock TTL
+- `DELETE /api/decks/:id/lock` — release lock
+- `POST /api/decks/:id/lock/heartbeat` — refresh lock TTL
+- `POST /api/decks/:id/presence` — upsert presence heartbeat (30s client interval, 2-min TTL, auto-cleans stale)
+- `DELETE /api/decks/:id/presence` — remove presence on leave
+- `GET /api/decks/:id/presence` — list active users on a deck
 - Route file: `apps/api/src/routes/sharing.ts`
+- PresenceBar component: `apps/web/src/lib/components/canvas/PresenceBar.svelte` — shows "Also here:" badges
+- Lock heartbeat only runs when lock is held; presence heartbeat always runs while on a deck
+- **Locking is advisory only** — mutations are not gated on lock ownership. Two editors can overwrite each other (last write wins). Lock enforcement and conflict detection are planned but not yet implemented.
 
 ## Resources API
 
@@ -375,7 +382,7 @@ All resources (templates, themes, artifacts) are managed through centralized Sve
 - svelte-dnd-action used for both outline (slide/block reorder) and canvas (module drag-and-drop with cross-zone support in layout-split). Drag handle (`.canvas-drag-handle`) at top-left of modules, resize handle at bottom-right — no gesture conflict. All DnD operations go through `applyMutation` for undo/redo support.
 - Step reveals render in both inline preview (via `slide-html.ts` `wrapStep()`) and full deck preview (via export `stepAttrs()`). The inline preview CSS overrides `step-hidden` to `opacity: 1` so all steps are visible; the full deck preview uses navigation JS to reveal steps on click/arrow.
 - Export doesn't include speaker notes panel yet.
-- No real-time collaborative editing — uses pessimistic locking (5-min TTL with heartbeat).
+- No real-time collaborative editing — uses pessimistic locking (5-min TTL with heartbeat) and polling-based presence (30s). Locking is advisory only; mutations are not gated on lock ownership.
 - **TipTap font-size passthrough (UNSOLVED):** Font size set via FormatToolbar (`setFontSize()`) applies `<span style="font-size: Xpx">` within TipTap HTML content stored in `data.text`. This inline font-size does NOT render in the full deck preview (`/api/decks/:id/preview`). The preview uses `FRAMEWORK_CSS_EXPORT` (vw-based typography) via `apps/api/src/routes/preview.ts`. The html-renderer (`apps/api/src/export/html-renderer.ts`) sanitizes heading text and strips `<p>` wrappers, and `sanitize-html` config allows `font-size` on `<span style>`. The sanitized output contains the correct `<span style="font-size:32px">` inside `<h1>`, but the rendered preview still shows default clamp sizes. Root cause is unknown — needs browser DevTools inspection of the actual preview DOM to identify what CSS rule or DOM mutation is overriding the inline span font-size. Canvas-side DOMPurify was also updated to `ADD_ATTR: ['style']` but may have the same issue.
 - `adapter-auto` warning on build — could switch to `adapter-node` for production.
 - Email verification is live on staging via Amazon SES (sender: `ailab@gc.cuny.edu`). Admin approval is still required after email verification.

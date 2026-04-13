@@ -105,11 +105,7 @@ previewRouter.get('/:id/preview', async (c) => {
   const basePath = (() => {
     try { return new URL(apiUrl).pathname.replace(/\/+$/, '') } catch { return '' }
   })()
-  const htmlTemplate = renderDeckHtml(deck.name, slidesWithBlocks, theme, undefined, {
-    omitNav: true,
-    omitScripts: true,
-    omitFonts: true,
-  })
+  const htmlTemplate = renderDeckHtml(deck.name, slidesWithBlocks, theme)
 
   // Replace the external CSS link with an inline <style> block
   // Rewrite /api/ URLs to include the base path so images resolve behind the proxy

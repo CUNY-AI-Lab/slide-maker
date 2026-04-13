@@ -34,10 +34,10 @@ import { applyMutation } from '$lib/utils/mutations'
     onEditorBlur?: () => void
   } = $props()
 
-  let splitRatio = $state(0.5)
+  let splitRatio = $state(0.45)
 
   $effect(() => {
-    splitRatio = parseFloat(String(slide.splitRatio ?? '0.5'))
+    splitRatio = parseFloat(String(slide.splitRatio ?? '0.45'))
   })
 
   let sorted = $derived([...slide.blocks].sort((a, b) => a.order - b.order))
@@ -251,7 +251,7 @@ import { applyMutation } from '$lib/utils/mutations'
     flex: 1;
     display: flex;
     flex-direction: row;
-    gap: clamp(0.75rem, 2cqi, 20px);
+    gap: clamp(0.75rem, 4cqi, 40px);
     position: relative;
     min-height: 0;
     align-items: stretch;

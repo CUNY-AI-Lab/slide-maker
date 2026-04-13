@@ -62,7 +62,7 @@
     font-size: clamp(0.85rem, 1.3cqi, 1rem);
     line-height: 1.45;
     font-family: var(--font-body);
-    color: rgba(240, 240, 240, 0.65);
+    color: var(--text-muted, rgba(240, 240, 240, 0.65));
   }
   .card h3 {
     font-size: clamp(0.95rem, 1.6cqi, 1.3rem);
