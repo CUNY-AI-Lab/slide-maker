@@ -54,7 +54,9 @@ export const env = {
   allowedOrigins: (() => {
     const origins = new Set<string>()
     const pub = process.env.PUBLIC_URL
-    if (pub) origins.add(pub.replace(/\/$/, ''))
+    if (pub) {
+      try { origins.add(new URL(pub).origin) } catch { origins.add(pub.replace(/\/$/, '')) }
+    }
     if (process.env.NODE_ENV !== 'production') {
       origins.add('http://localhost:5173')
       origins.add('http://localhost:4173')
