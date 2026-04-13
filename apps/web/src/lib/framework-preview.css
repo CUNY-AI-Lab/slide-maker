@@ -179,7 +179,7 @@
 /* ── Module: Card Grid ──────────────────────────────────────────── */
 .slide-frame .card-grid { display: grid !important; gap: 20px !important; width: 100% !important; }
 .slide-frame .card-grid .card { background: rgba(255,255,255,0.03) !important; border: 1px solid var(--border-subtle) !important; color: var(--text-muted) !important; }
-.slide-frame .card-grid .card-title { color: var(--text-primary) !important; font-size: 1.3rem !important; font-weight: 650 !important; display: block !important; margin-bottom: 8px !important; }
+.slide-frame .card-grid .card-title { color: var(--text-primary) !important; font-size: 1.3rem !important; font-weight: 650 !important; line-height: 1.2 !important; display: block !important; margin: 0 0 8px 0 !important; font-family: var(--theme-heading-font, 'Outfit'), sans-serif !important; }
 .slide-frame .card-grid .card-content { font-size: 1rem !important; color: var(--text-muted) !important; line-height: 1.45 !important; }
 
 /* ── Module: Flow ───────────────────────────────────────────────── */

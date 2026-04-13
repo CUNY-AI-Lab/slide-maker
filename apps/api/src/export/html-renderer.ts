@@ -281,12 +281,13 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
       let html = `<div class="card-grid" style="grid-template-columns: repeat(${cols}, 1fr)"${step}>`
       for (const card of cards) {
         const c = card as Record<string, unknown>
-        const title = c.title ? `<h3>${esc(String(c.title))}</h3>` : ''
+        const title = c.title ? `<h3 class="card-title">${esc(String(c.title))}</h3>` : ''
         const raw = String(c.body || c.content || '')
         const body = raw.includes('<') ? sanitize(raw) : markdownToHtml(raw)
         const variant = c.variant ? ` card-${esc(String(c.variant))}` : ''
-        const color = typeof c.color === 'string' && c.color ? ` style="border-top:3px solid ${esc(c.color)}"` : ''
-        html += `<div class="card${variant}"${color}>${title}${body}</div>`
+        const color = typeof c.color === 'string' && c.color && !c.variant ? ` style="border-top:3px solid ${esc(c.color)}"` : ''
+        const bodyHtml = body ? `<div class="card-content">${body}</div>` : ''
+        html += `<div class="card${variant}"${color}>${title}${bodyHtml}</div>`
       }
       html += `</div>`
       return html
@@ -299,8 +300,8 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
         if (i > 0) html += `<div class="flow-arrow"></div>`
         const n = node as Record<string, unknown>
         const icon = typeof n.icon === 'string' ? n.icon : String(i + 1)
-        const label = esc(String(n.label || node))
-        const desc = typeof n.description === 'string' ? `<div class="flow-desc">${esc(n.description)}</div>` : ''
+        const label = sanitize(String(n.label || ''))
+        const desc = typeof n.description === 'string' ? `<div class="flow-desc">${sanitize(n.description)}</div>` : ''
         html += `<div class="flow-node"><div class="flow-icon">${esc(icon)}</div><div class="flow-body"><div class="flow-label">${label}</div>${desc}</div></div>`
       })
       html += `</div>`

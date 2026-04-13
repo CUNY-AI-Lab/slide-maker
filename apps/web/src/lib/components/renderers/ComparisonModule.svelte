@@ -16,9 +16,10 @@
     Array.isArray(data.panels)
       ? data.panels.map((p: unknown) => {
           const panel = p as Record<string, unknown>
+          const body = typeof panel.body === 'string' ? panel.body : typeof panel.content === 'string' ? panel.content : ''
           return {
             title: typeof panel.title === 'string' ? panel.title : '',
-            content: typeof panel.content === 'string' ? panel.content : '',
+            content: body,
           }
         })
       : []

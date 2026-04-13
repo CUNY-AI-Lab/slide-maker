@@ -21,7 +21,7 @@ export interface ValidationError {
 }
 
 /**
- * Validate that a module type is one of the 12 recognized types.
+ * Validate that a module type is one of the 14 recognized types.
  */
 export function isValidModuleType(type: string): type is ModuleType {
   return (MODULE_TYPES as readonly string[]).includes(type)

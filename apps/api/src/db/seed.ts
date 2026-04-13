@@ -94,13 +94,13 @@ async function seedThemes() {
       id: 'studio-light',
       name: 'Studio Light',
       // Light mode with strong title background for white text
-      colors: { primary: '#1D3A83', secondary: '#3B73E6', accent: '#2FB8D6', bg: '#ffffff' },
+      colors: { primary: '#1D3A83', secondary: '#3B73E6', accent: '#0C7F96', bg: '#ffffff' },
       fonts: { heading: 'Outfit', body: 'Inter' },
     },
     {
       id: 'cuny-ai-lab-default',
       name: 'CUNY AI Lab',
-      colors: { primary: '#1D3A83', secondary: '#3B73E6', accent: '#2FB8D6', bg: '#ffffff' },
+      colors: { primary: '#1D3A83', secondary: '#3B73E6', accent: '#0C7F96', bg: '#ffffff' },
       fonts: { heading: 'Outfit', body: 'Inter' },
     },
     {
@@ -112,19 +112,19 @@ async function seedThemes() {
     {
       id: 'cuny-light',
       name: 'CUNY Light',
-      colors: { primary: '#1D3A83', secondary: '#3B73E6', accent: '#2FB8D6', bg: '#ffffff' },
+      colors: { primary: '#1D3A83', secondary: '#3B73E6', accent: '#0C7F96', bg: '#ffffff' },
       fonts: { heading: 'Outfit', body: 'Inter' },
     },
     {
       id: 'warm-academic',
       name: 'Warm Academic',
-      colors: { primary: '#7c3aed', secondary: '#a78bfa', accent: '#f59e0b', bg: '#faf5ef' },
+      colors: { primary: '#7c3aed', secondary: '#6d28d9', accent: '#b45309', bg: '#faf5ef' },
       fonts: { heading: 'Georgia', body: 'Inter' },
     },
     {
       id: 'slate-minimal',
       name: 'Slate Minimal',
-      colors: { primary: '#334155', secondary: '#64748b', accent: '#0ea5e9', bg: '#f8fafc' },
+      colors: { primary: '#334155', secondary: '#64748b', accent: '#0369a1', bg: '#f8fafc' },
       fonts: { heading: 'Inter', body: 'Inter' },
     },
     {
@@ -136,7 +136,7 @@ async function seedThemes() {
     {
       id: 'forest',
       name: 'Forest',
-      colors: { primary: '#065f46', secondary: '#059669', accent: '#34d399', bg: '#f0fdf4' },
+      colors: { primary: '#065f46', secondary: '#059669', accent: '#047857', bg: '#f0fdf4' },
       fonts: { heading: 'Outfit', body: 'Inter' },
     },
   ]

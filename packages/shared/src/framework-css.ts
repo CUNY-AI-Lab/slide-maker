@@ -80,7 +80,7 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 
 /* ── Layout: Content ─────────────────────────────────────────────── */
 .layout-content { align-items: center; gap: 24px; }
-.layout-content > .content { max-width: 900px; width: 100%; }
+.layout-content > .content { max-width: 900px; width: 100%; display: flex; flex-direction: column; gap: 24px; }
 
 /* ── Layout: Grid ────────────────────────────────────────────────── */
 .layout-grid {
@@ -193,6 +193,8 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 
 /* ── Module: Card Grid ───────────────────────────────────────────── */
 .card-grid { display: grid; gap: 20px; width: 100%; }
+.card-grid .card-title { font-size: 1.3rem; font-weight: 650; line-height: 1.2; margin: 0 0 8px 0; font-family: var(--theme-heading-font, 'Outfit'), sans-serif; }
+.card-grid .card-content { font-size: 1rem; line-height: 1.45; color: var(--text-muted); }
 
 /* ── Module: Flow ────────────────────────────────────────────────── */
 .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: center; }
@@ -206,9 +208,10 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
   background: var(--accent-cyan); color: white;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; font-weight: 700; font-size: 0.7rem;
+  font-family: var(--theme-heading-font, 'Outfit'), sans-serif;
 }
 .flow-body { min-width: 0; }
-.flow-label { font-weight: 600; font-size: 1rem; line-height: 1.2; }
+.flow-label { font-weight: 600; font-size: 1rem; line-height: 1.2; font-family: var(--theme-heading-font, 'Outfit'), sans-serif; }
 .flow-desc { font-size: 0.85rem; color: var(--text-muted); line-height: 1.4; }
 .flow-arrow { font-size: 1.2rem; color: var(--text-muted); }
 .flow-arrow::after { content: '→'; }
@@ -223,7 +226,7 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
 
 /* ── Module: Image ───────────────────────────────────────────────── */
 figure { text-align: center; margin: 0; }
-figure img { max-width: 100%; max-height: 60vh; border-radius: 6px; object-fit: contain; }
+figure img { display: block; max-width: 100%; max-height: 60vh; border-radius: 6px; object-fit: contain; }
 figcaption { margin-top: 8px; font-size: 0.85rem; color: var(--text-muted); }
 
 /* ── Module: Artifact ─────────────────────────────────────────────── */

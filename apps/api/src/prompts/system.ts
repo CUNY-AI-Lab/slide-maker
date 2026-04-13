@@ -283,7 +283,7 @@ Every module MUST specify a \`zone\` field that matches one of the layout's zone
 - **flow**: \`{ "nodes": [{"label": "string", "description": "optional string"}, ...] }\` — Vertical process flow with arrows
 
 ### Embeds
-- **artifact**: \`{ "registryId": "artifact-id", "config": { ... }, "alt": "string", "width": "optional (default 100%)", "height": "optional (default 400px)" }\` — Interactive JS visualization. Use an ID from "Available Artifacts". Prefer registry-backed artifacts over raw HTML; for roadmaps/timelines, prefer the built-in timeline artifact and keep its \`events: [{label, desc}]\` config shape.
+- **artifact**: \`{ "registryId": "artifact-id", "config": { ... }, "alt": "string", "width": "optional (default 100%)", "height": "optional (default 400px)" }\` — Interactive JS visualization. Use an ID from "Available Artifacts". Prefer registry-backed artifacts over raw HTML; for roadmaps/timelines, prefer the built-in timeline artifact and keep its \`events: [{date, label, description, category?}]\` config shape.
 - **video**: \`{ "url": "string", "caption": "optional string" }\` — Embedded video (YouTube, Vimeo, Loom). Use the regular video URL (e.g., \`https://youtube.com/watch?v=...\`, \`https://vimeo.com/...\`, \`https://www.loom.com/share/...\`) — the app converts it to an embed automatically.
 
 IMPORTANT: Use ONLY the 14 module types listed above. Do not invent other types.

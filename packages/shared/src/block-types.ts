@@ -34,16 +34,16 @@ export const MODULE_TYPES = [
 export type ModuleType = (typeof MODULE_TYPES)[number]
 
 // Data shapes
-export interface HeadingData { text: string; level: 1 | 2 | 3 | 4 }
+export interface HeadingData { text: string; level: 1 | 2 | 3 | 4; fontSize?: string; align?: string }
 export interface TextData { markdown?: string; html?: string }
-export interface CardData { content: string; variant?: 'cyan' | 'navy' | 'default' }
+export interface CardData { title?: string; content?: string; body?: string; variant?: 'cyan' | 'navy' | 'default' }
 export interface LabelData { text: string; color: 'cyan' | 'blue' | 'navy' | 'red' | 'amber' | 'green' }
 export interface TipBoxData { content: string; title?: string }
 export interface PromptBlockData { content: string; quality?: 'good' | 'mid' | 'bad'; language?: string }
 export interface ImageData { src: string; alt: string; caption?: string; fit?: 'cover' | 'contain'; width?: string; height?: string }
 export interface CarouselData { items: { src: string; caption?: string }[]; syncSteps?: boolean }
-export interface ComparisonData { panels: { title: string; content: string }[] }
-export interface CardGridData { cards: { title: string; content: string; icon?: string; color?: string }[]; columns?: 2 | 3 | 4 }
+export interface ComparisonData { panels: { title: string; content?: string; body?: string }[] }
+export interface CardGridData { cards: { title: string; content?: string; body?: string; icon?: string; color?: string; variant?: string }[]; columns?: 2 | 3 | 4 }
 export interface FlowData { nodes: { icon?: string; label: string; description?: string }[] }
 export interface StreamListData { items: string[] }
 export interface ArtifactData {

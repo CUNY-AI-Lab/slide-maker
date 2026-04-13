@@ -140,6 +140,8 @@ export function buildArtifactBlockData(
     alt,
     width,
     height,
+    autoSize: true,
+    aspectRatio: 16 / 9,
   }
 
   const source = applyFactoryToSource(artifact.source, runtimeConfig, factory)

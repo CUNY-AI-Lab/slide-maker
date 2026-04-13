@@ -18,13 +18,15 @@
       : 3
   )
 
-  let cards: Array<{ title: string; content: string; color?: string }> = $derived(
+  let cards: Array<{ title: string; content: string; variant?: string; color?: string }> = $derived(
     Array.isArray(data.cards)
       ? data.cards.map((c: unknown) => {
           const card = c as Record<string, unknown>
+          const body = typeof card.body === 'string' ? card.body : typeof card.content === 'string' ? card.content : ''
           return {
             title: typeof card.title === 'string' ? card.title : '',
-            content: typeof card.content === 'string' ? card.content : '',
+            content: body,
+            variant: typeof card.variant === 'string' ? card.variant : undefined,
             color: typeof card.color === 'string' ? card.color : undefined
           }
         })
@@ -50,9 +52,9 @@
 
 <div class="card-grid" style="grid-template-columns: repeat({columns}, 1fr);">
   {#each cards as card, i}
-    <div class="card" style={card.color ? `border-top: 3px solid ${card.color};` : ''}>
+    <div class="card" class:card-cyan={card.variant === 'cyan'} class:card-navy={card.variant === 'navy'} style={card.color && !card.variant ? `border-top: 3px solid ${card.color};` : ''}>
       {#if editable && activeField?.cardIndex === i && activeField.field === 'title'}
-        <strong class="card-title">
+        <h3 class="card-title">
           <RichTextEditor
             content={editContent}
             {editable}
@@ -62,9 +64,9 @@
             {oneditorblur}
             initialClickCoords={clickCoords}
           />
-        </strong>
+        </h3>
       {:else if editable || card.title}
-        <strong class="card-title">
+        <h3 class="card-title">
           <button
             type="button"
             class="field-preview"
@@ -72,7 +74,7 @@
             onclick={(e) => activateField(i, 'title', card.title, e)}
             disabled={!editable}
           >{#if card.title}{@html DOMPurify.sanitize(card.title)}{:else}Card title...{/if}</button>
-        </strong>
+        </h3>
       {/if}
 
       {#if editable && activeField?.cardIndex === i && activeField.field === 'content'}
@@ -118,8 +120,9 @@
     font-family: var(--font-display);
     font-size: clamp(0.95rem, 1.6cqi, 1.3rem);
     font-weight: 650;
+    line-height: 1.2;
     display: block;
-    margin-bottom: 8px;
+    margin: 0 0 8px 0;
   }
   .card-content {
     margin: 0;

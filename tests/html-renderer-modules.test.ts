@@ -283,9 +283,11 @@ describe('renderModule — per-type HTML output', () => {
       expect((html.match(/flow-arrow/g) || []).length).toBe(2)
     })
 
-    it('escapes node labels', () => {
-      const html = renderModule(mod('flow', { nodes: [{ label: '<b>xss</b>' }] }))
-      expect(html).toContain('&lt;b&gt;')
+    it('sanitizes node labels (preserves safe tags, strips dangerous ones)', () => {
+      const safe = renderModule(mod('flow', { nodes: [{ label: '<b>bold</b>' }] }))
+      expect(safe).toContain('<b>bold</b>')
+      const dangerous = renderModule(mod('flow', { nodes: [{ label: '<script>alert(1)</script>' }] }))
+      expect(dangerous).not.toContain('<script>')
     })
   })
 

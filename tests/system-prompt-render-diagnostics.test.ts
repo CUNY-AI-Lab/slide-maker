@@ -62,6 +62,6 @@ describe('buildSystemPrompt render diagnostics', () => {
     expect(prompt).toContain('## Recent Canvas Render Issues')
     expect(prompt).toContain('Artifact timed out in preview')
     expect(prompt).toContain('registryId')
-    expect(prompt).toContain('events: [{label, desc}]')
+    expect(prompt).toContain('events: [{date, label, description, category?}]')
   })
 })
