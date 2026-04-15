@@ -10,6 +10,7 @@ import { FRAMEWORK_CSS } from './framework-css-client'
 import { buildSourceWithConfig } from './artifact-config'
 import { isDark, darkenHex } from '$lib/stores/themes'
 import {
+  buildFontSizeAttr,
   buildInlineArtifactSrcdoc,
   containsHtmlMarkup,
   escapeHtml,
@@ -82,9 +83,7 @@ function renderModule(mod: Module, slide: Slide): string {
     }
 
     case 'text': {
-      const styles: string[] = []
-      if (d.fontSize) styles.push(`font-size: ${esc(String(d.fontSize))}`)
-      const styleAttr = styles.length ? ` style="${styles.join('; ')}"` : ''
+      const styleAttr = buildFontSizeAttr(d.fontSize, esc)
       const html = renderRichTextData(d, sanitize)
       return html ? `<div class="text-body"${styleAttr}>${html}</div>` : ''
     }
@@ -95,9 +94,7 @@ function renderModule(mod: Module, slide: Slide): string {
       const raw = String(d.body || d.content || '')
       const body = renderFormattedContent(raw, sanitize)
       const bodyHtml = containsHtmlMarkup(raw) ? body : `<p>${body}</p>`
-      const cStyles: string[] = []
-      if (d.fontSize) cStyles.push(`font-size: ${esc(String(d.fontSize))}`)
-      const cStyleAttr = cStyles.length ? ` style="${cStyles.join('; ')}"` : ''
+      const cStyleAttr = buildFontSizeAttr(d.fontSize, esc)
       return `<div class="card${variant}"${cStyleAttr}>${title}${bodyHtml}</div>`
     }
 
@@ -107,9 +104,7 @@ function renderModule(mod: Module, slide: Slide): string {
       const inner = containsHtmlMarkup(raw)
         ? sanitize(raw).replace(/^<p>(.*)<\/p>$/s, '$1')
         : esc(raw)
-      const lStyles: string[] = []
-      if (d.fontSize) lStyles.push(`font-size: ${esc(String(d.fontSize))}`)
-      const lStyleAttr = lStyles.length ? ` style="${lStyles.join('; ')}"` : ''
+      const lStyleAttr = buildFontSizeAttr(d.fontSize, esc)
       return `<span class="label${color}"${lStyleAttr}>${inner}</span>`
     }
 
@@ -117,17 +112,13 @@ function renderModule(mod: Module, slide: Slide): string {
       const title = d.title ? `<strong>${esc(String(d.title))}</strong>` : ''
       const raw = String(d.content || d.text || '')
       const body = renderFormattedContent(raw, sanitize)
-      const tbStyles: string[] = []
-      if (d.fontSize) tbStyles.push(`font-size: ${esc(String(d.fontSize))}`)
-      const tbStyleAttr = tbStyles.length ? ` style="${tbStyles.join('; ')}"` : ''
+      const tbStyleAttr = buildFontSizeAttr(d.fontSize, esc)
       return `<div class="tip-box"${tbStyleAttr}>${title}${body}</div>`
     }
 
     case 'prompt-block': {
       const quality = d.quality ? ` prompt-${esc(String(d.quality))}` : ''
-      const pbStyles: string[] = []
-      if (d.fontSize) pbStyles.push(`font-size: ${esc(String(d.fontSize))}`)
-      const pbStyleAttr = pbStyles.length ? ` style="${pbStyles.join('; ')}"` : ''
+      const pbStyleAttr = buildFontSizeAttr(d.fontSize, esc)
       return `<div class="prompt-block${quality}"${pbStyleAttr}><pre>${esc(String(d.content || d.text || ''))}</pre></div>`
     }
 
@@ -155,9 +146,7 @@ function renderModule(mod: Module, slide: Slide): string {
 
     case 'comparison': {
       const panels = Array.isArray(d.panels) ? d.panels : []
-      const cpStyles: string[] = []
-      if (d.fontSize) cpStyles.push(`font-size: ${esc(String(d.fontSize))}`)
-      const cpStyleAttr = cpStyles.length ? ` style="${cpStyles.join('; ')}"` : ''
+      const cpStyleAttr = buildFontSizeAttr(d.fontSize, esc)
       let html = `<div class="comparison"${cpStyleAttr}>`
       for (const panel of panels) {
         const item = panel as Record<string, unknown>
@@ -192,9 +181,7 @@ function renderModule(mod: Module, slide: Slide): string {
 
     case 'flow': {
       const nodes = Array.isArray(d.nodes) ? d.nodes : []
-      const fStyles: string[] = []
-      if (d.fontSize) fStyles.push(`font-size: ${esc(String(d.fontSize))}`)
-      const fStyleAttr = fStyles.length ? ` style="${fStyles.join('; ')}"` : ''
+      const fStyleAttr = buildFontSizeAttr(d.fontSize, esc)
       let html = `<div class="flow"${fStyleAttr}>`
       nodes.forEach((node: unknown, index: number) => {
         if (index > 0) html += '<div class="flow-arrow">→</div>'
@@ -206,9 +193,7 @@ function renderModule(mod: Module, slide: Slide): string {
 
     case 'stream-list': {
       const items = Array.isArray(d.items) ? d.items : []
-      const slStyles: string[] = []
-      if (d.fontSize) slStyles.push(`font-size: ${esc(String(d.fontSize))}`)
-      const slStyleAttr = slStyles.length ? ` style="${slStyles.join('; ')}"` : ''
+      const slStyleAttr = buildFontSizeAttr(d.fontSize, esc)
       let html = `<ul class="stream-list"${slStyleAttr}>`
       for (const item of items) {
         const o = typeof item === 'object' && item ? item as Record<string, unknown> : null

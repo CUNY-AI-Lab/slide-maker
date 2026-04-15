@@ -265,7 +265,7 @@ Full admin panel at `/admin` with:
 - Wireframes: `docs/wireframes/`
 
 ### Themes
-- 9 built-in themes (Studio Dark, Studio Light, CUNY AI Lab, CUNY Dark, CUNY Light, Warm Academic, Slate Minimal, Midnight, Forest)
+- 12 built-in themes in 6 light/dark families: Studio (Dark, Light), CUNY AI Lab (Default, Dark), Warm Academic (Light, Dark), Slate Minimal (Light, Dark), Midnight (Dark, Light), Forest (Light, Dark)
 - Theme-driven rendering: both preview iframe and export apply theme colors/fonts via CSS variables
 - Auto-detects dark/light themes for text contrast (uses luminance calculation)
 - Theme store at `apps/web/src/lib/stores/themes.ts`

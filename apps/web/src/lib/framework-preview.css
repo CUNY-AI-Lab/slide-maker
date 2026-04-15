@@ -138,7 +138,7 @@
 .slide-frame .tiptap code { background: var(--theme-card-bg, rgba(255,255,255,0.06)) !important; color: var(--accent-cyan) !important; }
 
 /* ── Module: Card ───────────────────────────────────────────────── */
-.slide-frame .card { background: rgba(255,255,255,0.03) !important; border: 1px solid var(--border-subtle) !important; border-radius: 10px !important; padding: 24px !important; }
+.slide-frame .card { background: var(--theme-card-bg, rgba(255,255,255,0.03)) !important; border: 1px solid var(--border-subtle) !important; border-radius: 10px !important; padding: 24px !important; }
 .slide-frame .card-cyan, .slide-frame .card[class*="cyan"] { border-left: 3px solid var(--accent-cyan) !important; }
 .slide-frame .card-navy, .slide-frame .card[class*="navy"] { border-left: 3px solid var(--accent-navy) !important; }
 .slide-frame .card h3 { font-size: 1.3rem !important; font-weight: 650 !important; margin-bottom: 8px !important; display: block !important; }
@@ -167,24 +167,24 @@
 
 /* ── Module: Stream List ────────────────────────────────────────── */
 .slide-frame .stream-list { list-style: none !important; padding: 0 !important; }
-.slide-frame .stream-list li { padding: 12px 16px !important; border-left: 2px solid var(--accent-cyan) !important; margin-bottom: 6px !important; background: rgba(255,255,255,0.02) !important; border-radius: 0 6px 6px 0 !important; font-size: 1rem !important; line-height: 1.5 !important; color: var(--text-muted) !important; }
+.slide-frame .stream-list li { padding: 12px 16px !important; border-left: 2px solid var(--accent-cyan) !important; margin-bottom: 6px !important; background: var(--theme-card-bg, rgba(255,255,255,0.02)) !important; border-radius: 0 6px 6px 0 !important; font-size: 1rem !important; line-height: 1.5 !important; color: var(--text-muted) !important; }
 .slide-frame .stream-list li::before { display: none !important; }
 
 /* ── Module: Comparison ─────────────────────────────────────────── */
 .slide-frame .comparison { display: flex !important; gap: 20px !important; width: 100% !important; border: none !important; }
-.slide-frame .comparison-panel { flex: 1; background: rgba(255,255,255,0.02) !important; border: 1px solid var(--border-subtle) !important; border-radius: 10px !important; padding: 24px !important; color: var(--text-muted) !important; }
+.slide-frame .comparison-panel { flex: 1; background: var(--theme-card-bg, rgba(255,255,255,0.02)) !important; border: 1px solid var(--border-subtle) !important; border-radius: 10px !important; padding: 24px !important; color: var(--text-muted) !important; }
 .slide-frame .comparison-panel h3 { font-size: 1.3rem !important; font-weight: 600 !important; margin-bottom: 8px !important; }
 .slide-frame .panel-content, .slide-frame .comparison-panel p { font-size: 1rem !important; color: var(--text-muted) !important; line-height: 1.45 !important; }
 
 /* ── Module: Card Grid ──────────────────────────────────────────── */
 .slide-frame .card-grid { display: grid !important; gap: 20px !important; width: 100% !important; }
-.slide-frame .card-grid .card { background: rgba(255,255,255,0.03) !important; border: 1px solid var(--border-subtle) !important; color: var(--text-muted) !important; }
+.slide-frame .card-grid .card { background: var(--theme-card-bg, rgba(255,255,255,0.03)) !important; border: 1px solid var(--border-subtle) !important; color: var(--text-muted) !important; }
 .slide-frame .card-grid .card-title { color: var(--text-primary) !important; font-size: 1.3rem !important; font-weight: 650 !important; line-height: 1.2 !important; display: block !important; margin: 0 0 8px 0 !important; font-family: var(--theme-heading-font, 'Outfit'), sans-serif !important; }
 .slide-frame .card-grid .card-content { font-size: 1rem !important; color: var(--text-muted) !important; line-height: 1.45 !important; }
 
 /* ── Module: Flow ───────────────────────────────────────────────── */
 .slide-frame .flow { display: flex !important; align-items: center !important; gap: 8px !important; flex-wrap: wrap !important; justify-content: center !important; }
-.slide-frame .flow-node { background: rgba(255,255,255,0.03) !important; border: 1px solid var(--border-subtle) !important; border-radius: 8px !important; padding: 14px 22px !important; font-size: 1rem !important; text-align: center !important; display: flex !important; flex-direction: column !important; align-items: center !important; gap: 4px !important; }
+.slide-frame .flow-node { background: var(--theme-card-bg, rgba(255,255,255,0.03)) !important; border: 1px solid var(--border-subtle) !important; border-radius: 8px !important; padding: 14px 22px !important; font-size: 1rem !important; text-align: center !important; display: flex !important; flex-direction: column !important; align-items: center !important; gap: 4px !important; }
 .slide-frame .flow-icon { width: 1.8rem !important; height: 1.8rem !important; border-radius: 50% !important; background: var(--accent-cyan) !important; color: white !important; display: flex !important; align-items: center !important; justify-content: center !important; flex-shrink: 0 !important; font-weight: 700 !important; font-size: 0.7rem !important; }
 .slide-frame .flow-body { min-width: 0 !important; }
 .slide-frame .flow-label { font-weight: 600 !important; font-size: 1rem !important; line-height: 1.2 !important; color: var(--text-primary) !important; }

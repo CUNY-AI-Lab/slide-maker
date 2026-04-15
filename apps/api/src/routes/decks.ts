@@ -434,22 +434,29 @@ decksRouter.patch('/:id/slides/:slideId', async (c) => {
 
   await db.update(slides).set(updates).where(eq(slides.id, slideId))
 
-  // Remap block zones when layout changes
+  // Remap block zones when layout changes (atomic transaction)
   if (body.layout && body.layout !== slide.layout) {
     const newLayout = body.layout as SlideLayout
     const validZones = LAYOUT_ZONES[newLayout] || []
     if (validZones.length > 0) {
       const primaryZone = validZones[0]
-      const blocks = await db.select().from(contentBlocks).where(eq(contentBlocks.slideId, slideId)).all()
-      for (const block of blocks) {
-        if (!validZones.includes(block.zone as any)) {
-          await db.update(contentBlocks).set({ zone: primaryZone }).where(eq(contentBlocks.id, block.id))
+      const { sqlite } = await import('../db/index.js')
+      const remapZones = sqlite.transaction(() => {
+        const blocks = sqlite.prepare(
+          'SELECT id, zone FROM content_blocks WHERE slide_id = ?'
+        ).all(slideId) as { id: string; zone: string }[]
+        for (const block of blocks) {
+          if (!validZones.includes(block.zone as any)) {
+            sqlite.prepare(
+              'UPDATE content_blocks SET zone = ? WHERE id = ?'
+            ).run(primaryZone, block.id)
+          }
         }
-      }
+      })
+      remapZones()
     }
   }
 
-  // Update deck's updatedAt
   await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId))
 
   const updated = await db.select().from(slides).where(eq(slides.id, slideId)).get()

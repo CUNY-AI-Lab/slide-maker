@@ -1,7 +1,7 @@
 import { hash } from '@node-rs/argon2'
 import { createId } from '@paralleldrive/cuid2'
 import { db } from './index.js'
-import { users, templates, themes, artifacts } from './schema.js'
+import { users, templates, themes, artifacts, decks } from './schema.js'
 import { eq } from 'drizzle-orm'
 import fs from 'node:fs'
 import path from 'node:path'
@@ -70,6 +70,20 @@ function generateThemeCss(colors: { primary: string; secondary: string; accent: 
 }
 
 async function seedThemes() {
+  // Migrate deck themeIds from old names to new names (3114fde renamed these)
+  const themeIdMigrations: [string, string][] = [
+    ['cuny-dark', 'cuny-ai-lab-dark'],
+    ['cuny-light', 'cuny-ai-lab-default'],
+    ['warm-academic', 'warm-academic-light'],
+    ['slate-minimal', 'slate-minimal-light'],
+    ['midnight', 'midnight-dark'],
+    ['forest', 'forest-light'],
+  ]
+  for (const [oldId, newId] of themeIdMigrations) {
+    await db.update(decks).set({ themeId: newId }).where(eq(decks.themeId, oldId))
+  }
+  console.log('Migrated legacy theme IDs in decks.')
+
   // Clear existing built-in themes before re-seeding
   await db.delete(themes).where(eq(themes.builtIn, true))
   console.log('Cleared existing built-in themes.')

@@ -8,6 +8,7 @@ export * from './rich-text.js'
 export * from './slide-layout.js'
 export * from './module-registry.js'
 export * from './artifact-runtime.js'
+export * from './style-helpers.js'
 export {
   buildArtifactBlockData,
   buildAtRef,

@@ -138,7 +138,7 @@ Each artifact has a configurable parameter schema (numbers, colors, selects). Ar
 
 ### Themes
 
-9 built-in themes: Studio Dark, Studio Light, CUNY AI Lab, CUNY Dark, CUNY Light, Warm Academic, Slate Minimal, Midnight, Forest. Users can create custom themes and fork existing ones. Theme-driven rendering via CSS custom properties.
+12 built-in themes in 6 light/dark families: Studio (Dark, Light), CUNY AI Lab (Default, Dark), Warm Academic (Light, Dark), Slate Minimal (Light, Dark), Midnight (Dark, Light), Forest (Light, Dark). Users can create custom themes and fork existing ones. Theme-driven rendering via CSS custom properties.
 
 ### Export
 
