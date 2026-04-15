@@ -5,8 +5,10 @@ import type { Session, User } from 'lucia'
 import {
   buildArtifactBlockData,
   generateSlug,
+  LAYOUT_ZONES,
   type ArtifactBlockBuildOptions,
   type JsonValue,
+  type SlideLayout,
 } from '@slide-maker/shared'
 import { db } from '../db/index.js'
 import { artifacts, decks, deckAccess, slides, contentBlocks } from '../db/schema.js'
@@ -431,6 +433,21 @@ decksRouter.patch('/:id/slides/:slideId', async (c) => {
   }
 
   await db.update(slides).set(updates).where(eq(slides.id, slideId))
+
+  // Remap block zones when layout changes
+  if (body.layout && body.layout !== slide.layout) {
+    const newLayout = body.layout as SlideLayout
+    const validZones = LAYOUT_ZONES[newLayout] || []
+    if (validZones.length > 0) {
+      const primaryZone = validZones[0]
+      const blocks = await db.select().from(contentBlocks).where(eq(contentBlocks.slideId, slideId)).all()
+      for (const block of blocks) {
+        if (!validZones.includes(block.zone as any)) {
+          await db.update(contentBlocks).set({ zone: primaryZone }).where(eq(contentBlocks.id, block.id))
+        }
+      }
+    }
+  }
 
   // Update deck's updatedAt
   await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId))

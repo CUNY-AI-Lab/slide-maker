@@ -1,5 +1,6 @@
 import { currentDeck, addSlideToDeck, removeSlideFromDeck, updateSlideInDeck } from '$lib/stores/deck'
 import { reorderBlocksInZone, moveBlockBetweenZones, reorderSlides as reorderSlidesTransform } from '@slide-maker/shared/dnd-transforms'
+import { LAYOUT_ZONES, type SlideLayout } from '@slide-maker/shared'
 import { activeSlideId } from '$lib/stores/ui'
 import { history } from '$lib/stores/history'
 import { logAction, lastAgentSlideId } from '$lib/stores/actions'
@@ -199,12 +200,25 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
       if (payload.splitRatio !== undefined) updates.splitRatio = payload.splitRatio
       if (payload.layout !== undefined) updates.layout = payload.layout
       await apiCall(`/api/decks/${deck.id}/slides/${slideId}`, 'PATCH', updates)
-      updateSlideInDeck(slideId, (s) => ({
-        ...s,
-        ...(payload.notes !== undefined ? { notes: payload.notes as string | null } : {}),
-        ...(payload.splitRatio !== undefined ? { splitRatio: payload.splitRatio as string } : {}),
-        ...(payload.layout !== undefined ? { layout: payload.layout as string } : {}),
-      }))
+      updateSlideInDeck(slideId, (s) => {
+        const updated = {
+          ...s,
+          ...(payload.notes !== undefined ? { notes: payload.notes as string | null } : {}),
+          ...(payload.splitRatio !== undefined ? { splitRatio: payload.splitRatio as string } : {}),
+          ...(payload.layout !== undefined ? { layout: payload.layout as string } : {}),
+        }
+        // Remap block zones when layout changes
+        if (payload.layout && payload.layout !== s.layout) {
+          const validZones = LAYOUT_ZONES[payload.layout as SlideLayout] || []
+          if (validZones.length > 0) {
+            const primaryZone = validZones[0]
+            updated.blocks = s.blocks.map((b) =>
+              validZones.includes(b.zone as any) ? b : { ...b, zone: primaryZone },
+            )
+          }
+        }
+        return updated
+      })
 
       history.pushMutation(
         { action: 'updateSlide', payload: { slideId, ...updates } },
@@ -924,12 +938,24 @@ async function applyMutationSilent(mutation: Record<string, unknown>): Promise<v
       if (payload.splitRatio !== undefined) updates.splitRatio = payload.splitRatio
       if (payload.layout !== undefined) updates.layout = payload.layout
       await apiCall(`/api/decks/${deck.id}/slides/${slideId}`, 'PATCH', updates)
-      updateSlideInDeck(slideId, (s) => ({
-        ...s,
-        ...(payload.notes !== undefined ? { notes: payload.notes as string | null } : {}),
-        ...(payload.splitRatio !== undefined ? { splitRatio: payload.splitRatio as string } : {}),
-        ...(payload.layout !== undefined ? { layout: payload.layout as string } : {}),
-      }))
+      updateSlideInDeck(slideId, (s) => {
+        const updated = {
+          ...s,
+          ...(payload.notes !== undefined ? { notes: payload.notes as string | null } : {}),
+          ...(payload.splitRatio !== undefined ? { splitRatio: payload.splitRatio as string } : {}),
+          ...(payload.layout !== undefined ? { layout: payload.layout as string } : {}),
+        }
+        if (payload.layout && payload.layout !== s.layout) {
+          const validZones = LAYOUT_ZONES[payload.layout as SlideLayout] || []
+          if (validZones.length > 0) {
+            const primaryZone = validZones[0]
+            updated.blocks = s.blocks.map((b) =>
+              validZones.includes(b.zone as any) ? b : { ...b, zone: primaryZone },
+            )
+          }
+        }
+        return updated
+      })
       break
     }
     case 'moveBlockToSlide': {
