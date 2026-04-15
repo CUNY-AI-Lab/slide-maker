@@ -38,6 +38,10 @@ for (const vp of VIEWPORTS) {
     await page.goto(`/deck/${deck.id}`)
     await page.waitForSelector('.slide-frame')
 
+    // Switch to view mode for native element selectors (edit mode wraps in buttons)
+    await page.locator('.mode-btn', { hasText: 'View' }).click()
+    await page.waitForTimeout(300)
+
     // Heading should be visible
     await expect(page.locator('h1')).toContainText('Responsive Heading')
 

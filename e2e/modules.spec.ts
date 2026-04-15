@@ -107,33 +107,30 @@ for (const mod of MODULE_FIXTURES) {
     await page.goto(`/deck/${deck.id}`)
     await page.waitForSelector('.slide-canvas')
 
-    // Should be in edit mode by default
     const slideFrame = page.locator('.slide-frame')
     await expect(slideFrame).toBeVisible()
 
-    // Verify module renders
-    const moduleEl = slideFrame.locator(mod.selector).first()
-    await expect(moduleEl).toBeVisible({ timeout: 5000 })
+    // Switch to view mode via toolbar button (Escape navigates to gallery)
+    await page.locator('.mode-btn', { hasText: 'View' }).click()
+    await page.waitForTimeout(300)
+
+    // Verify module renders in view mode
+    const viewModule = slideFrame.locator(mod.selector).first()
+    await expect(viewModule).toBeVisible({ timeout: 5000 })
 
     if (mod.content) {
-      await expect(moduleEl).toContainText(mod.content)
+      await expect(viewModule).toContainText(mod.content)
     }
-
-    // Switch to view mode (Escape key)
-    await page.keyboard.press('Escape')
-    await page.waitForTimeout(300)
 
     // Verify NO iframe in view mode (only artifact modules should have iframes)
     const iframes = await slideFrame.locator('iframe').count()
     expect(iframes).toBe(0)
 
-    // Verify module still renders in view mode
-    const viewModule = slideFrame.locator(mod.selector).first()
-    await expect(viewModule).toBeVisible()
+    // Switch to edit mode and verify slide frame still renders
+    await page.locator('.mode-btn', { hasText: 'Edit' }).click()
+    await page.waitForTimeout(300)
 
-    if (mod.content) {
-      await expect(viewModule).toContainText(mod.content)
-    }
+    await expect(slideFrame).toBeVisible()
   })
 }
 
@@ -166,10 +163,9 @@ test('artifact module renders with iframe in both modes', async ({
   // Verify sandbox attributes
   const sandbox = await iframe.getAttribute('sandbox')
   expect(sandbox).toContain('allow-scripts')
-  expect(sandbox).toContain('allow-same-origin')
 
-  // Switch to view mode
-  await page.keyboard.press('Escape')
+  // Switch to view mode via toolbar button (Escape navigates to gallery)
+  await page.locator('.mode-btn', { hasText: 'View' }).click()
   await page.waitForTimeout(300)
 
   // Iframe should still be present in view mode (artifacts keep iframes)

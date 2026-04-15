@@ -17,17 +17,17 @@ test('edit mode shows editing controls, view mode hides them', async ({
   await page.goto(`/deck/${deck.id}`)
   await page.waitForSelector('.slide-frame')
 
-  // Edit mode: hover over module should show controls
+  // Edit mode: hover over module should show drag handle
   const moduleWrapper = page.locator('.module-wrapper').first()
   await moduleWrapper.hover()
-  await expect(page.locator('.module-controls').first()).toBeVisible()
+  await expect(page.locator('.canvas-drag-handle').first()).toBeVisible()
 
-  // Switch to view mode
-  await page.keyboard.press('Escape')
+  // Switch to view mode via toolbar button (Escape navigates to gallery)
+  await page.locator('.mode-btn', { hasText: 'View' }).click()
   await page.waitForTimeout(300)
 
   // View mode: no editing controls
-  await expect(page.locator('.module-controls')).toHaveCount(0)
+  await expect(page.locator('.canvas-drag-handle')).toHaveCount(0)
 
   // View mode: click overlay should be present
   await expect(page.locator('.click-overlay')).toBeVisible()
@@ -37,8 +37,9 @@ test('edit mode shows editing controls, view mode hides them', async ({
   await page.waitForTimeout(300)
 
   // Back in edit mode: controls available again
-  await moduleWrapper.hover()
-  await expect(page.locator('.module-controls').first()).toBeVisible()
+  const wrapper = page.locator('.module-wrapper').first()
+  await wrapper.hover()
+  await expect(page.locator('.canvas-drag-handle').first()).toBeVisible()
 })
 
 test('view mode uses native rendering, not iframe', async ({
@@ -58,8 +59,8 @@ test('view mode uses native rendering, not iframe', async ({
   await page.goto(`/deck/${deck.id}`)
   await page.waitForSelector('.slide-frame')
 
-  // Switch to view mode
-  await page.keyboard.press('Escape')
+  // Switch to view mode via toolbar button (Escape navigates to gallery)
+  await page.locator('.mode-btn', { hasText: 'View' }).click()
   await page.waitForTimeout(300)
 
   // Should NOT have a slide-preview-frame iframe

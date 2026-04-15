@@ -28,13 +28,9 @@ test('artifact with rawSource renders in sandboxed iframe with CSP', async ({
   const sandbox = await iframe.getAttribute('sandbox')
   expect(sandbox).toContain('allow-scripts')
 
-  // Verify loading attribute
-  const loading = await iframe.getAttribute('loading')
-  expect(loading).toBe('lazy')
-
-  // Verify src is a blob URL (CSP injected)
-  const src = await iframe.getAttribute('src')
-  expect(src).toMatch(/^blob:/)
+  // rawSource artifacts use srcdoc (no loading="lazy", no blob URL)
+  const srcdoc = await iframe.getAttribute('srcdoc')
+  expect(srcdoc).toBeTruthy()
 })
 
 test('artifact with external URL renders without blob', async ({
@@ -84,10 +80,11 @@ test('artifact resizes via corner drag', async ({
   await page.goto(`/deck/${deck.id}`)
   await page.waitForSelector('.module-wrapper')
 
-  // Hover to reveal resize handle
+  // Hover to reveal resize handle (shows on hover via CSS)
   const wrapper = page.locator('.module-wrapper').first()
   await wrapper.hover()
+  await page.waitForTimeout(200)
 
-  const handle = page.locator('.corner-resize')
+  const handle = page.locator('.corner-resize').first()
   await expect(handle).toBeVisible()
 })
