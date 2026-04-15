@@ -1,4 +1,5 @@
 import { buildArtifactBlockData, type JsonValue } from '@slide-maker/shared'
+import { NATIVE_ARTIFACT_NAMES } from '../export/artifacts.js'
 import { db } from '../db/index.js'
 import { artifacts } from '../db/schema.js'
 
@@ -28,6 +29,8 @@ export async function resolveArtifactSources(modules: ModuleData[]): Promise<voi
     const def = byId.get(registryId) ?? (registryId && !registryId.startsWith('artifact-') ? byId.get(`artifact-${registryId}`) : undefined) ?? byName.get(name)
     const ref = registryId || name || '(unknown)'
     if (!def) throw new Error(`artifact-not-found:${ref}`)
+    // Native artifacts are rendered by JS factory functions, not from DB source
+    if (NATIVE_ARTIFACT_NAMES.has(def.name)) continue
     if (!def.source) throw new Error(`artifact-source-missing:${ref}`)
     const built = buildArtifactBlockData(
       def,
