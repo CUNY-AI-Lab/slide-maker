@@ -2,9 +2,8 @@
   import ZoneDrop from './ZoneDrop.svelte'
   import SplitHandle from './SplitHandle.svelte'
 import { currentDeck, updateSlideInDeck } from '$lib/stores/deck'
-import { applyMutation } from '$lib/utils/mutations'
+import { applyMutation, apiCall } from '$lib/utils/mutations'
   import type { Editor } from '@tiptap/core'
-  import { API_URL } from '$lib/api'
 
   type Module = {
     id: string
@@ -114,12 +113,9 @@ import { applyMutation } from '$lib/utils/mutations'
         b.id === moduleId ? { ...b, data: newData } : b
       ),
     }))
-    fetch(`${API_URL}/api/decks/${slide.deckId}/slides/${slide.id}/blocks/${moduleId}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ data: newData }),
-    }).catch(console.error)
+    apiCall(`/api/decks/${slide.deckId}/slides/${slide.id}/blocks/${moduleId}`, 'PATCH', {
+      data: newData,
+    })
   }
 
   async function handleModuleStepChange(moduleId: string, stepOrder: number | null) {
@@ -143,12 +139,9 @@ import { applyMutation } from '$lib/utils/mutations'
   function handleRatioChange(newRatio: number) {
     splitRatio = newRatio
     updateSlideInDeck(slide.id, (s) => ({ ...s, splitRatio: String(newRatio) }))
-    fetch(`${API_URL}/api/decks/${slide.deckId}/slides/${slide.id}`, {
-      method: 'PATCH',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ splitRatio: String(newRatio) }),
-    }).catch(console.error)
+    apiCall(`/api/decks/${slide.deckId}/slides/${slide.id}`, 'PATCH', {
+      splitRatio: String(newRatio),
+    })
   }
 </script>
 

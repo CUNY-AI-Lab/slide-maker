@@ -90,6 +90,7 @@
         oneditorready?.(editor!)
       },
       onBlur: () => {
+        flushPendingSave()
         updateToolbarState()
         oneditorblur?.()
       },
@@ -111,8 +112,22 @@
     }
   })
 
+  function flushPendingSave() {
+    if (saveTimer) {
+      clearTimeout(saveTimer)
+      saveTimer = undefined
+      if (editor) {
+        const html = editor.getHTML()
+        if (html !== lastEmittedHtml) {
+          lastEmittedHtml = html
+          onchange?.(html)
+        }
+      }
+    }
+  }
+
   onDestroy(() => {
-    clearTimeout(saveTimer)
+    flushPendingSave()
     if (editor) {
       editor.destroy()
       editor = null

@@ -7,7 +7,7 @@ import { logAction, lastAgentSlideId } from '$lib/stores/actions'
 import { get } from 'svelte/store'
 import { API_URL } from '$lib/api'
 
-async function apiCall(path: string, method: string, body?: unknown) {
+export async function apiCall(path: string, method: string, body?: unknown) {
   try {
     const res = await fetch(`${API_URL}${path}`, {
       method,
