@@ -28,6 +28,13 @@ export const emailVerifications = sqliteTable('email_verifications', {
   expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
 })
 
+export const passwordResets = sqliteTable('password_resets', {
+  id: text('id').primaryKey(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  token: text('token').notNull().unique(),
+  expiresAt: integer('expires_at', { mode: 'timestamp_ms' }).notNull(),
+})
+
 // ── Decks ──
 
 export const decks = sqliteTable('decks', {

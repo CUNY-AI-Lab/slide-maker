@@ -26,6 +26,10 @@ export const api = {
   logout: () => request('/api/auth/logout', { method: 'POST' }),
   me: () => request<{ user: any }>('/api/auth/me'),
   verify: (token: string) => request<{ message: string }>(`/api/auth/verify?token=${token}`),
+  forgotPassword: (email: string) =>
+    request<{ message: string }>('/api/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) }),
+  resetPassword: (data: { token: string; password: string }) =>
+    request<{ message: string }>('/api/auth/reset-password', { method: 'POST', body: JSON.stringify(data) }),
 
   // Decks
   listDecks: () => request<{ decks: any[] }>('/api/decks'),
@@ -79,6 +83,8 @@ export const api = {
   listAllUsers: () => request<{ users: any[]; stats: any }>('/api/admin/users/all'),
   updateUser: (id: string, data: any) => request(`/api/admin/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
   getUserUsage: (id: string) => request<any>(`/api/admin/users/${id}/usage`),
+  adminResetPassword: (id: string) =>
+    request<{ message: string }>(`/api/admin/users/${id}/reset-password`, { method: 'POST' }),
 
   // Chat
   getChatHistory: (deckId: string) =>

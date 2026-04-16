@@ -5,11 +5,11 @@ import { eq } from 'drizzle-orm'
 import { isValidCunyEmail } from '@slide-maker/shared'
 import type { Session, User } from 'lucia'
 import { db } from '../db/index.js'
-import { users, emailVerifications } from '../db/schema.js'
+import { users, emailVerifications, passwordResets } from '../db/schema.js'
 import { lucia } from '../auth/lucia.js'
 import { authMiddleware } from '../middleware/auth.js'
-import { loginRateLimit, registerRateLimit, passwordChangeRateLimit } from '../middleware/rate-limit.js'
-import { sendVerificationEmail } from '../email/index.js'
+import { loginRateLimit, registerRateLimit, passwordChangeRateLimit, forgotPasswordRateLimit } from '../middleware/rate-limit.js'
+import { sendVerificationEmail, sendPasswordResetEmail } from '../email/index.js'
 
 type AuthEnv = {
   Variables: {
@@ -27,6 +27,14 @@ auth.post('/register', registerRateLimit, async (c) => {
 
   if (!email || !password || !name) {
     return c.json({ error: 'Email, password, and name are required' }, 400)
+  }
+
+  const trimmedName = typeof name === 'string' ? name.trim() : ''
+  if (trimmedName.length < 2 || trimmedName.length > 100) {
+    return c.json({ error: 'Name must be 2-100 characters' }, 400)
+  }
+  if (/<[^>]*>/.test(trimmedName)) {
+    return c.json({ error: 'Name cannot contain HTML tags' }, 400)
   }
 
   if (!isValidCunyEmail(email)) {
@@ -49,7 +57,7 @@ auth.post('/register', registerRateLimit, async (c) => {
   await db.insert(users).values({
     id: userId,
     email: email.toLowerCase(),
-    name,
+    name: trimmedName,
     passwordHash,
     emailVerified: false,
     status: 'pending',
@@ -192,6 +200,79 @@ auth.post('/change-password', authMiddleware, passwordChangeRateLimit, async (c)
   await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, user.id))
 
   return c.json({ message: 'Password changed successfully' })
+})
+
+// POST /forgot-password
+auth.post('/forgot-password', forgotPasswordRateLimit, async (c) => {
+  const body = await c.req.json()
+  const { email } = body
+
+  if (!email) {
+    return c.json({ error: 'Email is required' }, 400)
+  }
+
+  // Always return success to prevent email enumeration
+  const successMsg = { message: 'If an account with that email exists, a password reset link has been sent.' }
+
+  const user = await db.select().from(users).where(eq(users.email, email.toLowerCase())).get()
+  if (!user) {
+    return c.json(successMsg)
+  }
+
+  // Delete any existing reset tokens for this user
+  await db.delete(passwordResets).where(eq(passwordResets.userId, user.id))
+
+  // Create reset token (1 hour expiry)
+  const token = createId()
+  await db.insert(passwordResets).values({
+    id: createId(),
+    userId: user.id,
+    token,
+    expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+  })
+
+  try {
+    await sendPasswordResetEmail(email.toLowerCase(), token)
+  } catch (err) {
+    console.error('Failed to send password reset email:', err)
+  }
+
+  return c.json(successMsg)
+})
+
+// POST /reset-password
+auth.post('/reset-password', async (c) => {
+  const body = await c.req.json()
+  const { token, password } = body
+
+  if (!token || !password) {
+    return c.json({ error: 'Token and new password are required' }, 400)
+  }
+
+  if (typeof password !== 'string' || password.length < 8) {
+    return c.json({ error: 'Password must be at least 8 characters' }, 400)
+  }
+
+  const reset = await db.select().from(passwordResets).where(eq(passwordResets.token, token)).get()
+  if (!reset) {
+    return c.json({ error: 'Invalid or expired reset link' }, 400)
+  }
+
+  if (reset.expiresAt < new Date()) {
+    await db.delete(passwordResets).where(eq(passwordResets.id, reset.id))
+    return c.json({ error: 'This reset link has expired. Please request a new one.' }, 400)
+  }
+
+  const newHash = await hash(password)
+  await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, reset.userId))
+
+  // Clean up the used token
+  await db.delete(passwordResets).where(eq(passwordResets.id, reset.id))
+
+  // Invalidate all existing sessions for this user
+  await lucia.invalidateUserSessions(reset.userId)
+
+  return c.json({ message: 'Password reset successfully. You can now sign in with your new password.' })
 })
 
 export default auth

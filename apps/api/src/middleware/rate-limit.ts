@@ -79,6 +79,13 @@ const exportLimiter = new RateLimiterMemory({
   keyPrefix: 'export',
 })
 
+// Forgot password: 3 attempts per 15 minutes per IP
+const forgotPasswordLimiter = new RateLimiterMemory({
+  points: 3,
+  duration: 15 * 60,
+  keyPrefix: 'forgot-password',
+})
+
 // Search (web + image + download): 15 per minute per IP
 const searchLimiter = new RateLimiterMemory({
   points: 15,
@@ -93,4 +100,5 @@ export const heartbeatRateLimit = createRateLimitMiddleware(heartbeatLimiter)
 export const passwordChangeRateLimit = createRateLimitMiddleware(passwordChangeLimiter)
 export const uploadRateLimit = createRateLimitMiddleware(uploadLimiter)
 export const exportRateLimit = createRateLimitMiddleware(exportLimiter)
+export const forgotPasswordRateLimit = createRateLimitMiddleware(forgotPasswordLimiter)
 export const searchRateLimit = createRateLimitMiddleware(searchLimiter)

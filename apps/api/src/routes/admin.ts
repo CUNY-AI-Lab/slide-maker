@@ -5,9 +5,10 @@ import { createId } from '@paralleldrive/cuid2'
 import { isValidCunyEmail } from '@slide-maker/shared'
 import type { Session, User } from 'lucia'
 import { db } from '../db/index.js'
-import { users, decks, deckAccess, chatMessages, tokenUsage } from '../db/schema.js'
+import { users, decks, deckAccess, chatMessages, tokenUsage, passwordResets } from '../db/schema.js'
 import { authMiddleware } from '../middleware/auth.js'
 import { adminMiddleware } from '../middleware/admin.js'
+import { sendAdminPasswordResetEmail } from '../email/index.js'
 
 type AdminEnv = {
   Variables: {
@@ -206,6 +207,14 @@ admin.post('/users', async (c) => {
     return c.json({ error: 'Email, password, and name are required' }, 400)
   }
 
+  const trimmedName = typeof name === 'string' ? name.trim() : ''
+  if (trimmedName.length < 2 || trimmedName.length > 100) {
+    return c.json({ error: 'Name must be 2-100 characters' }, 400)
+  }
+  if (/<[^>]*>/.test(trimmedName)) {
+    return c.json({ error: 'Name cannot contain HTML tags' }, 400)
+  }
+
   if (typeof email !== 'string' || !email.includes('@')) {
     return c.json({ error: 'Invalid email address' }, 400)
   }
@@ -231,7 +240,7 @@ admin.post('/users', async (c) => {
   await db.insert(users).values({
     id: userId,
     email: email.toLowerCase(),
-    name,
+    name: trimmedName,
     passwordHash,
     emailVerified: true,
     status: 'approved',
@@ -274,6 +283,38 @@ admin.post('/users/:id/reject', async (c) => {
 
   await db.update(users).set({ status: 'rejected' }).where(eq(users.id, id))
   return c.json({ message: 'User rejected', userId: id })
+})
+
+// POST /users/:id/reset-password — Send a password reset email to a user
+admin.post('/users/:id/reset-password', async (c) => {
+  const id = c.req.param('id')
+  const adminUser = c.get('user')
+
+  const user = await db.select().from(users).where(eq(users.id, id)).get()
+  if (!user) {
+    return c.json({ error: 'User not found' }, 404)
+  }
+
+  // Delete any existing reset tokens for this user
+  await db.delete(passwordResets).where(eq(passwordResets.userId, user.id))
+
+  // Create reset token (24 hour expiry for admin-initiated resets)
+  const token = createId()
+  await db.insert(passwordResets).values({
+    id: createId(),
+    userId: user.id,
+    token,
+    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  })
+
+  try {
+    await sendAdminPasswordResetEmail(user.email, token, adminUser.name)
+  } catch (err) {
+    console.error('Failed to send admin password reset email:', err)
+    return c.json({ error: 'Failed to send reset email' }, 500)
+  }
+
+  return c.json({ message: `Password reset email sent to ${user.email}` })
 })
 
 export default admin

@@ -1,76 +1,85 @@
 <script lang="ts">
   import { api } from '$lib/api';
-  import { currentUser } from '$lib/stores/auth';
-  import { goto } from '$app/navigation';
   import { base } from '$app/paths';
 
   let email = $state('');
-  let password = $state('');
   let error = $state('');
+  let success = $state('');
   let loading = $state(false);
 
   async function handleSubmit(e: SubmitEvent) {
     e.preventDefault();
     error = '';
+    success = '';
     loading = true;
 
     try {
-      const { user } = await api.login({ email, password });
-      currentUser.set(user);
-      goto(`${base}/`);
+      const result = await api.forgotPassword(email);
+      success = result.message;
+      email = '';
     } catch (err: any) {
-      error = err.message || 'Login failed';
+      error = err.message || 'Something went wrong. Please try again.';
     } finally {
       loading = false;
     }
   }
 </script>
 
-<form onsubmit={handleSubmit} class="auth-form">
-  <div class="form-header">
-    <h1>CUNY AI Lab</h1>
-    <p>Sign in to <span class="brand-slide">Slide</span> <span class="brand-wiz">Wiz</span></p>
-  </div>
+<svelte:head>
+  <title>Forgot Password - CUNY AI Lab Slide Wiz</title>
+</svelte:head>
 
-  <div class="form-body">
-    {#if error}
-      <div class="error-message" role="alert">{error}</div>
-    {/if}
+<div class="auth-page">
+  <form onsubmit={handleSubmit} class="auth-form">
+    <div class="form-header">
+      <h1>CUNY AI Lab</h1>
+      <p>Reset your password</p>
+    </div>
 
-    <label class="field">
-      <span>Email</span>
-      <input
-        type="email"
-        bind:value={email}
-        placeholder="you@cuny.edu"
-        required
-      />
-    </label>
+    <div class="form-body">
+      {#if success}
+        <div class="success-message" role="status">{success}</div>
+      {/if}
 
-    <label class="field">
-      <span>Password</span>
-      <input
-        type="password"
-        bind:value={password}
-        placeholder="Enter your password"
-        required
-      />
-    </label>
+      {#if error}
+        <div class="error-message" role="alert">{error}</div>
+      {/if}
 
-    <button type="submit" class="btn-primary" disabled={loading}>
-      {loading ? 'Signing in...' : 'Sign In'}
-    </button>
+      {#if !success}
+        <p class="instructions">Enter your email address and we'll send you a link to reset your password.</p>
 
-    <p class="form-footer">
-      <a href="{base}/forgot-password">Forgot your password?</a>
-    </p>
-    <p class="form-footer">
-      Don't have an account? <a href="{base}/register">Register</a>
-    </p>
-  </div>
-</form>
+        <label class="field">
+          <span>Email</span>
+          <input
+            type="email"
+            bind:value={email}
+            placeholder="you@cuny.edu"
+            required
+          />
+        </label>
+
+        <button type="submit" class="btn-primary" disabled={loading}>
+          {loading ? 'Sending...' : 'Send Reset Link'}
+        </button>
+      {/if}
+
+      <p class="form-footer">
+        <a href="{base}/login">Back to Sign In</a>
+      </p>
+    </div>
+  </form>
+</div>
 
 <style>
+  .auth-page {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-bg-secondary);
+    padding: 1rem;
+  }
+
   .auth-form {
     width: 100%;
     max-width: 420px;
@@ -99,20 +108,17 @@
     opacity: 0.85;
   }
 
-  .brand-slide {
-    color: #60a5fa;
-    font-weight: 700;
-  }
-  .brand-wiz {
-    color: #93c5fd;
-    font-weight: 700;
-  }
-
   .form-body {
     padding: 2rem;
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
+  }
+
+  .instructions {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
   }
 
   .error-message {
@@ -122,6 +128,15 @@
     border-radius: var(--radius-md);
     font-size: 0.875rem;
     border: 1px solid #fecaca;
+  }
+
+  .success-message {
+    background: #f0fdf4;
+    color: #166534;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    border: 1px solid #bbf7d0;
   }
 
   .field {

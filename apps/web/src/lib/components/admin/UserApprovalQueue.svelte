@@ -213,6 +213,28 @@
     }
   }
 
+  let resetInProgress = $state<string | null>(null);
+  let resetMessage = $state('');
+
+  async function handleResetPassword(userId: string) {
+    const user = allUsers.find((u) => u.id === userId);
+    if (!user) return;
+    if (!confirm(`Send a password reset email to ${user.email}?`)) return;
+
+    resetInProgress = userId;
+    resetMessage = '';
+    error = '';
+    try {
+      const result = await api.adminResetPassword(userId);
+      resetMessage = result.message;
+      setTimeout(() => { resetMessage = ''; }, 5000);
+    } catch (err: any) {
+      error = err.message || 'Failed to send reset email';
+    } finally {
+      resetInProgress = null;
+    }
+  }
+
   async function showUsage(userId: string) {
     usageLoading = true;
     usageModalUser = allUsers.find((u) => u.id === userId) ?? null;
@@ -283,6 +305,10 @@
       <span class="stat-label">Total Tokens Used</span>
     </div>
   </div>
+
+  {#if resetMessage}
+    <div class="success-message" role="status">{resetMessage}</div>
+  {/if}
 
   {#if error}
     <div class="error-message" role="alert">{error}</div>
@@ -374,6 +400,13 @@
                     {actionInProgress === u.id ? '...' : 'Reject'}
                   </button>
                 {/if}
+                <button
+                  class="btn-reset-pw"
+                  onclick={() => handleResetPassword(u.id)}
+                  disabled={resetInProgress === u.id}
+                >
+                  {resetInProgress === u.id ? '...' : 'Reset PW'}
+                </button>
                 <button class="btn-usage" onclick={() => showUsage(u.id)}>Usage</button>
               </td>
             </tr>
@@ -783,6 +816,38 @@
   .btn-usage:hover {
     background: var(--color-primary);
     color: white;
+  }
+
+  .btn-reset-pw {
+    padding: 0.25rem 0.625rem;
+    background: none;
+    color: #d97706;
+    border: 1px solid #d97706;
+    border-radius: var(--radius-full);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    font-family: var(--font-body);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-reset-pw:hover:not(:disabled) {
+    background: #fffbeb;
+  }
+
+  .btn-reset-pw:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .success-message {
+    background: #f0fdf4;
+    color: #166534;
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    border: 1px solid #bbf7d0;
+    margin-bottom: 1rem;
   }
 
   /* Modal */
