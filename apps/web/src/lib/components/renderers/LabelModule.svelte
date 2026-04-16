@@ -85,12 +85,12 @@
   }
   .label-wrapper :global(.tiptap),
   .label-wrapper :global(.tiptap p) {
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-family: var(--font-body);
-    line-height: 1.5;
+    font-size: inherit;
+    font-weight: inherit;
+    text-transform: inherit;
+    letter-spacing: inherit;
+    font-family: inherit;
+    line-height: inherit;
     margin: 0;
   }
   .label-cyan, .label-wrapper.label-cyan :global(.tiptap), .label-wrapper.label-cyan :global(.tiptap p) { color: #79c0ff; }

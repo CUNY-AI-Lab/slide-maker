@@ -175,7 +175,7 @@
 .slide-frame .comparison { display: flex !important; gap: 20px !important; width: 100% !important; border: none !important; }
 .slide-frame .comparison-panel { flex: 1; background: var(--theme-card-bg, rgba(255,255,255,0.02)) !important; border: 1px solid var(--border-subtle) !important; border-radius: 10px !important; padding: 24px !important; color: var(--text-muted) !important; }
 .slide-frame .comparison-panel h3 { font-size: 1.5rem !important; font-weight: 600 !important; margin-bottom: 8px !important; }
-.slide-frame .panel-content, .slide-frame .comparison-panel p { font-size: 1.15rem !important; color: var(--text-muted) !important; line-height: 1.45 !important; }
+.slide-frame .panel-content, .slide-frame .panel-content p { font-size: 1.15rem !important; color: var(--text-muted) !important; line-height: 1.45 !important; }
 
 /* ── Module: Card Grid ──────────────────────────────────────────── */
 .slide-frame .card-grid { display: grid !important; gap: 20px !important; width: 100% !important; }

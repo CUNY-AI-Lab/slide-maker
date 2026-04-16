@@ -151,17 +151,17 @@
   .comparison.has-custom-size .panel-content { font-size: var(--mod-custom-size) !important; }
   .comparison-panel h3 :global(.tiptap),
   .comparison-panel h3 :global(.tiptap p) {
-    font-size: clamp(0.9rem, 1.6cqi, 1.3rem);
-    font-family: var(--font-display);
-    font-weight: 600;
-    line-height: 1.2;
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+    line-height: inherit;
     margin: 0;
   }
   .panel-content :global(.tiptap),
   .panel-content :global(.tiptap p) {
-    font-size: clamp(0.8rem, 1.3cqi, 1rem);
-    line-height: 1.45;
-    color: var(--text-muted, rgba(240, 240, 240, 0.65));
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
     margin: 0;
   }
 </style>

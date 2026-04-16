@@ -158,18 +158,18 @@
   .card-grid.has-custom-size .card-content { font-size: var(--mod-custom-size) !important; }
   .card-title :global(.tiptap),
   .card-title :global(.tiptap p) {
-    font-family: var(--font-display);
-    font-size: clamp(0.95rem, 1.6cqi, 1.3rem);
-    font-weight: 650;
-    line-height: 1.2;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
     margin: 0;
   }
   .card-content :global(.tiptap),
   .card-content :global(.tiptap p) {
-    font-size: clamp(0.85rem, 1.3cqi, 1rem);
-    line-height: 1.45;
-    color: var(--text-muted, rgba(240, 240, 240, 0.65));
-    font-family: var(--font-body);
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    font-family: inherit;
     margin: 0;
   }
 </style>

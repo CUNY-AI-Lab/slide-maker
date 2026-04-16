@@ -193,18 +193,18 @@
   .flow.has-custom-size .flow-desc { font-size: var(--mod-custom-size) !important; }
   .flow-label :global(.tiptap),
   .flow-label :global(.tiptap p) {
-    font-weight: 600;
-    font-size: clamp(0.8rem, 1.3cqi, 1rem);
-    font-family: var(--font-display);
-    line-height: 1.2;
+    font-weight: inherit;
+    font-size: inherit;
+    font-family: inherit;
+    line-height: inherit;
     margin: 0;
   }
   .flow-desc :global(.tiptap),
   .flow-desc :global(.tiptap p) {
-    font-size: clamp(0.7rem, 1cqi, 0.85rem);
-    color: var(--text-muted, rgba(240, 240, 240, 0.65));
-    font-family: var(--font-body);
-    line-height: 1.4;
+    font-size: inherit;
+    color: inherit;
+    font-family: inherit;
+    line-height: inherit;
     margin: 0;
   }
 </style>
