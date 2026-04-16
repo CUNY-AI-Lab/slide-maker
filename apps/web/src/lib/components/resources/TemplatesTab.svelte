@@ -473,11 +473,12 @@
     cursor: pointer;
     transition: background 0.12s, color 0.12s, border-color 0.12s;
   }
-  /* Enlarge tap target to 44x44 */
+  /* Enlarge tap target vertically. Horizontal extension is half the gap (2px)
+     so adjacent act-btns in .template-info don't steal each other's clicks. */
   .act-btn::after {
     content: '';
     position: absolute;
-    inset: -12px;
+    inset: -12px -2px;
   }
 
   .act-btn:hover {

@@ -71,8 +71,10 @@
   }
 
   function handleTitleKeydown(e: KeyboardEvent) {
-    if (e.key === 'Enter') { e.preventDefault(); commitRename() }
-    else if (e.key === 'Escape') { e.preventDefault(); cancelRename() }
+    // Stop propagation so the parent card-header's keydown (Enter toggles expand)
+    // doesn't re-fire after we commit/cancel.
+    if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); commitRename() }
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); cancelRename() }
   }
 
   let deleting = $state(false)
@@ -173,6 +175,7 @@
         onclick={(e) => e.stopPropagation()}
         maxlength="120"
         placeholder={layoutLabel}
+        aria-label="Slide {index + 1} title"
       />
     {:else}
       <span
@@ -268,6 +271,9 @@
     border-radius: 3px;
     padding: 1px 4px;
     outline: none;
+    /* Parent card-header sets user-select: none, which cascades in Safari */
+    user-select: text;
+    -webkit-user-select: text;
   }
 
   .active-badge {
