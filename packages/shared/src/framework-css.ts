@@ -71,10 +71,10 @@ pre { background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); borde
   background: var(--layout-split-bg, #172a45);
   flex-direction: row; gap: 40px; align-items: stretch;
 }
-.layout-split > .content { flex: 0.45; display: flex; flex-direction: column; justify-content: center; gap: 16px; }
+.layout-split > .content { flex: 0.45; display: flex; flex-direction: column; justify-content: center; gap: 16px; min-height: 100%; }
 .layout-split > .stage {
   flex: 0.55; display: flex; flex-direction: column; justify-content: center;
-  align-items: center; gap: 16px;
+  align-items: center; gap: 16px; min-height: 100%;
   background: rgba(255,255,255,0.02); border-left: 1px solid var(--border-subtle);
 }
 
@@ -394,7 +394,7 @@ export const FRAMEWORK_CSS_EXPORT = FRAMEWORK_CSS_BASE + `
 export const FRAMEWORK_CSS_PREVIEW = FRAMEWORK_CSS_BASE + `
 /* ── Slide Base (single-slide preview) ──────────────────────────── */
 .slide {
-  display: flex; position: relative; width: 100%; min-height: 100vh;
+  display: flex; position: relative; width: 100%; height: 100vh; min-height: 100vh;
   padding: 60px 80px; overflow: visible;
   flex-direction: column; justify-content: flex-start;
   container-type: inline-size;
