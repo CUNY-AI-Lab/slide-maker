@@ -14,29 +14,41 @@
   class="mutation-card"
   class:accepted={mutation.status === 'accepted'}
   class:rejected={mutation.status === 'rejected'}
+  class:failed={mutation.status === 'failed'}
 >
-  <span class="mutation-summary">{mutation.summary}</span>
-  <div class="mutation-actions">
-    {#if mutation.status === 'pending'}
-      <button class="ghost-btn accept" onclick={() => onaccept(mutation.id)} title="Accept">&#10003;</button>
-      <button class="ghost-btn reject" onclick={() => onreject(mutation.id)} title="Reject">&#10005;</button>
-    {:else}
-      <span class="mutation-status-badge">{mutation.status}</span>
-    {/if}
+  <div class="mutation-main">
+    <span class="mutation-summary">{mutation.summary}</span>
+    <div class="mutation-actions">
+      {#if mutation.status === 'pending' || mutation.status === 'failed'}
+        <button class="ghost-btn accept" onclick={() => onaccept(mutation.id)} title={mutation.status === 'failed' ? 'Retry' : 'Accept'}>&#10003;</button>
+        <button class="ghost-btn reject" onclick={() => onreject(mutation.id)} title="Reject">&#10005;</button>
+      {:else}
+        <span class="mutation-status-badge">{mutation.status}</span>
+      {/if}
+    </div>
   </div>
+  {#if mutation.status === 'failed' && mutation.error}
+    <div class="mutation-error" role="alert">Failed: {mutation.error}</div>
+  {/if}
 </div>
 
 <style>
   .mutation-card {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
     padding: 5px 10px;
     margin: 3px 0;
     border: 1px solid var(--color-border, #e5e7eb);
     border-left: 3px solid var(--color-primary, #3B73E6);
     border-radius: var(--radius-sm, 6px);
     font-size: 12px;
+    gap: 4px;
+  }
+
+  .mutation-main {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     gap: 8px;
   }
 
@@ -48,6 +60,17 @@
   .mutation-card.rejected {
     border-left-color: var(--color-error);
     opacity: 0.45;
+  }
+
+  .mutation-card.failed {
+    border-left-color: var(--color-error);
+    background: color-mix(in srgb, var(--color-error) 6%, transparent);
+  }
+
+  .mutation-error {
+    font-size: 11px;
+    color: var(--color-error);
+    word-break: break-word;
   }
 
   .mutation-summary {

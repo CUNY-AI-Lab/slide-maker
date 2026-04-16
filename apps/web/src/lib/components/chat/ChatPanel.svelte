@@ -18,7 +18,7 @@
   import { activeSlideId } from '$lib/stores/ui'
   import { consumeActions, lastAgentSlideId } from '$lib/stores/actions'
   import { getRecentRenderDiagnostics } from '$lib/stores/render-diagnostics'
-  import { pendingMutations, autoApply, addPendingMutation, acceptMutation, rejectMutation } from '$lib/stores/pending-mutations'
+  import { pendingMutations, autoApply, addPendingMutation, acceptMutation, rejectMutation, failMutation } from '$lib/stores/pending-mutations'
   import { streamChat } from '$lib/utils/sse'
   import { extractMutations, applyMutation } from '$lib/utils/mutations'
 
@@ -295,12 +295,15 @@
   async function handleAcceptMutation(id: string) {
     const list = get(pendingMutations)
     const pm = list.find((p) => p.id === id)
-    if (!pm || pm.status !== 'pending') return
+    if (!pm) return
+    if (pm.status !== 'pending' && pm.status !== 'failed') return
     try {
       await applyMutation(pm.mutation)
       acceptMutation(id)
     } catch (err) {
-      console.error('Mutation apply failed, keeping as pending:', err)
+      console.error('Mutation apply failed:', err)
+      const msg = err instanceof Error ? err.message : String(err)
+      failMutation(id, msg)
     }
   }
 
@@ -316,6 +319,8 @@
         acceptMutation(pm.id)
       } catch (err) {
         console.error('Mutation apply failed during accept-all, stopping:', err)
+        const msg = err instanceof Error ? err.message : String(err)
+        failMutation(pm.id, msg)
         break
       }
     }

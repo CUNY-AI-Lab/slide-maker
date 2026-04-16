@@ -503,7 +503,17 @@ export async function applyMutation(mutation: Record<string, unknown>): Promise<
       const blockId = payload.blockId as string
       const fromZone = payload.fromZone as string
       const toZone = payload.toZone as string
-      const order = payload.order as string[]
+      let order = payload.order as string[] | undefined
+
+      // AI-emitted mutations omit `order`. Compute it by appending the moved
+      // block to the end of the destination zone. Mirrors applyMutationSilent.
+      if (!order || order.length === 0) {
+        const destIds = (deck.slides.find((s) => s.id === slideId)?.blocks ?? [])
+          .filter((b) => b.zone === toZone && b.id !== blockId)
+          .sort((a, b) => a.order - b.order)
+          .map((b) => b.id)
+        order = [...destIds, blockId]
+      }
 
       // Capture old state for undo
       const slide = deck.slides.find((s) => s.id === slideId)

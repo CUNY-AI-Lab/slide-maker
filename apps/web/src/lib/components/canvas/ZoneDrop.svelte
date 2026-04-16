@@ -235,6 +235,16 @@
     min-height: 2.5rem;
   }
 
+  /* When a zone has no modules, stretch the dropzone so drops land anywhere
+     in the visible zone — not just a thin strip in the middle. */
+  .zone-drop:not(:has(.module-item)) {
+    flex: 1 1 auto;
+  }
+  .zone-drop:not(:has(.module-item)) .zone-drop-list {
+    flex: 1 1 auto;
+    min-height: 8rem;
+  }
+
   /* Prevent native browser image drag from hijacking svelte-dnd-action gestures */
   .zone-drop-list :global(img) {
     -webkit-user-drag: none;

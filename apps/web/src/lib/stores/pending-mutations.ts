@@ -2,7 +2,7 @@ import { writable, get } from 'svelte/store'
 
 let nextId = 0
 
-export type MutationStatus = 'pending' | 'accepted' | 'rejected'
+export type MutationStatus = 'pending' | 'accepted' | 'rejected' | 'failed'
 
 export interface PendingMutation {
   id: string
@@ -10,6 +10,7 @@ export interface PendingMutation {
   mutation: Record<string, unknown>
   status: MutationStatus
   summary: string
+  error?: string
 }
 
 export const pendingMutations = writable<PendingMutation[]>([])
@@ -61,6 +62,12 @@ export function acceptMutation(id: string) {
 export function rejectMutation(id: string) {
   pendingMutations.update((list) =>
     list.map((pm) => (pm.id === id ? { ...pm, status: 'rejected' as const } : pm))
+  )
+}
+
+export function failMutation(id: string, error: string) {
+  pendingMutations.update((list) =>
+    list.map((pm) => (pm.id === id ? { ...pm, status: 'failed' as const, error } : pm))
   )
 }
 
