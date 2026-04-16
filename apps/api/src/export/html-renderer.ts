@@ -418,7 +418,7 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
 function renderSlide(slide: Slide, index: number, files?: ExportFile[], opts?: RenderOptions): string {
   const sections = getSlideSections(slide)
   const layout = sections.layout
-  const titleText = getSlideTitle(sections.modules, index)
+  const titleText = slide.title?.trim() || getSlideTitle(sections.modules, index)
 
   const attrs = `class="slide ${esc(layout)}"${index === 0 ? '' : ''} role="group" aria-roledescription="slide" aria-label="Slide ${index + 1}: ${esc(titleText)}"`
 
