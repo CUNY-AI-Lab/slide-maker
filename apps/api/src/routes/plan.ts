@@ -20,6 +20,7 @@ import { getModelStream, ALL_MODELS } from '../providers/index.js'
 import { parseOutline } from '../utils/outline-parser.js'
 import { estimateSlideCount } from '../utils/slide-budget.js'
 import { buildPlannerPrompt } from '../prompts/planner.js'
+import { buildStrictDeckPlan } from '../utils/strict-planner.js'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -139,76 +140,83 @@ planRouter.post('/:id/plan', chatRateLimit, async (c) => {
     }
   }
 
-  // Build planner prompt
-  const systemPrompt = buildPlannerPrompt({
-    deckName: deck.name,
-    deckId: deck.id,
-    sourceMarkdown,
-    outlineTree,
-    slideBudget: effectiveBudget,
-    fidelity,
-    templates: templatesList,
-    theme: activeTheme,
-    existingSlideCount: existingCount,
-    maxSlides: MAX_SLIDES_PER_DECK,
-  })
-
-  // Check token cap before calling AI
-  const provider = (ALL_MODELS.find(m => m.id === modelId)?.provider || 'unknown') as string
-  const yearStart = new Date(new Date().getFullYear(), 0, 1)
-  const usage = await db.select({ total: sql<number>`SUM(input_tokens + output_tokens)` })
-    .from(tokenUsage)
-    .where(and(eq(tokenUsage.userId, user.id), gte(tokenUsage.createdAt, yearStart)))
-    .get()
-  const userRow = await db.select().from(users).where(eq(users.id, user.id)).get()
-  const cap = userRow?.tokenCap ?? 1000000
-  if ((usage?.total ?? 0) >= cap) {
-    return c.json({ error: 'Token limit reached. Contact an admin.' }, 429)
-  }
-
-  // Call AI model and collect full response
-  const messages: { role: 'user' | 'assistant'; content: string }[] = [
-    { role: 'user', content: 'Generate the deck plan from the source document provided in the system prompt. Output ONLY the JSON object.' },
-  ]
-
-  let fullResponse = ''
-  try {
-    const gen = getModelStream(modelId, systemPrompt, messages)
-    for await (const text of gen) {
-      fullResponse += text
-    }
-  } catch (err: unknown) {
-    console.error('Planner AI error:', err)
-    return c.json({ error: 'Failed to generate plan' }, 500)
-  }
-
-  // Record token usage
-  const userMsgContent = messages[0].content
-  const allInputLength = systemPrompt.length + userMsgContent.length
-  const inputTokens = Math.ceil(allInputLength / 4)
-  const outputTokens = Math.ceil(fullResponse.length / 4)
-  await db.insert(tokenUsage).values({
-    id: createId(),
-    userId: user.id,
-    deckId,
-    provider,
-    model: modelId,
-    inputTokens,
-    outputTokens,
-    createdAt: new Date(),
-  })
-
-  // Parse the AI response as JSON
   let planData: { slides: PlannedSlide[]; omissions: { nodeId: string; reason: string }[] }
-  try {
-    // Strip markdown fences if the model wrapped it
-    let cleaned = fullResponse.trim()
-    if (cleaned.startsWith('```')) {
-      cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '')
+
+  if (fidelity === 'strict') {
+    // Strict mode is deterministic — bypass the LLM entirely so outline text
+    // can never be paraphrased. See apps/api/src/utils/strict-planner.ts.
+    const strict = buildStrictDeckPlan(outlineTree, effectiveBudget)
+    planData = { slides: strict.slides, omissions: [...strict.omissions] }
+  } else {
+    // Build planner prompt
+    const systemPrompt = buildPlannerPrompt({
+      deckName: deck.name,
+      deckId: deck.id,
+      sourceMarkdown,
+      outlineTree,
+      slideBudget: effectiveBudget,
+      fidelity,
+      templates: templatesList,
+      theme: activeTheme,
+      existingSlideCount: existingCount,
+      maxSlides: MAX_SLIDES_PER_DECK,
+    })
+
+    // Check token cap before calling AI
+    const provider = (ALL_MODELS.find(m => m.id === modelId)?.provider || 'unknown') as string
+    const yearStart = new Date(new Date().getFullYear(), 0, 1)
+    const usage = await db.select({ total: sql<number>`SUM(input_tokens + output_tokens)` })
+      .from(tokenUsage)
+      .where(and(eq(tokenUsage.userId, user.id), gte(tokenUsage.createdAt, yearStart)))
+      .get()
+    const userRow = await db.select().from(users).where(eq(users.id, user.id)).get()
+    const cap = userRow?.tokenCap ?? 1000000
+    if ((usage?.total ?? 0) >= cap) {
+      return c.json({ error: 'Token limit reached. Contact an admin.' }, 429)
     }
-    planData = JSON.parse(cleaned)
-  } catch {
-    return c.json({ error: 'AI returned invalid JSON. Try again or use a different model.', raw: fullResponse.slice(0, 500) }, 422)
+
+    // Call AI model and collect full response
+    const messages: { role: 'user' | 'assistant'; content: string }[] = [
+      { role: 'user', content: 'Generate the deck plan from the source document provided in the system prompt. Output ONLY the JSON object.' },
+    ]
+
+    let fullResponse = ''
+    try {
+      const gen = getModelStream(modelId, systemPrompt, messages)
+      for await (const text of gen) {
+        fullResponse += text
+      }
+    } catch (err: unknown) {
+      console.error('Planner AI error:', err)
+      return c.json({ error: 'Failed to generate plan' }, 500)
+    }
+
+    // Record token usage
+    const userMsgContent = messages[0].content
+    const allInputLength = systemPrompt.length + userMsgContent.length
+    const inputTokens = Math.ceil(allInputLength / 4)
+    const outputTokens = Math.ceil(fullResponse.length / 4)
+    await db.insert(tokenUsage).values({
+      id: createId(),
+      userId: user.id,
+      deckId,
+      provider,
+      model: modelId,
+      inputTokens,
+      outputTokens,
+      createdAt: new Date(),
+    })
+
+    // Parse the AI response as JSON
+    try {
+      let cleaned = fullResponse.trim()
+      if (cleaned.startsWith('```')) {
+        cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '')
+      }
+      planData = JSON.parse(cleaned)
+    } catch {
+      return c.json({ error: 'AI returned invalid JSON. Try again or use a different model.', raw: fullResponse.slice(0, 500) }, 422)
+    }
   }
 
   // Validate plan
@@ -265,7 +273,7 @@ planRouter.post('/:id/plan/apply', async (c) => {
   const deckId = c.req.param('id')!
 
   const body = await c.req.json()
-  const { plan } = body as { plan: DeckPlan }
+  const { plan, outlineFileId } = body as { plan: DeckPlan; outlineFileId?: string }
 
   if (!plan || !Array.isArray(plan.slides) || plan.slides.length === 0) {
     return c.json({ error: 'Invalid plan: slides array required' }, 400)
@@ -280,6 +288,12 @@ planRouter.post('/:id/plan/apply', async (c) => {
 
   if (!access || access.role === 'viewer') {
     return c.json({ error: 'Not found or no access' }, 404)
+  }
+
+  // Load the deck so we can merge fidelity/outlineFileId into metadata
+  const deckRow = await db.select().from(decks).where(eq(decks.id, deckId)).get()
+  if (!deckRow) {
+    return c.json({ error: 'Deck not found' }, 404)
   }
 
   // Count existing slides and validate against limit
@@ -300,7 +314,15 @@ planRouter.post('/:id/plan/apply', async (c) => {
   let nextOrder = (maxOrderRow?.max_order ?? -1) + 1
 
   const now = new Date()
-  const createdSlides: { id: string; layout: string; order: number; blocks: { id: string; type: string; zone: string; data: unknown; order: number; stepOrder: number | null }[] }[] = []
+  const createdSlides: { id: string; layout: string; order: number; blocks: { id: string; type: string; zone: string; data: unknown; order: number; stepOrder: number | null; sourceNodeIds: string[] | null }[] }[] = []
+
+  // Merge fidelity + outlineFileId into deck metadata. Only write when the
+  // plan actually declares a fidelity — keeps pre-existing metadata intact.
+  const currentMetadata = (deckRow.metadata ?? {}) as Record<string, unknown>
+  const nextMetadata: Record<string, unknown> = { ...currentMetadata }
+  if (plan.fidelity) nextMetadata.fidelity = plan.fidelity
+  if (outlineFileId) nextMetadata.outlineFileId = outlineFileId
+  const metadataChanged = JSON.stringify(nextMetadata) !== JSON.stringify(currentMetadata)
 
   // Batch-insert all slides in a single transaction
   const insertAll = sqlite.transaction(() => {
@@ -322,20 +344,37 @@ planRouter.post('/:id/plan/apply', async (c) => {
         const blockId = createId()
         const zone = mod.zone || 'content'
         const data = mod.data || {}
+        const moduleSources = Array.isArray(mod.sourceNodeIds) && mod.sourceNodeIds.length > 0
+          ? mod.sourceNodeIds
+          : null
 
         sqlite.prepare(
-          'INSERT INTO content_blocks (id, slide_id, type, zone, data, "order", step_order) VALUES (?, ?, ?, ?, ?, ?, ?)'
-        ).run(blockId, slideId, mod.type, zone, JSON.stringify(data), i, mod.stepOrder ?? null)
+          'INSERT INTO content_blocks (id, slide_id, type, zone, data, "order", step_order, source_node_ids) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        ).run(
+          blockId,
+          slideId,
+          mod.type,
+          zone,
+          JSON.stringify(data),
+          i,
+          mod.stepOrder ?? null,
+          moduleSources ? JSON.stringify(moduleSources) : null,
+        )
 
-        blocks.push({ id: blockId, type: mod.type, zone, data, order: i, stepOrder: mod.stepOrder ?? null })
+        blocks.push({ id: blockId, type: mod.type, zone, data, order: i, stepOrder: mod.stepOrder ?? null, sourceNodeIds: moduleSources })
       }
 
       createdSlides.push({ id: slideId, layout, order: nextOrder, blocks })
       nextOrder++
     }
 
-    // Touch deck updated_at
-    sqlite.prepare('UPDATE decks SET updated_at = ? WHERE id = ?').run(now.getTime(), deckId)
+    // Touch deck updated_at (and merged metadata when changed)
+    if (metadataChanged) {
+      sqlite.prepare('UPDATE decks SET metadata = ?, updated_at = ? WHERE id = ?')
+        .run(JSON.stringify(nextMetadata), now.getTime(), deckId)
+    } else {
+      sqlite.prepare('UPDATE decks SET updated_at = ? WHERE id = ?').run(now.getTime(), deckId)
+    }
   })
 
   try {

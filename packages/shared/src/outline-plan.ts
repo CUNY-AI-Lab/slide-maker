@@ -28,6 +28,14 @@ export type SlidePurpose =
   | 'visual'
   | 'closing'
 
+export interface PlannedModule {
+  type: ModuleType
+  zone: Zone
+  data: Record<string, unknown>
+  stepOrder?: number
+  sourceNodeIds?: string[]
+}
+
 export interface PlannedSlide {
   planId: string
   sourceNodeIds: string[]
@@ -35,12 +43,7 @@ export interface PlannedSlide {
   layout: SlideLayout
   title: string
   fidelity: FidelityMode
-  modules: {
-    type: ModuleType
-    zone: Zone
-    data: Record<string, unknown>
-    stepOrder?: number
-  }[]
+  modules: PlannedModule[]
   notes?: string
 }
 

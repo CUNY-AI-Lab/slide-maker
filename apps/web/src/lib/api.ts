@@ -145,10 +145,10 @@ export const api = {
       method: 'POST',
       body: JSON.stringify({ fileId, fidelity, modelId, slideRange }),
     }),
-  applyPlan: (deckId: string, plan: any) =>
+  applyPlan: (deckId: string, plan: any, outlineFileId?: string) =>
     request<{ slides: any[] }>(`/api/decks/${deckId}/plan/apply`, {
       method: 'POST',
-      body: JSON.stringify({ plan }),
+      body: JSON.stringify({ plan, outlineFileId }),
     }),
 
   // Debug

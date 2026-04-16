@@ -86,8 +86,48 @@ chat.post('/', chatRateLimit, async (c) => {
       data: (b.data ?? {}) as Record<string, unknown>,
       order: b.order,
       stepOrder: b.stepOrder ?? null,
+      sourceNodeIds: Array.isArray(b.sourceNodeIds) ? (b.sourceNodeIds as string[]) : null,
     })),
   }))
+
+  // Resolve fidelity + outline markdown from deck metadata
+  const deckMetadata = (deck.metadata ?? {}) as Record<string, unknown>
+  const deckFidelity = typeof deckMetadata.fidelity === 'string'
+    && ['strict', 'balanced', 'interpretive'].includes(deckMetadata.fidelity as string)
+    ? (deckMetadata.fidelity as 'strict' | 'balanced' | 'interpretive')
+    : null
+  const outlineFileIdMeta = typeof deckMetadata.outlineFileId === 'string'
+    ? deckMetadata.outlineFileId
+    : null
+
+  let outlineMarkdown = ''
+  if (deckFidelity === 'strict' && outlineFileIdMeta) {
+    try {
+      const outlineFile = await db
+        .select()
+        .from(uploadedFiles)
+        .where(and(eq(uploadedFiles.id, outlineFileIdMeta), eq(uploadedFiles.deckId, deckId)))
+        .get()
+      if (outlineFile) {
+        const __dirname = path.dirname(fileURLToPath(import.meta.url))
+        const UPLOADS_DIR = path.resolve(__dirname, '../../uploads')
+        const filePath = path.isAbsolute(outlineFile.path)
+          ? outlineFile.path
+          : path.join(UPLOADS_DIR, outlineFile.path)
+        const mt = (outlineFile.mimeType || '').toLowerCase()
+        if (mt.includes('markdown') || mt === 'text/plain') {
+          outlineMarkdown = fs.readFileSync(filePath, 'utf8').trim()
+        } else {
+          const mdPath = path.join(path.dirname(filePath), `${outlineFile.id}.md`)
+          if (fs.existsSync(mdPath)) {
+            outlineMarkdown = fs.readFileSync(mdPath, 'utf8').trim()
+          }
+        }
+      }
+    } catch {
+      // Outline unavailable — fidelity contract still applies via [strict-locked] markers
+    }
+  }
 
   // Load uploaded files for context
   const deckFiles = await db.select().from(uploadedFiles).where(eq(uploadedFiles.deckId, deckId))
@@ -272,6 +312,8 @@ chat.post('/', chatRateLimit, async (c) => {
     lastAgentSlideId: typeof lastAgentSlideId === 'string' && slidesWithBlocks.some((s) => s.id === lastAgentSlideId)
       ? lastAgentSlideId
       : undefined,
+    fidelity: deckFidelity,
+    outlineMarkdown: outlineMarkdown || undefined,
   })
 
   // Prepare messages for the LLM

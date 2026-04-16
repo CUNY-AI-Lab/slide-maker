@@ -105,7 +105,7 @@
         ...plan,
         slides: activePlanSlides,
       }
-      const result = await api.applyPlan(deck.id, filteredPlan)
+      const result = await api.applyPlan(deck.id, filteredPlan, uploadedFile?.id)
       const newSlides = result.slides ?? []
       applyResult = { count: newSlides.length }
 
