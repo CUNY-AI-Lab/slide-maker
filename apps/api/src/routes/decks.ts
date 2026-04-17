@@ -509,16 +509,21 @@ decksRouter.delete('/:id/slides/:slideId', async (c) => {
     return c.json({ error: 'Slide not found' }, 404)
   }
 
-  await db.delete(slides).where(eq(slides.id, slideId))
+  const { sqlite } = await import('../db/index.js')
+  const deleteTx = sqlite.transaction(() => {
+    sqlite.prepare('DELETE FROM slides WHERE id = ?').run(slideId)
+    sqlite.prepare(
+      'UPDATE slides SET "order" = "order" - 1 WHERE deck_id = ? AND "order" > ?'
+    ).run(deckId, slide.order)
+    sqlite.prepare('UPDATE decks SET updated_at = ? WHERE id = ?').run(Date.now(), deckId)
+  })
 
-  // Re-order remaining slides
-  await db
-    .update(slides)
-    .set({ order: sql`${slides.order} - 1` })
-    .where(and(eq(slides.deckId, deckId), sql`${slides.order} > ${slide.order}`))
-
-  // Update deck's updatedAt
-  await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId))
+  try {
+    deleteTx()
+  } catch (err) {
+    console.error('Delete slide transaction failed:', err)
+    return c.json({ error: 'Failed to delete slide' }, 500)
+  }
 
   return c.json({ message: 'Slide deleted' })
 })
@@ -735,14 +740,23 @@ decksRouter.post('/:id/slides/:slideId/blocks/reorder', async (c) => {
     return c.json({ error: 'order must be an array of block IDs' }, 400)
   }
 
-  for (let i = 0; i < blockOrder.length; i++) {
-    await db
-      .update(contentBlocks)
-      .set({ order: i })
-      .where(and(eq(contentBlocks.id, blockOrder[i]), eq(contentBlocks.slideId, slideId)))
-  }
+  const { sqlite } = await import('../db/index.js')
+  const reorderTx = sqlite.transaction(() => {
+    const stmt = sqlite.prepare(
+      'UPDATE content_blocks SET "order" = ? WHERE id = ? AND slide_id = ?'
+    )
+    for (let i = 0; i < blockOrder.length; i++) {
+      stmt.run(i, blockOrder[i], slideId)
+    }
+    sqlite.prepare('UPDATE decks SET updated_at = ? WHERE id = ?').run(Date.now(), deckId)
+  })
 
-  await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId))
+  try {
+    reorderTx()
+  } catch (err) {
+    console.error('Reorder blocks transaction failed:', err)
+    return c.json({ error: 'Failed to reorder blocks' }, 500)
+  }
 
   return c.json({ message: 'Blocks reordered' })
 })
@@ -772,15 +786,23 @@ decksRouter.post('/:id/slides/reorder', async (c) => {
     return c.json({ error: 'order must be an array of slide IDs' }, 400)
   }
 
-  for (let i = 0; i < slideOrder.length; i++) {
-    await db
-      .update(slides)
-      .set({ order: i })
-      .where(and(eq(slides.id, slideOrder[i]), eq(slides.deckId, deckId)))
-  }
+  const { sqlite } = await import('../db/index.js')
+  const reorderTx = sqlite.transaction(() => {
+    const stmt = sqlite.prepare(
+      'UPDATE slides SET "order" = ? WHERE id = ? AND deck_id = ?'
+    )
+    for (let i = 0; i < slideOrder.length; i++) {
+      stmt.run(i, slideOrder[i], deckId)
+    }
+    sqlite.prepare('UPDATE decks SET updated_at = ? WHERE id = ?').run(Date.now(), deckId)
+  })
 
-  // Update deck's updatedAt
-  await db.update(decks).set({ updatedAt: new Date() }).where(eq(decks.id, deckId))
+  try {
+    reorderTx()
+  } catch (err) {
+    console.error('Reorder slides transaction failed:', err)
+    return c.json({ error: 'Failed to reorder slides' }, 500)
+  }
 
   return c.json({ message: 'Slides reordered' })
 })

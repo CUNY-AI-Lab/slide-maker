@@ -298,7 +298,7 @@ Full admin panel at `/admin` with:
   - Heartbeat: excluded from rate limiting
 - Email template injection prevention: all user-controlled values (`adminName`, `sharedByName`, `deckTitle`) are HTML-escaped via `escapeHtml()` in email bodies and `stripTags()` in subject lines (`apps/api/src/email/index.ts`)
 - Admin role middleware at `apps/api/src/middleware/admin.ts` — enforces admin role (403 if not admin)
-- Admin role check is client-side only (server-side guard removed — it broke on staging due to SvelteKit server not proxying to API)
+- SvelteKit's `/admin` **page-level** role check is client-side only (server-side `+layout.server.ts` guard removed — broke on staging due to SvelteKit server not proxying to API). API-level `/api/admin/*` and `/api/debug/*` routes ARE server-gated via a blanket `.use('*', authMiddleware, adminMiddleware)` on the admin/debug routers, so the actual data access is protected even though the page-level redirect is advisory.
 - Block ownership verification on CRUD endpoints
 - Export path traversal guard (`path.basename()`)
 - Link URL validation (https only)
@@ -396,7 +396,7 @@ All resources (templates, themes, artifacts) are managed through centralized Sve
 - Email verification is live on staging via Amazon SES (sender: `ailab@gc.cuny.edu`). Admin approval is still required after email verification.
 - `.env` symlink (`apps/api/.env -> ../../.env`) must exist or the API won't load any API keys. If chat shows "No models available", recreate the symlink and restart `pnpm dev`.
 - Undo snapshots in `apps/web/src/lib/utils/mutations.ts` use `structuredClone(b.data ?? {})` at three sites (removeSlide, updateBlock, applyTemplate). Shallow `{ ...b.data }` spreads leaked nested refs — a subsequent mutation on a nested artifact `config`/carousel `items` would silently corrupt the saved snapshot and the undo payload restored half-mutated state. `applyTemplate`'s `_restoreSlide` path is still a coarse "replace whole slide" undo; if users edit after applying a template and then undo, the intermediate edits are still lost by design. Per-block diffing would be a richer fix.
-- **Drizzle + better-sqlite3 transactions:** `db.transaction()` rejects async callbacks AND sync callbacks containing Drizzle query builders (they return thenables). Use raw `sqlite.transaction()` from `apps/api/src/db/index.ts` for atomic operations. See `decks.ts` addSlide for the pattern.
+- **Drizzle + better-sqlite3 transactions:** `db.transaction()` rejects async callbacks AND sync callbacks containing Drizzle query builders (they return thenables). Use raw `sqlite.transaction()` from `apps/api/src/db/index.ts` with `sqlite.prepare(...).run(...)` inside the callback. Pattern is applied to every multi-statement write path: `addSlide`, `deleteSlide`, `reorderBlocks`, `reorderSlides`, `moveBlock` (all in `decks.ts`) and `plan/apply` (`plan.ts`). Single-statement writes use `db.update()`/`db.delete()` directly — those are inherently atomic.
 
 ## Session Hand-Off Prompts
 
