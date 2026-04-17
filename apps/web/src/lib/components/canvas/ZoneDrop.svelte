@@ -231,6 +231,7 @@
   .zone-drop-list {
     display: flex;
     flex-direction: column;
+    align-items: flex-start;
     gap: 12px;
     min-height: 2.5rem;
   }
@@ -267,6 +268,7 @@
 
   .module-item {
     position: relative;
+    width: 100%;
     padding: 4px 0;
     background: transparent;
     border-radius: var(--radius-sm, 4px);
