@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import { buildSystemPrompt } from '../apps/api/src/prompts/system'
 
+function flatten(opts: Parameters<typeof buildSystemPrompt>[0]): string {
+  const { staticPrompt, dynamicContext } = buildSystemPrompt(opts)
+  return `${staticPrompt}\n\n${dynamicContext}`
+}
+
 describe('buildSystemPrompt render diagnostics', () => {
   it('includes available artifacts and recent canvas render issues', () => {
-    const prompt = buildSystemPrompt({
+    const prompt = flatten({
       deck: {
         id: 'deck-1',
         name: 'Render Debug Deck',

@@ -3,6 +3,11 @@ import { renderModule } from '../apps/api/src/export/html-renderer'
 import { buildSystemPrompt } from '../apps/api/src/prompts/system'
 import { MODULE_TYPES } from '../packages/shared/src/block-types'
 
+function flatten(opts: Parameters<typeof buildSystemPrompt>[0]): string {
+  const { staticPrompt, dynamicContext } = buildSystemPrompt(opts)
+  return `${staticPrompt}\n\n${dynamicContext}`
+}
+
 describe('module type parity', () => {
   describe('html-renderer rejects phantom types', () => {
     it('renders code type as default JSON fallback, not formatted HTML', () => {
@@ -94,14 +99,14 @@ describe('module type parity', () => {
     }
 
     it('module type count matches MODULE_TYPES length', () => {
-      const prompt = buildSystemPrompt(baseOpts)
+      const prompt = flatten(baseOpts)
       const headerMatch = prompt.match(/Module Types \((\d+) types\)/)
       expect(headerMatch).not.toBeNull()
       expect(Number(headerMatch![1])).toBe(MODULE_TYPES.length)
     })
 
     it('all "Use ONLY the N module types" references agree', () => {
-      const prompt = buildSystemPrompt(baseOpts)
+      const prompt = flatten(baseOpts)
       const matches = [...prompt.matchAll(/Use ONLY the (\d+) module types/g)]
       expect(matches.length).toBeGreaterThanOrEqual(2)
       for (const m of matches) {
@@ -110,14 +115,14 @@ describe('module type parity', () => {
     })
 
     it('prompt documents every MODULE_TYPE by name', () => {
-      const prompt = buildSystemPrompt(baseOpts)
+      const prompt = flatten(baseOpts)
       for (const type of MODULE_TYPES) {
         expect(prompt).toContain(`**${type}**`)
       }
     })
 
     it('artifact data shape includes config field', () => {
-      const prompt = buildSystemPrompt(baseOpts)
+      const prompt = flatten(baseOpts)
       const artifactLine = prompt.split('\n').find((l) => l.includes('**artifact**'))
       expect(artifactLine).toBeDefined()
       expect(artifactLine).toContain('config')

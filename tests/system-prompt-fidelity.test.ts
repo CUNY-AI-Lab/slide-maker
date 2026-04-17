@@ -6,6 +6,11 @@
 import { describe, it, expect } from 'vitest'
 import { buildSystemPrompt } from '../apps/api/src/prompts/system.js'
 
+function flatten(opts: Parameters<typeof buildSystemPrompt>[0]): string {
+  const { staticPrompt, dynamicContext } = buildSystemPrompt(opts)
+  return `${staticPrompt}\n\n${dynamicContext}`
+}
+
 function makeDeck(strictBlockIds: string[] = []) {
   const blocks = [
     {
@@ -59,7 +64,7 @@ function makeDeck(strictBlockIds: string[] = []) {
 
 describe('system prompt: fidelity contract', () => {
   it('omits the Fidelity Contract section when fidelity is not set', () => {
-    const prompt = buildSystemPrompt({
+    const prompt = flatten({
       deck: makeDeck(),
       activeSlideId: 'slide-1',
     })
@@ -70,7 +75,7 @@ describe('system prompt: fidelity contract', () => {
 
   it('omits the contract for balanced/interpretive decks', () => {
     for (const fidelity of ['balanced', 'interpretive'] as const) {
-      const prompt = buildSystemPrompt({
+      const prompt = flatten({
         deck: makeDeck(['block-locked']),
         activeSlideId: 'slide-1',
         fidelity,
@@ -80,7 +85,7 @@ describe('system prompt: fidelity contract', () => {
   })
 
   it('adds the Fidelity Contract section when fidelity=strict', () => {
-    const prompt = buildSystemPrompt({
+    const prompt = flatten({
       deck: makeDeck(['block-locked']),
       activeSlideId: 'slide-1',
       fidelity: 'strict',
@@ -91,7 +96,7 @@ describe('system prompt: fidelity contract', () => {
   })
 
   it('marks blocks with sourceNodeIds as [strict-locked] in slide detail', () => {
-    const prompt = buildSystemPrompt({
+    const prompt = flatten({
       deck: makeDeck(['block-locked']),
       activeSlideId: 'slide-1',
       fidelity: 'strict',
@@ -104,22 +109,23 @@ describe('system prompt: fidelity contract', () => {
   })
 
   it('lists the locked block IDs in the contract section', () => {
-    const prompt = buildSystemPrompt({
+    const prompt = flatten({
       deck: makeDeck(['block-locked']),
       activeSlideId: 'slide-1',
       fidelity: 'strict',
     })
     expect(prompt).toContain('Strict-locked block IDs:')
     expect(prompt).toContain('"block-locked"')
-    // Non-locked block IDs should not appear in that list
+    // Non-locked block IDs should not appear on the Strict-locked block IDs line
     const contractIdx = prompt.indexOf('Strict-locked block IDs:')
-    const afterContract = prompt.slice(contractIdx, contractIdx + 300)
-    expect(afterContract).not.toContain('"block-free"')
+    const lineEnd = prompt.indexOf('\n', contractIdx)
+    const contractLine = prompt.slice(contractIdx, lineEnd === -1 ? undefined : lineEnd)
+    expect(contractLine).not.toContain('"block-free"')
   })
 
   it('includes the original outline when outlineMarkdown is provided', () => {
     const outline = '# Test Title\n\n## Section\n- Point A\n- Point B'
-    const prompt = buildSystemPrompt({
+    const prompt = flatten({
       deck: makeDeck(['block-locked']),
       activeSlideId: 'slide-1',
       fidelity: 'strict',
@@ -130,7 +136,7 @@ describe('system prompt: fidelity contract', () => {
   })
 
   it('handles strict fidelity with no locked blocks (just-created strict deck)', () => {
-    const prompt = buildSystemPrompt({
+    const prompt = flatten({
       deck: makeDeck([]), // no blocks have sourceNodeIds
       activeSlideId: 'slide-1',
       fidelity: 'strict',
@@ -140,7 +146,7 @@ describe('system prompt: fidelity contract', () => {
   })
 
   it('skips the Original Outline section when outlineMarkdown is empty', () => {
-    const prompt = buildSystemPrompt({
+    const prompt = flatten({
       deck: makeDeck(['block-locked']),
       activeSlideId: 'slide-1',
       fidelity: 'strict',

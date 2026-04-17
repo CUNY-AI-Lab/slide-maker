@@ -1,9 +1,14 @@
 import { describe, it, expect } from 'vitest'
 import { buildSystemPrompt } from '../apps/api/src/prompts/system'
 
+function flatten(opts: Parameters<typeof buildSystemPrompt>[0]): string {
+  const { staticPrompt, dynamicContext } = buildSystemPrompt(opts)
+  return `${staticPrompt}\n\n${dynamicContext}`
+}
+
 describe('buildSystemPrompt — document excerpts', () => {
   it('includes Uploaded Documents section with Markdown excerpts', () => {
-    const opts: any = {
+    const prompt = flatten({
       deck: {
         id: 'deck-1',
         name: 'Test Deck',
@@ -20,13 +25,10 @@ describe('buildSystemPrompt — document excerpts', () => {
       ],
       artifacts: [],
       activeArtifacts: [],
-    }
+    } as any)
 
-    const prompt = buildSystemPrompt(opts)
     expect(prompt).toContain('## Uploaded Files')
     expect(prompt).toContain('photo.png')
-
-    // Excerpts section appears and contains both docs with headings
     expect(prompt).toContain('## Uploaded Documents (text excerpts)')
     expect(prompt).toContain('### paper.pdf (application/pdf)')
     expect(prompt).toContain('Some PDF text here')
@@ -34,4 +36,3 @@ describe('buildSystemPrompt — document excerpts', () => {
     expect(prompt).toContain('Bullet 1')
   })
 })
-
