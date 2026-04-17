@@ -93,7 +93,8 @@ describe('export artifact extraction', () => {
       stepOrder: 2,
     }
     const html = renderModule(mod, [], { extractArtifacts: true })
-    expect(html).toContain('data-step="2"')
+    // stepOrder 2 renders as data-step="3" (1-indexed) for display parity with canvas
+    expect(html).toContain('data-step="3"')
     expect(html).toContain('step-hidden')
     expect(html).toContain('src="artifacts/')
   })

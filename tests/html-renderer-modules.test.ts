@@ -29,6 +29,15 @@ describe('renderModule — per-type HTML output', () => {
       expect(html).toContain('font-size: 2rem')
       expect(html).toContain('text-align: center')
     })
+
+    it('preserves TipTap font-size span inside heading', () => {
+      const html = renderModule(mod('heading', {
+        level: 1,
+        text: 'Plain <span style="font-size: 32px">small</span> rest',
+      }))
+      // sanitize-html drops the space after `:` but must keep the declaration
+      expect(html).toMatch(/<span style="font-size:\s*32px">small<\/span>/)
+    })
   })
 
   // ── text ───────────────────────────────────────────────────
@@ -39,10 +48,11 @@ describe('renderModule — per-type HTML output', () => {
       expect(html).toContain('<strong>bold</strong>')
     })
 
-    it('adds step-hidden class with stepOrder', () => {
+    it('adds step-hidden class with 1-indexed data-step', () => {
       const html = renderModule(mod('text', { markdown: 'step' }, 2))
       expect(html).toContain('step-hidden')
-      expect(html).toContain('data-step="2"')
+      // stepOrder 2 renders as data-step="3" for display parity with canvas ("Step 3")
+      expect(html).toContain('data-step="3"')
     })
 
     it('returns empty string for empty data', () => {
@@ -58,6 +68,13 @@ describe('renderModule — per-type HTML output', () => {
     it('omits style attr when fontSize is absent', () => {
       const html = renderModule(mod('text', { markdown: 'hello' }))
       expect(html).not.toContain('style=')
+    })
+
+    it('preserves TipTap font-size span inside text body', () => {
+      const html = renderModule(mod('text', {
+        html: '<p>Body <span style="font-size: 42px">big</span> normal</p>',
+      }))
+      expect(html).toMatch(/<span style="font-size:\s*42px">big<\/span>/)
     })
   })
 
@@ -426,10 +443,11 @@ describe('renderModule — per-type HTML output', () => {
 
   // ── step attributes ────────────────────────────────────────
   describe('step attributes', () => {
-    it('adds step-hidden and data-step for stepOrder', () => {
+    it('adds step-hidden and 1-indexed data-step for stepOrder', () => {
       const html = renderModule(mod('heading', { text: 'T', level: 1 }, 3))
       expect(html).toContain('step-hidden')
-      expect(html).toContain('data-step="3"')
+      // stepOrder 3 renders as data-step="4" (1-indexed) for display parity with canvas
+      expect(html).toContain('data-step="4"')
     })
 
     it('omits step attributes when stepOrder is null', () => {

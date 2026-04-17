@@ -117,6 +117,8 @@ interface Slide {
   layout: string
   order: number
   splitRatio?: string
+  title?: string | null
+  notes?: string | null
   modules: Module[]
 }
 
@@ -131,7 +133,9 @@ interface ExportFile {
 
 function stepAttrs(mod: Module): string {
   if (mod.stepOrder != null) {
-    return ` class="step-hidden" data-step="${mod.stepOrder}"`
+    // data-step is 1-indexed for display parity with the canvas ("Step 1" not "Step 0").
+    // Navigation JS sorts by this value but reveals via array index, so shifting is safe.
+    return ` class="step-hidden" data-step="${mod.stepOrder + 1}"`
   }
   return ''
 }
@@ -189,7 +193,7 @@ function renderModule(mod: Module, files?: ExportFile[], opts?: RenderOptions): 
 
     case 'text': {
       const cls = mod.stepOrder != null ? 'text-body step-hidden' : 'text-body'
-      const ds = mod.stepOrder != null ? ` data-step="${mod.stepOrder}"` : ''
+      const ds = mod.stepOrder != null ? ` data-step="${mod.stepOrder + 1}"` : ''
       const styleAttr = buildFontSizeAttr(d.fontSize, esc)
       const html = renderRichTextData(d, sanitize)
       return html ? `<div class="${cls}"${ds}${styleAttr}>${html}</div>` : ''
