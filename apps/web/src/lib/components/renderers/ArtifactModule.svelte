@@ -420,7 +420,7 @@
     // buildArtifactBlockData sets artifactName/registryId/factory so native-factory
     // lookup in ArtifactModule resolves correctly; iframe fallback still works via rawSource.
     const built = buildArtifactBlockData(artifact, config, {
-      alt: artifactDisplayName(artifact.name),
+      alt: artifactDisplayName(artifact),
     })
     onchange?.({ ...data, ...built })
     showArtifactPicker = false
