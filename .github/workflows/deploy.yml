@@ -5,15 +5,52 @@ name: Deploy to Staging
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
+  check:
+    name: Test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+        with:
+          version: 9.15.0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 20.x
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspaces
+        run: pnpm build
+
+      - name: Run tests
+        run: pnpm test
+
   deploy:
+    needs: check
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1
+        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+        env:
+          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
         with:
           host: 100.111.252.53
           username: smorello.adm@gc.cuny.edu
           password: ${{ secrets.DEPLOY_PASSWORD }}
+          envs: DEPLOY_PASSWORD
           script: |
-            echo '${{ secrets.DEPLOY_PASSWORD }}' | sudo -S /data/slide-maker/deploy.sh
+            printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S /data/slide-maker/deploy.sh
