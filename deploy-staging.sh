@@ -21,7 +21,9 @@ git push upstream main
 
 echo "Deploying to server..."
 sshpass -p "$DEPLOY_PASS" ssh -o StrictHostKeyChecking=no "$SERVER" "
+set -e
 echo '$DEPLOY_PASS' | sudo -S /data/slide-maker/deploy.sh
+echo '$DEPLOY_PASS' | sudo -S /data/slide-maker/scripts/staging-processes.sh
 "
 
 echo ""

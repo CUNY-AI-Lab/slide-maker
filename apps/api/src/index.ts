@@ -92,11 +92,14 @@ if (process.env.ENABLE_DEBUG_ROUTES === 'true') {
   app.route('/api/debug', debugRouter)
 }
 
+const displayHost = env.host.includes(':') ? `[${env.host}]` : env.host
+
 serve({
   fetch: app.fetch,
+  hostname: env.host,
   port: env.port,
 }, () => {
-  console.log(`API server running on http://localhost:${env.port}`)
+  console.log(`API server running on http://${displayHost}:${env.port}`)
 })
 
 export default app

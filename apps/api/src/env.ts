@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import { resolveApiHost } from './listen-host.js'
 
 // Accept provider selection via env or CLI flag: --provider <bedrock|anthropic|openrouter|all>
 function parseProvider(input?: string | null): '' | 'bedrock' | 'anthropic' | 'openrouter' {
@@ -19,6 +20,7 @@ function getCliArg(name: string): string | undefined {
 const cliProvider = getCliArg('provider')
 
 export const env = {
+  host: resolveApiHost(),
   port: Number(process.env.API_PORT ?? 3001),
   databaseUrl: process.env.DATABASE_URL ?? 'file:./data/slide-maker.db',
   sessionSecret: process.env.SESSION_SECRET ?? 'dev-secret-change-me',
