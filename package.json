@@ -8,6 +8,7 @@
     "dev:openrouter": "AI_PROVIDER=openrouter turbo dev",
     "build": "turbo build",
     "test": "vitest run && bash tests/run_all.sh",
+    "check": "bun run --cwd apps/web check && bun run test && bun run build",
     "db:push": "pnpm --filter api db:push",
     "db:seed": "pnpm --filter api db:seed",
     "seed:admin": "pnpm --filter api seed:admin",
