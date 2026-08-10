@@ -248,11 +248,10 @@ Full admin panel at `/admin` with:
 - **Dev:** `pnpm dev` (localhost:5173 + localhost:3001)
 - **Staging:** `tools.cuny.qzz.io/slide-maker` — Debian server (Tailscale IP 100.111.252.53), Nginx reverse proxy, PM2 processes (`slide-maker-api` on port 3004, `slide-maker-web` on port 4173)
 - **Deploy:** `./deploy-staging.sh` from a machine on Tailscale/CUNY VPN. GitHub Actions can't reach the server (Tailscale-only IP).
-- **Server deploy script:** `/data/slide-maker/deploy.sh` — git pull, pnpm install, build, db push, seed, pm2 restart
+- **Server deploy scripts:** `/data/slide-maker/deploy.sh` pulls, installs, builds, and seeds; `/data/slide-maker/scripts/staging-processes.sh` then replaces both PM2 processes with their loopback-bound production commands
 - **SSH:** `sshpass -p "<password>" ssh -o StrictHostKeyChecking=no smorello.adm@gc.cuny.edu@100.111.252.53`
 - **Traffic flow:** Browser → Cloudflare (`tools.cuny.qzz.io`) → Caddy (TLS on 146.96.128.38) → Nginx (:80) → PM2 apps
-- **PM2 API start:** `pm2 start "pnpm --filter @slide-maker/api dev" --name slide-maker-api` (must use tsx/dev, not compiled dist — shared package exports raw .ts)
-- **PM2 Web start:** `pm2 start /usr/bin/node --name slide-maker-web -- <vite-bin-path> preview --host 0.0.0.0 --port 4173` (run from `apps/web/`, `npx` not available in sudo env)
+- **PM2 process authority:** run `sudo /data/slide-maker/scripts/staging-processes.sh` after `/data/slide-maker/deploy.sh`; it recreates both named processes, verifies their listener arguments and environment, and saves the resulting PM2 state
 - **Nginx config:** `/etc/nginx/sites-enabled/alt-text.conf` contains routes for ALL apps (alt-text, asr, ocr, site-studio, agent-studio, hm-review, slide-maker). Never use `sed` on it — edit manually or append carefully. Always `nginx -t` before `systemctl reload nginx`.
 - **Root disk is only 8.9GB** — `/var/log` symlinked to `/data/var-log`, `/home` contents moved to `/data/home-moved/` with symlinks. Monitor with `df -h /`. If disk fills, check `/var/cache/apt` and run `apt-get clean`.
 - **Debug routes:** Require `ENABLE_DEBUG_ROUTES=true` in `.env` (explicit opt-in). Exposes transcript viewer at `/api/debug/transcripts`.

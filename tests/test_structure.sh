@@ -122,6 +122,7 @@ echo ""
 echo "── Deployment ──"
 check "nginx config" '[ -f nginx/slide-maker.conf ]'
 check "deploy script" '[ -f deploy-staging.sh ]'
+check "staging process script" '[ -x scripts/staging-processes.sh ]'
 check "GitHub Actions workflow" '[ -f .github/workflows/deploy.yml ]'
 
 echo ""
