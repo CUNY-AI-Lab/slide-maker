@@ -193,8 +193,9 @@ transport until a replacement is implemented and verified.
 File access is an explicit product decision. Today's file GET uses the URL as a
 bearer capability without checking login or `deck_access`. Choose whether to
 preserve that behavior or require deck authorization, including how revocation
-works. Exercise existing canvas and shared-deck file URLs, preview/export asset
-rewriting, and previously exported or published decks before changing that boundary.
+works. Exercise persisted image/carousel URLs in the canvas, preview, thumbnails,
+Files panel, and shared sessions. ZIP exports already rewrite uploads to bundled
+assets; verify that bundling still works after an authorization or R2 change.
 
 The upload proposal cannot sum sizes from the current database: that column does
 not exist. Define byte accounting for files, extraction sidecars, downloaded
