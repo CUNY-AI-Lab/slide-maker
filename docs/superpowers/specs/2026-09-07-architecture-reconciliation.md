@@ -39,8 +39,8 @@ bindings, and institutional hostname readiness were not probed here.
 | Owner | Inspected source |
 | --- | --- |
 | Identity | [`65c74fc`, verifier and identity contract](https://github.com/CUNY-AI-Lab/cail-identity/tree/65c74fc53bb8549bd1906bdec55c75c3b273041f) |
-| Doorway | [`8565e73`, route policy](https://github.com/CUNY-AI-Lab/cail-doorway/blob/8565e73f032e310d04c9955dfa2f00bdb54583f9/config/route-policy.json) and [Admission RPC type](https://github.com/CUNY-AI-Lab/cail-doorway/blob/8565e73f032e310d04c9955dfa2f00bdb54583f9/src/config.ts) |
-| Admission | [`ec1e8be`, `AdmissionResolver`](https://github.com/CUNY-AI-Lab/cail-tools-admission/blob/ec1e8bec45c7b9477d4ce1a1b3b43a065a30b069/src/index.ts) and [administrator boundary](https://github.com/CUNY-AI-Lab/cail-tools-admission/blob/ec1e8bec45c7b9477d4ce1a1b3b43a065a30b069/README.md) |
+| Doorway | [`f149a53`, institutional route policy](https://github.com/CUNY-AI-Lab/cail-tools-admission/blob/f149a53d3d9570ebb8d20c57f13a6d848fc09eba/apps/doorway/config/route-policy.json) in the shared Doorway/Admission repository |
+| Admission | [`f149a53`, resolver result schema](https://github.com/CUNY-AI-Lab/cail-tools-admission/blob/f149a53d3d9570ebb8d20c57f13a6d848fc09eba/packages/admission-contract/src/identity.ts) and [administrator boundary](https://github.com/CUNY-AI-Lab/cail-tools-admission/blob/f149a53d3d9570ebb8d20c57f13a6d848fc09eba/apps/admission/README.md) |
 | Gateway | [`f65eda6`, runtime contract](https://github.com/CUNY-AI-Lab/cail-gateway/blob/f65eda6195bffbac52c228f1ce3586d739578039/docs/gateway-contract.md) and [quota contract](https://github.com/CUNY-AI-Lab/cail-gateway/blob/f65eda6195bffbac52c228f1ce3586d739578039/docs/quota-design.md) |
 | Kale | [`15e2c74`, release surface](https://github.com/CUNY-AI-Lab/cail-deploy/blob/15e2c742bad0d7190a2b1e9e4f58052a2d8f7075/README.md) and [artifact contract](https://github.com/CUNY-AI-Lab/cail-deploy/blob/15e2c742bad0d7190a2b1e9e4f58052a2d8f7075/src/domain/contracts.ts) |
 
@@ -122,23 +122,28 @@ Dropping tables and reclaiming server storage are later authorized operations.
 
 ### Identity and administrator access
 
-The inspected Doorway policy uses the `cail-doorway.ailab-452.workers.dev` origin
-and issuer and contains no slide-maker route. #12's institutional hostname and
-issuer are a proposed cutover, not current source configuration. Consume the
+At the inspected shared-repository pin, Doorway's canonical origin is
+`https://tools.ailab.gc.cuny.edu` and its identity issuer is
+`https://tools.ailab.gc.cuny.edu/cail-sso`; the policy contains no slide-maker
+route. #12's institutional hostname and issuer therefore match current source,
+while its slide-maker route and receiver cutover remain proposed. Consume the
 reviewed Identity/Doorway contract at implementation time and coordinate the
-receiver before enabling a caller. Do not copy a speculative issuer into a
-production verifier.
+receiver before enabling that caller.
 
-Current `AdmissionResolver.resolveMembership({ subject })` returns exactly
-`{ ok: true, expiresAt, revision }` or a denial; Doorway validates those exact
-keys. It returns neither `accessRole` nor `budgetScope`. #12's proposed
-`membership.accessRole === 'admin'` check therefore cannot authorize an admin.
-Admission's own admin HTTP surface has a separate audience and bootstrap
-allowlist. A product cannot borrow that audience or infer admin access from
-ordinary membership. Admission and slide-maker owners must agree on a supported
-product-admin capability, or choose an operator-only administration plan before
-removing the existing admin functions. Binding the present resolver alone does
-not resolve this decision.
+Current `AdmissionResolver.resolveMembership({ subject })` success returns
+exactly `{ ok: true, expiresAt, revision, accessRole, budgetScope }`; its strict
+shared schema defines `accessRole` as `member` or `admin` and `budgetScope` as
+`person`, `person-plus`, or `admin`. #12's proposed
+`membership.accessRole === 'admin'` check is structurally compatible with that
+resolver contract. Admission's own admin HTTP surface separately requires the
+`cail:tools-admission-admin` audience and an active, unexpired
+`accessRole: admin` membership; it has no bootstrap subject allowlist or identity
+exception route. Slide-maker still needs an explicit product policy for whether
+Admission administrators inherit its admin functions or it keeps a distinct
+product-admin role. It should validate the shared resolver schema and derive the
+subject from server-authenticated identity rather than copying the contract or
+accepting role claims from the browser. No new Admission transport is required
+merely to carry the current role and budget fields.
 
 Legacy-account migration also needs its own design. #12 deletes Argon2 and
 password fields while requiring a password-based legacy claim. Choose verified
@@ -256,7 +261,7 @@ increments by their actual prerequisites rather than interleaving these numbers.
 | Atomic edit path | Resolve the edit decisions above. Exercise the actual browser/API against disposable SQLite: compound success, mid-batch failure, viewer denial, lock/version conflicts, response loss, and undo. Retire or delegate every replaced writer. Normalized storage is a valid stopping point. |
 | Optional representation migration | Approve field mapping and snapshot/history semantics; prove complete round-trip and restore with edits, references, and uploads. Freeze, resume, and post-resume recovery must be explicit before touching existing data. |
 | Renderer/artifact/AI consolidation | Each package earns its boundary through current callers. Compare visible canvas/preview/export behavior and ZIP contents; exercise protocol cancellation, proposal acceptance, usage absence, and trailing errors. Recorded streams validate parsing; they do not prove live model behavior. |
-| Optional Worker integration | Resolve identity/admin/account mapping, storage authority, gateway budget identity, and staging access first. Run caller-to-receiver tests against actual local Worker services with isolated stores, then coordinate receiver deployment before routing callers. Stub resolvers/test issuers do not prove CUNY login or live access. |
+| Optional Worker integration | Use the current Doorway issuer and Admission resolver schema; resolve slide-maker's admin/account-mapping policy, storage authority, gateway budget identity, and staging access first. Run caller-to-receiver tests against actual local Worker services with isolated stores, then coordinate receiver deployment before routing callers. Stub resolvers/test issuers do not prove CUNY login or live access. |
 | Authorized cutover | Establish and use a reviewed CI release path: the existing staging workflow documents that GitHub runners cannot reach its Tailscale host. Serialize releases, deploy the exact checked commit, and read back one serving version at 100%. Verify the user action plus public/campus routing, the chosen file-access boundary, and existing published URLs. A backup or health response alone is insufficient acceptance. |
 
 This successor changes documentation only. No schema, credential, route, service
