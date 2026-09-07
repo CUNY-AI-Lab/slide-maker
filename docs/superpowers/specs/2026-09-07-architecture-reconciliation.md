@@ -30,7 +30,7 @@ inline review threads. These are source observations, not deployed-state checks.
 | Authorization | Mutating deck routes check `deck_access` and reject viewers before checking the [edit lock](../../../apps/api/src/middleware/deck-lock.ts). The lock is not an access grant. Owner deletion and metadata editing have different lock behavior from slide/block editing. |
 | AI | [Chat](../../../apps/api/src/routes/chat.ts) streams text and stores separately extracted fences. [Shared types](../../../packages/shared/src/mutations.ts) do not describe every client action. [Provider adapters](../../../apps/api/src/providers/) yield text; chat estimates tokens from text length. |
 | Rendering | [Svelte renderers](../../../apps/web/src/lib/components/renderers/), [server HTML](../../../apps/api/src/export/html-renderer.ts), and separate [export artifact code](../../../apps/api/src/export/artifacts.ts) implement overlapping behavior. [ZIP export](../../../apps/api/src/export/index.ts) uses local files and `archiver`. |
-| Uploads | [Files](../../../apps/api/src/routes/files.ts) counts bytes on disk, including existing sidecars, before writing. `uploaded_files` has neither byte size nor a reservation state. |
+| Uploads | [Files](../../../apps/api/src/routes/files.ts) counts bytes on disk, including existing sidecars, before writing. `uploaded_files` has neither byte size nor a reservation state. File GET is unauthenticated: possession of the CUID URL grants access; its private cache header is not an authorization check. |
 | Host and checks | [Svelte configuration](../../../apps/web/svelte.config.js) uses `adapter-auto` and a build-time `/slide-maker` base. [CI](../../../.github/workflows/ci.yml) builds and runs Vitest plus shell checks; Playwright is outside that workflow. The [deployment workflow](../../../.github/workflows/deploy.yml) is manually dispatched and documents its Tailscale reachability problem. |
 
 Related contracts were read at the following commits. Their deployed versions,
@@ -71,6 +71,10 @@ Before implementing the writer, resolve these details in its focused PR:
   inverses do not consult a changed catalog or generate different IDs.
 - **Version versus content.** Apply/inverse identity can restore deck content;
   committed undo cannot restore the old revision number or append-only history.
+  #11 stores both `DeckDocument.version` and `decks.version`; #12 similarly keeps
+  a version in both the deck row inside the object and its document. Choose one
+  persisted authority, or derive and validate the serialized copy from it; define
+  rejection/recovery if they diverge rather than trusting whichever was read first.
   Specify where version increments happen, how empty batches/no-ops behave, and
   what the property test compares. A reducer identity test alone proves neither
   persistence atomicity nor replay from historical inputs.
@@ -186,6 +190,12 @@ duplicate suppression, and stale authorization are additional work, not a free
 consequence of choosing Durable Objects. Existing polling can remain the sole
 transport until a replacement is implemented and verified.
 
+File access is an explicit product decision. Today's file GET uses the URL as a
+bearer capability without checking login or `deck_access`. Choose whether to
+preserve that behavior or require deck authorization, including how revocation
+works. Exercise existing canvas and shared-deck file URLs, preview/export asset
+rewriting, and previously exported or published decks before changing that boundary.
+
 The upload proposal cannot sum sizes from the current database: that column does
 not exist. Define byte accounting for files, extraction sidecars, downloaded
 images, deletes, and concurrent uploads. If using D1 plus R2, choose an atomic
@@ -246,7 +256,7 @@ increments by their actual prerequisites rather than interleaving these numbers.
 | Optional representation migration | Approve field mapping and snapshot/history semantics; prove complete round-trip and restore with edits, references, and uploads. Freeze, resume, and post-resume recovery must be explicit before touching existing data. |
 | Renderer/artifact/AI consolidation | Each package earns its boundary through current callers. Compare visible canvas/preview/export behavior and ZIP contents; exercise protocol cancellation, proposal acceptance, usage absence, and trailing errors. Recorded streams validate parsing; they do not prove live model behavior. |
 | Optional Worker integration | Resolve identity/admin/account mapping, storage authority, gateway budget identity, and staging access first. Run caller-to-receiver tests against actual local Worker services with isolated stores, then coordinate receiver deployment before routing callers. Stub resolvers/test issuers do not prove CUNY login or live access. |
-| Authorized cutover | Use the repository's reviewed CI release path, serialize releases, deploy the exact checked commit, and read back one serving version at 100%. Verify the user action plus public/campus routing, private file boundaries, and existing published URLs. A backup or health response alone is insufficient acceptance. |
+| Authorized cutover | Establish and use a reviewed CI release path: the existing staging workflow documents that GitHub runners cannot reach its Tailscale host. Serialize releases, deploy the exact checked commit, and read back one serving version at 100%. Verify the user action plus public/campus routing, the chosen file-access boundary, and existing published URLs. A backup or health response alone is insufficient acceptance. |
 
 This successor changes documentation only. No schema, credential, route, service
 binding, application behavior, or published deck changes here. Existing build and
