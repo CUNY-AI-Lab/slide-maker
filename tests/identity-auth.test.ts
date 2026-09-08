@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync, rmSync } from 'node:fs'
+import { mkdtempSync, writeFileSync, rmSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { Context } from '../apps/api/node_modules/hono'
@@ -13,6 +13,24 @@ vi.mock('../apps/api/src/email/index', () => ({ sendDeckSharedEmail: vi.fn().moc
 afterEach(() => vi.unstubAllEnvs())
 
 describe('CAIL keyring verification', () => {
+  it('accepts canonical tokens with the shipped example issuer and keeps the Gateway base distinct', async () => {
+    const { parse } = requireApi('dotenv')
+    const example = parse(readFileSync(new URL('../.env.example', import.meta.url)))
+    const { CAIL_CANONICAL_ISSUER } = await import(requireApi.resolve('@cuny-ai-lab/cail-identity'))
+    expect(example.CAIL_IDENTITY_ISSUER).toBe(CAIL_CANONICAL_ISSUER)
+    expect(example.CAIL_GATEWAY_URL).toBe(new URL(CAIL_CANONICAL_ISSUER).origin)
+    const issuer = await createTestIdentityIssuer()
+    vi.stubEnv('CAIL_IDENTITY_JWKS', issuer.jwksJson)
+    vi.stubEnv('CAIL_IDENTITY_ISSUER', example.CAIL_IDENTITY_ISSUER)
+    const gateway = await issuer.mintIdentityJwt({ audience: 'cail:gateway' })
+    const headers = new Headers({
+      'x-cail-identity-jwt': await issuer.mintIdentityJwt({ audience: 'cail:slide-maker' }),
+      'x-cail-gateway-identity-jwt': gateway,
+    })
+    expect(await verifyRequestIdentity(headers, await loadIdentityConfigs())).toEqual({
+      subject: TEST_SUBJECTS.alice, gatewayToken: gateway,
+    })
+  })
   it('verifies both audience-bound tokens and rejects mismatched, expired, swapped and malformed legs', async () => {
     const issuer = await createTestIdentityIssuer()
     vi.stubEnv('CAIL_IDENTITY_JWKS', issuer.jwksJson)
