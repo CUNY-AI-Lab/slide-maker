@@ -8,12 +8,15 @@
     "build": "tsc",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx src/db/seed.ts",
-    "seed:admin": "tsx src/db/seed.ts --admin"
+    "seed:admin": "tsx src/db/seed.ts --admin",
+    "identity:migrate": "tsx scripts/migrate-identity.ts",
+    "identity:link": "tsx scripts/link-identity.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.39.0",
-    "@aws-sdk/client-bedrock-runtime": "^3.676.0",
     "@aws-sdk/client-ses": "^3.1029.0",
+    "@cuny-ai-lab/cail-client": "6.2.2",
+    "@cuny-ai-lab/cail-identity": "5.2.6",
+    "@cuny-ai-lab/cail-log": "0.6.4",
     "@hono/node-server": "^1.19.11",
     "@lucia-auth/adapter-drizzle": "^1.1.0",
     "@node-rs/argon2": "^2.0.0",
@@ -27,7 +30,6 @@
     "lucia": "^3.2.0",
     "mammoth": "^1.7.2",
     "nodemailer": "^6.10.0",
-    "openai": "^4.80.0",
     "pdf-parse": "^1.1.1",
     "rate-limiter-flexible": "^10.0.1",
     "sanitize-html": "^2.17.2",

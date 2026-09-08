@@ -3,9 +3,6 @@
   "private": true,
   "scripts": {
     "dev": "turbo dev",
-    "dev:bedrock": "AI_PROVIDER=bedrock turbo dev",
-    "dev:anthropic": "AI_PROVIDER=anthropic turbo dev",
-    "dev:openrouter": "AI_PROVIDER=openrouter turbo dev",
     "build": "turbo build",
     "test": "vitest run && bash tests/run_all.sh",
     "check": "bun run --cwd apps/web check && bun run test && bun run build",
@@ -15,9 +12,6 @@
     "audit:a11y": "node scripts/a11y-theme-audit.mjs",
     "start": "tsx apps/api/src/index.ts",
     "api:dev": "pnpm --filter @slide-maker/api dev",
-    "api:bedrock": "AI_PROVIDER=bedrock pnpm --filter @slide-maker/api dev",
-    "api:anthropic": "AI_PROVIDER=anthropic pnpm --filter @slide-maker/api dev",
-    "api:openrouter": "AI_PROVIDER=openrouter pnpm --filter @slide-maker/api dev",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
   },

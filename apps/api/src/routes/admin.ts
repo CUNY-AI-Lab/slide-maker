@@ -88,7 +88,6 @@ admin.get('/users/all', async (c) => {
     status: u.status,
     emailVerified: u.emailVerified,
     createdAt: u.createdAt,
-    tokenCap: u.tokenCap,
     deckCount: deckCountMap.get(u.id) ?? 0,
     tokensUsed: tokenMap.get(u.id) ?? 0,
     lastActive: lastActiveMap.get(u.id) ?? null,
@@ -130,9 +129,6 @@ admin.patch('/users/:id', async (c) => {
     updates.status = body.status
   }
 
-  if (body.tokenCap !== undefined && typeof body.tokenCap === 'number' && body.tokenCap >= 0) {
-    updates.tokenCap = body.tokenCap
-  }
 
   if (Object.keys(updates).length === 0) {
     return c.json({ error: 'No valid fields to update' }, 400)
@@ -183,14 +179,12 @@ admin.get('/users/:id/usage', async (c) => {
     .orderBy(desc(sql`SUM(input_tokens + output_tokens)`))
 
   const totalUsed = totalRow?.total ?? 0
-  const cap = user.tokenCap ?? 1000000
 
   return c.json({
     userId: id,
     userName: user.name,
-    tokenCap: cap,
     totalUsed,
-    remaining: Math.max(0, cap - totalUsed),
+    source: 'historical_local_estimate',
     inputTotal: totalRow?.inputTotal ?? 0,
     outputTotal: totalRow?.outputTotal ?? 0,
     monthly,

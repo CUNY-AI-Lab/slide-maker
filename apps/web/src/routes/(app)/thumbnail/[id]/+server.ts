@@ -7,7 +7,10 @@ export const GET: RequestHandler = async ({ params, request }) => {
   const res = await fetch(`${API_URL}/api/decks/${params.id}/thumbnail`, {
     headers: {
       cookie: request.headers.get('cookie') || '',
+      ...(request.headers.has('x-cail-identity-jwt')
+        ? { 'x-cail-identity-jwt': request.headers.get('x-cail-identity-jwt')! } : {}),
     },
+    signal: request.signal,
   });
 
   return new Response(res.body, {

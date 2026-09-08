@@ -4,6 +4,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Check `TODO.md` for the current task list when planning work, but default to the operator's instructions, especially if they involve birds.
 
+## Institutional integration authority
+
+The current receiver contract and release proposal are in [docs/fleet-integration.md](docs/fleet-integration.md). They supersede the historical direct-provider, local-token-cap, password-production-auth and manual-deployment descriptions below. Model calls now use Gateway; production identity maps verified canonical subjects to unchanged local IDs. Do not deploy or activate a mount from historical staging instructions.
+
 ## What This Is
 
 A chat-driven slide builder for the CUNY AI Lab. Users create presentation decks through AI conversation + direct on-canvas editing. Three-panel UI: chat + outline (left), canvas (center), resources (right). Produces HTML slide decks matching the CUNY AI Lab's actual deck framework (section-based navigation, step reveals, carousel sync).

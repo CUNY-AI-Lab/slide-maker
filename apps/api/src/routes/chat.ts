@@ -1,26 +1,18 @@
+import { correlationFromHeaders } from '@cuny-ai-lab/cail-log'
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
-import { eq, and, inArray, gte, sql } from 'drizzle-orm'
+import { eq, and, inArray } from 'drizzle-orm'
 import { createId } from '@paralleldrive/cuid2'
-import type { Session, User } from 'lucia'
 import { db } from '../db/index.js'
-import { decks, deckAccess, slides, contentBlocks, chatMessages, templates, themes, uploadedFiles, users, tokenUsage, artifacts } from '../db/schema.js'
-import { authMiddleware } from '../middleware/auth.js'
+import { decks, deckAccess, slides, contentBlocks, chatMessages, templates, themes, uploadedFiles, artifacts } from '../db/schema.js'
+import { authMiddleware, type AuthEnv } from '../middleware/auth.js'
 import { chatRateLimit } from '../middleware/rate-limit.js'
-import { getModelStream, ALL_MODELS } from '../providers/index.js'
+import { getModelStream, safeGatewayError } from '../providers/index.js'
 import { buildSystemPrompt } from '../prompts/system.js'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { debugBus } from '../debug/event-bus.js'
-import { appendTranscript } from '../debug/transcript-log.js'
 
-type AuthEnv = {
-  Variables: {
-    user: User
-    session: Session
-  }
-}
 
 const chat = new Hono<AuthEnv>()
 
@@ -43,7 +35,7 @@ chat.post('/', chatRateLimit, async (c) => {
     .where(and(eq(deckAccess.deckId, deckId), eq(deckAccess.userId, user.id)))
     .get()
 
-  if (!access) {
+  if (!access || access.role === 'viewer') {
     return c.json({ error: 'Not found or no access' }, 404)
   }
 
@@ -337,21 +329,9 @@ chat.post('/', chatRateLimit, async (c) => {
 
   chatHistory.push({ role: 'user', content: message })
 
-  // Determine provider from registered models (supports openrouter, anthropic, bedrock)
-  const provider = (ALL_MODELS.find((m) => m.id === modelId)?.provider || 'unknown') as string
-
-  // Check token cap
-  const yearStart = new Date(new Date().getFullYear(), 0, 1)
-  const usage = await db.select({ total: sql<number>`SUM(input_tokens + output_tokens)` })
-    .from(tokenUsage)
-    .where(and(eq(tokenUsage.userId, user.id), gte(tokenUsage.createdAt, yearStart)))
-    .get()
-
-  const userRow = await db.select().from(users).where(eq(users.id, user.id)).get()
-  const cap = userRow?.tokenCap ?? 1000000
-  if ((usage?.total ?? 0) >= cap) {
-    return c.json({ error: 'Token limit reached. Contact an admin.' }, 429)
-  }
+  const provider = 'cail-gateway'
+  const gatewayToken = c.get('gatewayToken')
+  if (!gatewayToken) return c.json({ error: 'Institutional sign-in required' }, 401)
 
   // Save user message to DB
   const userMsgId = createId()
@@ -368,46 +348,22 @@ chat.post('/', chatRateLimit, async (c) => {
   // Stream response
   return streamSSE(c, async (stream) => {
     let fullResponse = ''
-    const streamTimeout = setTimeout(() => { stream.close() }, 120_000) // 2 min hard cap
-    const streamId = createId()
-    const startedAt = Date.now()
-    let chunkIndex = 0
-    let totalChars = 0
-
+    const controller = new AbortController()
+    let clientDisconnected = false
+    const abort = () => { clientDisconnected = true; controller.abort() }
+    c.req.raw.signal.addEventListener('abort', abort, { once: true })
+    stream.onAbort(abort)
+    if (c.req.raw.signal.aborted) abort()
+    const streamTimeout = setTimeout(() => controller.abort(), 120_000)
     try {
-      const gen = getModelStream(modelId, systemParts, chatHistory)
-
-      // Emit start event
-      debugBus.emit('stream:start', {
-        streamId,
-        userId: user.id,
-        userEmail: user.email,
-        deckId,
-        model: modelId,
-        provider,
-        systemPromptChars: systemParts.staticPrompt.length + systemParts.dynamicContext.length,
-        historyLength: chatHistory.length,
-        timestamp: new Date(startedAt).toISOString(),
+      const gen = getModelStream(modelId, systemParts, chatHistory, {
+        token: gatewayToken, sessionId: deckId, correlation: correlationFromHeaders(c.req.raw.headers), signal: controller.signal,
       })
-
       for await (const text of gen) {
         fullResponse += text
-        totalChars += text.length
-        await stream.writeSSE({
-          data: JSON.stringify({ type: 'text', content: text }),
-        })
-        // Emit chunk event
-        debugBus.emit('stream:chunk', {
-          streamId,
-          text,
-          chunkIndex: chunkIndex++,
-          elapsedMs: Date.now() - startedAt,
-        })
+        await stream.writeSSE({ data: JSON.stringify({ type: 'text', content: text }) })
       }
-
-      await stream.writeSSE({
-        data: JSON.stringify({ type: 'done' }),
-      })
+      controller.signal.throwIfAborted()
 
       // Extract mutation blocks from assistant response (before persisting)
       const mutations = (() => {
@@ -432,83 +388,15 @@ chat.post('/', chatRateLimit, async (c) => {
         createdAt: new Date(),
       })
 
-      // Estimate and record token usage
-      const allInputLength = systemParts.staticPrompt.length + systemParts.dynamicContext.length + chatHistory.reduce((sum, m) => sum + (m.content?.length ?? 0), 0)
-      const inputTokens = Math.ceil(allInputLength / 4)
-      const outputTokens = Math.ceil(fullResponse.length / 4)
-      await db.insert(tokenUsage).values({
-        id: createId(),
-        userId: user.id,
-        deckId,
-        provider,
-        model: modelId,
-        inputTokens,
-        outputTokens,
-        createdAt: new Date(),
-      })
-
-      // Emit done event
-      debugBus.emit('stream:done', {
-        streamId,
-        totalChars,
-        durationMs: Date.now() - startedAt,
-        inputTokens,
-        outputTokens,
-        mutations,
-      })
-
-      // Append transcript log
-      await appendTranscript({
-        id: streamId,
-        timestamp: new Date().toISOString(),
-        userEmail: user.email,
-        deckId,
-        model: modelId,
-        provider,
-        systemPromptChars: systemParts.staticPrompt.length + systemParts.dynamicContext.length,
-        historyLength: chatHistory.length,
-        inputTokens,
-        outputTokens,
-        durationMs: Date.now() - startedAt,
-        userMessage: message,
-        assistantMessage: fullResponse,
-        mutations,
-        error: null,
-      })
-    } catch (err: unknown) {
-      console.error('AI streaming error:', err)
-      const errorMessage = 'An error occurred while generating the response'
-      await stream.writeSSE({
-        data: JSON.stringify({ type: 'error', message: errorMessage }),
-      })
-      // Emit error event
-      debugBus.emit('stream:error', {
-        streamId,
-        error: (err as any)?.message ?? String(err),
-        elapsedMs: Date.now() - startedAt,
-      })
-      // Append transcript with error
-      try {
-        await appendTranscript({
-          id: streamId,
-          timestamp: new Date().toISOString(),
-          userEmail: user.email,
-          deckId,
-          model: modelId,
-          provider,
-          systemPromptChars: systemParts.staticPrompt.length + systemParts.dynamicContext.length,
-          historyLength: chatHistory.length,
-          inputTokens: 0,
-          outputTokens: 0,
-          durationMs: Date.now() - startedAt,
-          userMessage: message,
-          assistantMessage: fullResponse,
-          mutations: [],
-          error: (err as any)?.message ?? String(err),
-        })
-      } catch {}
+      await stream.writeSSE({ data: JSON.stringify({ type: 'done' }) })
+    } catch (error: unknown) {
+      if (!clientDisconnected) {
+        await stream.writeSSE({ data: JSON.stringify({ type: 'error', ...safeGatewayError(error) }) })
+      }
     } finally {
       clearTimeout(streamTimeout)
+      c.req.raw.signal.removeEventListener('abort', abort)
+      controller.abort()
     }
   })
 })
