@@ -59,8 +59,6 @@ check "admin middleware" '[ -f apps/api/src/middleware/admin.ts ]'
 
 echo ""
 echo "── apps/api providers ──"
-check "anthropic provider" '[ -f apps/api/src/providers/anthropic.ts ]'
-check "openrouter provider" '[ -f apps/api/src/providers/openrouter.ts ]'
 check "provider index" '[ -f apps/api/src/providers/index.ts ]'
 
 echo ""

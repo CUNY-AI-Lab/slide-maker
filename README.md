@@ -17,12 +17,14 @@ Open http://localhost:5173, log in with a seeded admin account, create a deck, a
 
 ## Prerequisites
 
-- Node.js 18+
+- Node.js 20+
 - [pnpm](https://pnpm.io/) 9.x (`corepack enable && corepack prepare pnpm@9.15.0 --activate`)
 
 ## Setup
 
 1. **Install dependencies**
+
+   The pinned CAIL packages require authorized GitHub Packages read access. The checked-in `.npmrc` contains registry resolution only; supply credentials through your user configuration or CI environment.
 
    ```bash
    pnpm install
@@ -35,17 +37,7 @@ Open http://localhost:5173, log in with a seeded admin account, create a deck, a
    ln -s ../../.env apps/api/.env   # required — API loads env from its own CWD
    ```
 
-   At minimum, set `SESSION_SECRET` and one AI provider:
-
-   | Provider | Required env vars |
-   |----------|-------------------|
-   | OpenRouter | `OPENROUTER_API_KEY` |
-   | Anthropic | `ANTHROPIC_API_KEY` |
-   | AWS Bedrock | `AWS_REGION` + valid AWS credentials |
-
-   Optional:
-   - `TAVILY_API_KEY` and/or `BRAVE_API_KEY` for web search (Tavily preferred)
-   - `PEXELS_API_KEY` for openly-licensed image search
+   Configure institutional identity and Gateway as described in [the receiver guide](docs/fleet-integration.md). Local password sessions are development-only; production requires signed institutional identity and an operator-verified local account mapping. Provider keys are not used by Slide Maker.
 
 3. **Initialize the database**
 
@@ -67,25 +59,9 @@ Starts both services via Turborepo:
 | Web (SvelteKit) | http://localhost:5173 |
 | API (Hono) | http://localhost:3001 |
 
-### Provider selection
+### Models and identity
 
-Run with a specific AI provider:
-
-```bash
-pnpm dev:anthropic    # Anthropic SDK
-pnpm dev:bedrock      # AWS Bedrock
-pnpm dev:openrouter   # OpenRouter
-```
-
-Or set `AI_PROVIDER=bedrock|anthropic|openrouter` in your `.env`.
-
-### Available models
-
-| Provider | Models |
-|----------|--------|
-| Anthropic | Claude Sonnet 4, Haiku 4.5 (Sonnet 4.6 admin-only, requires env var) |
-| Bedrock | Haiku 4.5, Sonnet 4.6 |
-| OpenRouter | Kimi K2.5, GLM 5, Gemini 3.1 Flash, Qwen 3.5 Flash |
+Chat and planning use the CAIL Gateway catalog and verified Gateway credentials. Gateway owns quota admission and accounting. Before serving an existing database with this version, run the additive identity migration and verify account mappings; see [the operator and release guide](docs/fleet-integration.md).
 
 ## Features
 
@@ -152,11 +128,11 @@ Exports a self-contained ZIP with:
 
 ### Auth
 
-Email/password with `*.cuny.edu` domain gating. Registration, email verification, admin approval. Lucia v3 session cookies. Rate-limited login (5/15min) and registration (3/hr).
+Production uses verified institutional JWTs mapped explicitly to existing local user IDs. Product roles and sharing remain local. Development retains Lucia password sessions.
 
 ### Admin dashboard
 
-User management, role assignment, token usage tracking with monthly charts and per-user caps (default 1M tokens, annual reset).
+User management and local product role assignment. Gateway owns current model quota; existing local usage records are historical.
 
 ## Project structure
 
@@ -188,9 +164,7 @@ npx vitest --watch    # watch mode
 
 ## Deployment
 
-Staging at `tools.cuny.qzz.io/slide-maker`. Deploy via `./deploy-staging.sh` (requires Tailscale/CUNY VPN). Traffic: Cloudflare -> Caddy (TLS) -> Nginx -> PM2 (API on 3004, web on 4173).
-
-See `CLAUDE.md` for full deployment details and server layout.
+Institutional integration is source-only until the receiver release and private reachability are reviewed. See [the release proposal](docs/fleet-integration.md). Historical staging scripts are not authorization to deploy this branch.
 
 ## Contributing
 

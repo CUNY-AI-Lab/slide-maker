@@ -1,5 +1,6 @@
 <script lang="ts">
   import { selectedModelId } from '$lib/stores/chat'
+  import GatewayQuota from './GatewayQuota.svelte'
   import { API_URL } from '$lib/api'
 
   interface Model {
@@ -68,6 +69,7 @@
       {/each}
     </select>
   {/if}
+  <GatewayQuota />
 </div>
 
 <style>

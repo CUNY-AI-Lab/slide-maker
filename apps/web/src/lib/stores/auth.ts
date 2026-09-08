@@ -6,6 +6,7 @@ export interface AuthUser {
   email: string
   name: string
   role: string
+  authentication?: 'institutional' | 'local'
 }
 
 export const currentUser = writable<AuthUser | null>(null)

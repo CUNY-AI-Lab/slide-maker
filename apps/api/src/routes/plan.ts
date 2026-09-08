@@ -1,7 +1,7 @@
+import { correlationFromHeaders } from '@cuny-ai-lab/cail-log'
 import { Hono } from 'hono'
 import { eq, and } from 'drizzle-orm'
 import { createId } from '@paralleldrive/cuid2'
-import type { Session, User } from 'lucia'
 import {
   type FidelityMode,
   type DeckPlan,
@@ -12,12 +12,11 @@ import {
   LAYOUTS,
 } from '@slide-maker/shared'
 import { db, sqlite } from '../db/index.js'
-import { decks, deckAccess, slides, contentBlocks, uploadedFiles, templates, themes, users, tokenUsage } from '../db/schema.js'
-import { gte, sql } from 'drizzle-orm'
-import { authMiddleware } from '../middleware/auth.js'
+import { decks, deckAccess, slides, contentBlocks, uploadedFiles, templates, themes } from '../db/schema.js'
+import { authMiddleware, type AuthEnv } from '../middleware/auth.js'
 import { checkDeckLock } from '../middleware/deck-lock.js'
 import { chatRateLimit } from '../middleware/rate-limit.js'
-import { getModelStream, ALL_MODELS } from '../providers/index.js'
+import { getModelStream, safeGatewayError, gatewayErrorStatus } from '../providers/index.js'
 import { parseOutline } from '../utils/outline-parser.js'
 import { estimateSlideCount } from '../utils/slide-budget.js'
 import { buildPlannerPrompt } from '../prompts/planner.js'
@@ -26,12 +25,6 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-type AuthEnv = {
-  Variables: {
-    user: User
-    session: Session
-  }
-}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const UPLOADS_DIR = path.resolve(__dirname, '../../uploads')
@@ -163,18 +156,8 @@ planRouter.post('/:id/plan', chatRateLimit, async (c) => {
       maxSlides: MAX_SLIDES_PER_DECK,
     })
 
-    // Check token cap before calling AI
-    const provider = (ALL_MODELS.find(m => m.id === modelId)?.provider || 'unknown') as string
-    const yearStart = new Date(new Date().getFullYear(), 0, 1)
-    const usage = await db.select({ total: sql<number>`SUM(input_tokens + output_tokens)` })
-      .from(tokenUsage)
-      .where(and(eq(tokenUsage.userId, user.id), gte(tokenUsage.createdAt, yearStart)))
-      .get()
-    const userRow = await db.select().from(users).where(eq(users.id, user.id)).get()
-    const cap = userRow?.tokenCap ?? 1000000
-    if ((usage?.total ?? 0) >= cap) {
-      return c.json({ error: 'Token limit reached. Contact an admin.' }, 429)
-    }
+    const gatewayToken = c.get('gatewayToken')
+    if (!gatewayToken) return c.json({ error: 'Institutional sign-in required' }, 401)
 
     // Call AI model and collect full response
     const messages: { role: 'user' | 'assistant'; content: string }[] = [
@@ -183,30 +166,13 @@ planRouter.post('/:id/plan', chatRateLimit, async (c) => {
 
     let fullResponse = ''
     try {
-      const gen = getModelStream(modelId, systemPrompt, messages)
+      const gen = getModelStream(modelId, systemPrompt, messages, { token: gatewayToken, sessionId: deckId, correlation: correlationFromHeaders(c.req.raw.headers), signal: AbortSignal.any([c.req.raw.signal, AbortSignal.timeout(120_000)]) })
       for await (const text of gen) {
         fullResponse += text
       }
     } catch (err: unknown) {
-      console.error('Planner AI error:', err)
-      return c.json({ error: 'Failed to generate plan' }, 500)
+      return c.json(safeGatewayError(err), gatewayErrorStatus(err))
     }
-
-    // Record token usage
-    const userMsgContent = messages[0].content
-    const allInputLength = systemPrompt.length + userMsgContent.length
-    const inputTokens = Math.ceil(allInputLength / 4)
-    const outputTokens = Math.ceil(fullResponse.length / 4)
-    await db.insert(tokenUsage).values({
-      id: createId(),
-      userId: user.id,
-      deckId,
-      provider,
-      model: modelId,
-      inputTokens,
-      outputTokens,
-      createdAt: new Date(),
-    })
 
     // Parse the AI response as JSON
     try {
@@ -216,7 +182,7 @@ planRouter.post('/:id/plan', chatRateLimit, async (c) => {
       }
       planData = JSON.parse(cleaned)
     } catch {
-      return c.json({ error: 'AI returned invalid JSON. Try again or use a different model.', raw: fullResponse.slice(0, 500) }, 422)
+      return c.json({ error: 'AI returned invalid JSON. Try again or use a different model.' }, 422)
     }
   }
 
