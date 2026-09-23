@@ -27,7 +27,8 @@ async function filesAt(root: string, prefix = ''): Promise<FileRecord[]> {
 function checkDatabase(path: string) {
   const db = new Database(path, { readonly: true, fileMustExist: true })
   try {
-    if (db.pragma('quick_check', { simple: true }) !== 'ok' || db.pragma('foreign_key_check').length !== 0) {
+    const foreignKeyErrors = db.pragma('foreign_key_check')
+    if (db.pragma('quick_check', { simple: true }) !== 'ok' || !Array.isArray(foreignKeyErrors) || foreignKeyErrors.length !== 0) {
       throw new Error('Snapshot database integrity check failed')
     }
   } finally { db.close() }
