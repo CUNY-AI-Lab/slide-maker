@@ -81,6 +81,12 @@
   }
 
   async function handleLogout() {
+    const institutional = $currentUser?.authentication === 'institutional';
+    currentUser.set(null);
+    if (institutional) {
+      window.location.assign('/auth/logout');
+      return;
+    }
     try {
       await api.logout();
       currentUser.set(null);
@@ -107,7 +113,9 @@
           <a href="{base}/admin" class="header-link">Admin</a>
         {/if}
       {/if}
-      <button class="header-link" onclick={() => { showChangePassword = true; cpError = ''; cpSuccess = ''; }}>Password</button>
+      {#if user?.authentication !== 'institutional'}
+        <button class="header-link" onclick={() => { showChangePassword = true; cpError = ''; cpSuccess = ''; }}>Password</button>
+      {/if}
       <button class="header-link btn-logout" onclick={handleLogout}>Sign Out</button>
       <button class="btn-new" onclick={() => (showNewDeck = true)} type="button">
         + New Deck
