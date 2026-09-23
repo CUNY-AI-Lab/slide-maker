@@ -13,8 +13,13 @@ export function gatewayErrorStatus(error: unknown): ContentfulStatusCode {
 
 export function safeGatewayError(error: unknown) {
   const requestId = error instanceof CailError ? error.extras.request_id : undefined
+  const code = error instanceof CailError && /^[a-z][a-z_]{1,63}$/.test(error.code) ? error.code : 'upstream_failure'
+  const shouldRetry = error instanceof CailError && typeof error.extras.should_retry === 'boolean' ? error.extras.should_retry : undefined
   return {
-    message: 'The model request could not be completed. Please try again.',
+    message: code === 'quota_exceeded' ? 'The CAIL model usage limit has been reached. Your deck is still available.'
+      : shouldRetry === true ? 'The model request could not be completed. Please try again later.' : 'The model request could not be completed.',
+    code,
+    ...(shouldRetry !== undefined ? { shouldRetry } : {}),
     ...(typeof requestId === 'string' && /^[0-9a-f]{8}-[0-9a-f]{4}-[47][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(requestId)
       ? { requestId } : {}),
   }
@@ -104,7 +109,10 @@ export async function* getModelStream(
     logGatewayOutcome(requestId, options.signal.aborted ? 'cancelled' : 'error')
     if (options.signal.aborted) throw error
     if (error instanceof CailError) {
-      throw new CailError(error.code, 'Gateway request failed', error.status, { request_id: error.extras.request_id ?? requestId }, error.type)
+      throw new CailError(error.code, 'Gateway request failed', error.status, {
+        request_id: error.extras.request_id ?? requestId,
+        ...(typeof error.extras.should_retry === 'boolean' ? { should_retry: error.extras.should_retry } : {}),
+      }, error.type)
     }
     throw new CailError('upstream_failure', 'Gateway request failed', 502, { request_id: requestId })
   }

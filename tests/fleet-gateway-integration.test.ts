@@ -11,11 +11,13 @@ import { pathToFileURL } from 'node:url'
 // model discovery and the external provider/analytics transport are synthetic.
 // This is not Workerd, a deployed-path check, or a real-provider acceptance run.
 // Run with CAIL_GATEWAY_SOURCE pointing at a frozen-installed exact checkout.
-const SHA = process.env.CAIL_GATEWAY_SHA ?? 'f3a8b3cc4b6b8bc99125771da6a907dffbdb07c3'
+const SHA = process.env.CAIL_GATEWAY_SHA ?? 'c5b54beeb3a39db0edad6cae20cccc5fe942414e'
 const gatewayRepo = process.env.CAIL_GATEWAY_SOURCE
 const requireApi = createRequire(new URL('../apps/api/package.json', import.meta.url))
 let scratch: string
-const MODEL = '@cf/openai/gpt-oss-120b'
+const MODEL = 'gpt-oss-120b'
+const PROVIDER_MODEL = '@cf/openai/gpt-oss-120b'
+const QUOTA_KEY = `quota-v1-${'3'.repeat(64)}`
 let app: any, sqlite: any, server: any, issuer: any, alice: string, bob: string
 let mode: 'success' | 'quota' | 'trailing-error' | 'abort' = 'success'
 let modelText = 'Hello'
@@ -47,21 +49,23 @@ beforeAll(async () => {
   appToken = await issuer.mintIdentityJwt({ audience: 'cail:slide-maker' })
   gatewayToken = await issuer.mintIdentityJwt({ audience: 'cail:gateway' })
   const env = {
+    MODEL_PRESENTATION: { get: async () => JSON.stringify({ schema_version: 1, source_commit: 'a'.repeat(40), entries: [], refreshed_at: new Date().toISOString(), expires_at: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString() }) },
     CAIL_GATEWAY_AUDIENCE: 'cail:gateway', CAIL_IDENTITY_ISSUER: issuer.issuer, CAIL_IDENTITY_JWKS: issuer.jwksJson,
-    MODEL_ACCESS_REGISTRY_GATEWAY: { resolveDoorwayAccess: async () => ({ ok: true, scope: 'models:invoke models:read quota:read', budgetScope: 'person' }) },
+    MODEL_ACCESS_REGISTRY_GATEWAY: { resolveDoorwayAccessWithQuota: async () => ({ ok: true, scope: 'models:invoke models:read quota:read', quotaKey: QUOTA_KEY, budgetScope: 'person' }) },
     AI_GATEWAY_ID: 'cail-model-api', CF_ACCOUNT_ID: '0123456789abcdef0123456789abcdef',
     CF_AIG_AUTH_TOKEN_STORE: { get: async () => 'synthetic-token-at-least-twenty-characters' },
     MODEL_SOURCES: 'workers-ai', MODEL_CATALOG_MAX_STALE_SECONDS: '3600', CAIL_LOG_ENV: 'test',
-    AI: { models: async () => [{ name: MODEL, properties: [{ property_id: 'context_window', value: '128000' }] }] },
+    AI: { models: async (query: { task?: string }) => query.task === 'Automatic Speech Recognition' ? [] : [{ name: PROVIDER_MODEL, properties: [{ property_id: 'context_window', value: '128000' }] }] },
   }
   const syntheticFetch = async (input: any, init?: RequestInit) => {
     const request = new Request(input, init)
+    if (request.url === 'https://models.dev/api.json') return Response.json({ 'cloudflare-workers-ai': { models: { [PROVIDER_MODEL]: { id: PROVIDER_MODEL, open_weights: true } } } })
     if (request.url.endsWith('/ai-gateway/gateways/cail-model-api')) return Response.json({ success: true, result: { spend_limits: { enabled: true, rules: [{ enabled: true, limitType: 'cost', limit: 5, window: 2592000, technique: 'fixed', metadata: { user_id: { mode: 'partition' }, budget_scope: { mode: 'filter', values: ['person'] } } }] } } })
-    if (request.url.endsWith('/graphql')) return Response.json({ data: { viewer: { accounts: [{ aiGatewayRequestsAdaptiveGroups: [{ dimensions: { metadataRaw: JSON.stringify({ user_id: alice, budget_scope: 'person' }) }, sum: { cost: 1.25 } }] }] } }, errors: [] })
+    if (request.url.endsWith('/graphql')) return Response.json({ data: { viewer: { accounts: [{ aiGatewayRequestsAdaptiveGroups: [{ dimensions: { metadataRaw: JSON.stringify({ user_id: QUOTA_KEY, budget_scope: 'person' }) }, sum: { cost: 1.25 } }] }] } }, errors: [] })
     if (!request.url.endsWith('/ai/v1/chat/completions')) throw new Error(`Unconfigured synthetic transport: ${request.url}`)
     attempts++
     providerRequests.push(request)
-    if (mode === 'quota') return Response.json({ error: { code: 'quota_exceeded', message: 'private provider detail' } }, { status: 429 })
+    if (mode === 'quota') return Response.json({ success: false, error: [{ code: 2041, message: 'private provider detail' }], internalCode: 2041 }, { status: 429 })
     const encoder = new TextEncoder()
     const text = `data: ${JSON.stringify({ choices: [{ delta: { content: modelText } }] })}\r\n\r\ndata: [DONE]\r\n\r\ndata: {"choices":[],"usage":{"prompt_tokens":4,"completion_tokens":1,"total_tokens":5}}\r\n\r\n` + (mode === 'trailing-error' ? 'data: {"error":{"message":"private provider detail"}}\n\n' : '')
     return new Response(new ReadableStream({
@@ -144,7 +148,7 @@ it('streams split CRLF frames through receiver to persistence and correlates req
   expect(request.headers.get('traceparent')).toMatch(/^00-[0-9a-f]{32}-[0-9a-f]{16}-00$/)
   expect(request.headers.get('x-cail-session-id')).toBe('deck')
   const metadata = JSON.parse(providerRequests.at(-1)!.headers.get('cf-aig-metadata')!)
-  expect(metadata.user_id).toBe(alice)
+  expect(metadata.user_id).toBe(QUOTA_KEY)
   expect(metadata.budget_scope).toBe('person')
 })
 
@@ -227,7 +231,7 @@ it('plan quota refusal returns a safe correlated error without retry or persiste
   expect(result.requestId).toBe(received.at(-1)!.headers.get('x-cail-request-id'))
   expect(result.requestId).toMatch(/^[0-9a-f-]{36}$/)
   expect(JSON.stringify(result)).not.toContain('private provider detail')
-  expect(Object.keys(result).sort()).toEqual(['message', 'requestId'])
+  expect(result).toMatchObject({ code: 'quota_exceeded', shouldRetry: false })
   expect(attempts - before).toBe(1)
   expect(sqlite.prepare('SELECT * FROM slides').all()).toEqual(beforeSlides)
   expect(sqlite.prepare("SELECT * FROM decks WHERE id='deck'").get()).toEqual(beforeDeck)

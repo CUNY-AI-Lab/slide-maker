@@ -10,7 +10,8 @@
     "db:seed": "tsx src/db/seed.ts",
     "seed:admin": "tsx src/db/seed.ts --admin",
     "identity:migrate": "tsx scripts/migrate-identity.ts",
-    "identity:link": "tsx scripts/link-identity.ts"
+    "identity:link": "tsx scripts/link-identity.ts",
+    "state:snapshot": "tsx scripts/state-snapshot.ts"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.1029.0",

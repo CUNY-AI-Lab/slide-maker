@@ -58,8 +58,22 @@ describe('Gateway streaming contract', () => {
   })
   it('exposes only validated support IDs, never provider messages', () => {
     const id = 'aa5df029-30d5-4754-9f4f-902748280e38'
-    expect(safeGatewayError(new CailError('x', 'private', 500, { request_id: id }))).toEqual({ message: expect.any(String), requestId: id })
+    expect(safeGatewayError(new CailError('x', 'private', 500, { request_id: id }))).toEqual({ message: expect.any(String), code: 'upstream_failure', requestId: id })
     expect(JSON.stringify(safeGatewayError(new Error('private')))).not.toContain('private')
     expect(safeGatewayError(new CailError('x', 'private', 500, { request_id: 'email@example.org' }))).not.toHaveProperty('requestId')
+  })
+  it('preserves a Gateway refusal code and no-retry hint through the actual client without replay', async () => {
+    const fetchImpl = vi.fn(async () => Response.json({ error: {
+      code: 'quota_exceeded', type: 'quota_exceeded', param: null, message: 'private provider details',
+    } }, { status: 429, headers: { 'x-should-retry': 'false' } }))
+    const client = createCailClient({ app: 'slide-maker', fetchImpl })
+    let caught: unknown
+    try {
+      for await (const _text of getModelStream('gpt-oss-120b', 'system', [], { token: 'fixture', sessionId: 'deck', signal: new AbortController().signal }, client)) {}
+    } catch (error) { caught = error }
+    expect(fetchImpl).toHaveBeenCalledOnce()
+    expect(safeGatewayError(caught)).toMatchObject({ code: 'quota_exceeded', shouldRetry: false })
+    expect(safeGatewayError(caught).message).toContain('usage limit')
+    expect(JSON.stringify(safeGatewayError(caught))).not.toMatch(/private provider|try again/i)
   })
 })

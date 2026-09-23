@@ -18,6 +18,11 @@ Operational events use `@cuny-ai-lab/cail-log` 0.6.4 with the tenant profile: bo
 
 Take a consistent SQLite backup and preserve the uploads directory before the release. Rehearse restoration against a disposable copy. With the API stopped, run:
 
+The implemented [snapshot and restoration commands](state-snapshots.md) preserve
+WAL-backed SQLite plus every upload and sidecar, verify hashes and integrity,
+and refuse existing restore destinations. Stop all writers for the combined
+snapshot. The disposable-data tests do not substitute for a production rehearsal.
+
 ```sh
 pnpm --filter @slide-maker/api identity:migrate
 ```
@@ -50,7 +55,7 @@ Source checks and disposable synthetic-provider tests are deterministic gates. P
 
 `bun run check` runs Svelte type checking, unit/SQLite/Hono regressions, the existing shell checks, and API/web builds. The receiver integration test is explicitly skipped without `CAIL_GATEWAY_SOURCE`; ordinary CI does not require ambient sibling repositories or private cross-repository credentials.
 
-To repeat the local receiver gate, check out CAIL Gateway commit `f3a8b3cc4b6b8bc99125771da6a907dffbdb07c3` into an isolated checkout and run its `bun install --frozen-lockfile` with authorized package read access. From Slide Maker, run:
+To repeat the local receiver gate, check out CAIL Gateway commit `c5b54beeb3a39db0edad6cae20cccc5fe942414e` into an isolated checkout and run its `bun install --frozen-lockfile` with authorized package read access. From Slide Maker, run:
 
 ```sh
 CAIL_GATEWAY_SOURCE=/path/to/frozen-gateway-checkout bun x --no-install vitest run tests/fleet-gateway-integration.test.ts

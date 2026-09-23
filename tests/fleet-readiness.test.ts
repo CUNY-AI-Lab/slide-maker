@@ -22,6 +22,11 @@ describe('private release readiness', () => {
     expect((await missingMigration.request('/ready', { headers })).status).toBe(503)
     const app = readinessRouter(() => {}, async () => {})
     expect(await (await app.request('/ready', { headers })).json()).toEqual({ status: 'ready', release: 'a'.repeat(40), service: 'slide-maker' })
+    for (const url of ['https://tools.ailab.gc.cuny.edu/v1', 'https://other.example', 'https://tools.ailab.gc.cuny.edu/?other=1']) {
+      vi.stubEnv('CAIL_GATEWAY_URL', url)
+      expect((await app.request('/ready', { headers })).status).toBe(503)
+    }
+    vi.stubEnv('CAIL_GATEWAY_URL', 'https://tools.ailab.gc.cuny.edu')
     vi.stubEnv('RELEASE_SHA', 'main')
     expect((await app.request('/ready', { headers })).status).toBe(503)
   })

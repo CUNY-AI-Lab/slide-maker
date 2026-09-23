@@ -1,6 +1,15 @@
 import { timingSafeEqual } from 'node:crypto'
 import { Hono } from 'hono'
 
+function validGatewayOrigin(value: string | undefined) {
+  try {
+    const url = new URL(value ?? '')
+    return !url.username && !url.password && !url.search && !url.hash && url.pathname === '/'
+      && (url.origin === 'https://tools.ailab.gc.cuny.edu' || (process.env.NODE_ENV === 'test'
+        && url.protocol === 'http:' && ['127.0.0.1', 'localhost'].includes(url.hostname)))
+  } catch { return false }
+}
+
 export function readinessRouter(checkStorage: () => void, checkIdentity: () => unknown | Promise<unknown>) {
   const router = new Hono()
   router.get('/ready', async (c) => {
@@ -14,7 +23,7 @@ export function readinessRouter(checkStorage: () => void, checkIdentity: () => u
     const release = process.env.RELEASE_SHA
     try {
       if (!release || !/^[a-f0-9]{40}$/.test(release)) throw new Error('release')
-      if (!process.env.CAIL_GATEWAY_URL) throw new Error('gateway')
+      if (!validGatewayOrigin(process.env.CAIL_GATEWAY_URL)) throw new Error('gateway')
       await checkIdentity()
       checkStorage()
     } catch {

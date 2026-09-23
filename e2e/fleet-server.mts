@@ -1,7 +1,7 @@
 // Local test edge and Gateway substitutes; the Svelte UI, Hono routes, signed
 // identity verification and SQLite persistence are the real application.
 import { createRequire } from 'node:module'
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
 import { createServer, request as httpRequest } from 'node:http'
@@ -9,6 +9,9 @@ import { createServer, request as httpRequest } from 'node:http'
 const requireApi = createRequire(new URL('../apps/api/package.json', import.meta.url))
 const requireWeb = createRequire(new URL('../apps/web/package.json', import.meta.url))
 const scratch = mkdtempSync(join(tmpdir(), 'slide-browser-'))
+const uploadRoot = resolve('apps/api/uploads')
+mkdirSync(uploadRoot, { recursive: true })
+const fixtureUploads = mkdtempSync(join(uploadRoot, 'fleet-browser-'))
 const { createTestIdentityIssuer, TEST_SUBJECTS } = await import(requireApi.resolve('@cuny-ai-lab/cail-identity/testing'))
 const { quotaSnapshotResponse } = await import(requireApi.resolve('@cuny-ai-lab/cail-client/testing'))
 const { serve } = await import(requireApi.resolve('@hono/node-server'))
@@ -49,8 +52,8 @@ for (const table of Object.values(schema)) {
 sqlite.prepare("INSERT INTO users (id,canonical_subject,email,name,password_hash,email_verified,status,role,created_at) VALUES ('owner',?,'fixture@example.edu','Fixture User','',1,'approved','editor',0)").run(TEST_SUBJECTS.alice)
 sqlite.exec("INSERT INTO decks (id,name,slug,metadata,created_by,created_at,updated_at) VALUES ('existing-deck','Existing institutional deck','existing','{}','owner',0,0); INSERT INTO deck_access VALUES ('existing-deck','owner','owner'); INSERT INTO slides (id,deck_id,layout,\"order\",split_ratio,title,created_at,updated_at) VALUES ('slide-one','existing-deck','layout-content',0,'0.45','Existing slide',0,0); INSERT INTO content_blocks (id,slide_id,type,zone,data,\"order\") VALUES ('heading-one','slide-one','heading','main','{\"text\":\"Persisted heading\",\"level\":1}',0)")
 const fileId = 'abcdefghijklmnopqrstuvwx'
-writeFileSync(join(scratch, 'existing.txt'), 'Existing CUID file contents')
-sqlite.prepare('INSERT INTO uploaded_files VALUES (?,?,?,?,?,?,?)').run(fileId, 'existing-deck', 'existing.txt', 'text/plain', join(scratch, 'existing.txt'), 'owner', 0)
+writeFileSync(join(fixtureUploads, 'existing.txt'), 'Existing CUID file contents')
+sqlite.prepare('INSERT INTO uploaded_files VALUES (?,?,?,?,?,?,?)').run(fileId, 'existing-deck', 'existing.txt', 'text/plain', join(fixtureUploads, 'existing.txt'), 'owner', 0)
 const { default: app } = await import('../apps/api/src/app.js')
 const apiServer = serve({ hostname: '127.0.0.1', port: 0, fetch: request => app.fetch(request) })
 await new Promise<void>(done => apiServer.listening ? done() : apiServer.once('listening', done))
@@ -76,5 +79,5 @@ const edge = createServer((request, response) => {
   request.pipe(upstream)
 })
 edge.listen(5279, '127.0.0.1')
-async function close() { edge.closeAllConnections(); edge.close(); apiServer.closeAllConnections(); apiServer.close(); gatewayServer.closeAllConnections(); gatewayServer.close(); await vite.close(); sqlite.close(); rmSync(scratch, { recursive: true, force: true }); process.exit(0) }
+async function close() { edge.closeAllConnections(); edge.close(); apiServer.closeAllConnections(); apiServer.close(); gatewayServer.closeAllConnections(); gatewayServer.close(); await vite.close(); sqlite.close(); rmSync(scratch, { recursive: true, force: true }); rmSync(fixtureUploads, { recursive: true, force: true }); process.exit(0) }
 process.on('SIGTERM', close); process.on('SIGINT', close)

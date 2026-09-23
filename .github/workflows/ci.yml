@@ -51,3 +51,9 @@ jobs:
 
       - name: Run tests
         run: pnpm test
+
+      - name: Install browser for institutional-path acceptance
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Verify mounted sign-in, persisted editing, model refusal and export
+        run: pnpm exec playwright test --config e2e/fleet.config.ts

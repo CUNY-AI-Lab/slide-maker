@@ -1,8 +1,9 @@
 import { test, expect } from '@playwright/test'
+import { execFileSync } from 'node:child_process'
 
 // Controlled edge sign-in and Gateway HTTP responses, actual browser/UI/API/DB.
 // This does not exercise live institutional SSO or a real model provider.
-test('mounted institutional entry preserves an existing deck, files and Gateway UI', async ({ page }) => {
+test('mounted institutional entry preserves an existing deck, files and Gateway UI', async ({ page }, testInfo) => {
   const browserIdentityHeaders: string[] = []
   const localLogouts: string[] = []
   page.on('request', request => {
@@ -36,6 +37,8 @@ test('mounted institutional entry preserves an existing deck, files and Gateway 
   await input.fill('Help with this existing slide')
   await page.getByTitle('Send (Enter)', { exact: true }).click()
   await expect(page.locator('.messages')).toContainText(/reference/i)
+  await expect(page.locator('.messages')).toContainText('The CAIL model usage limit has been reached.')
+  await expect(page.locator('.messages')).not.toContainText('Please try again')
   await expect(page.locator('.messages')).not.toContainText('PRIVATE_PROVIDER_DETAIL')
   expect(await (await page.request.get('/fixture/state')).json()).toEqual({ attempts: 1, cancelled: false })
   await input.fill('Start a cancellable response')
@@ -47,6 +50,15 @@ test('mounted institutional entry preserves an existing deck, files and Gateway 
   // A zero estimate remains informational; the request reaches Gateway once.
   const persisted = await (await page.request.get('/slide-maker/api/decks/existing-deck')).json()
   expect(persisted.name).toBe('Existing institutional deck')
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByTitle('Export deck', { exact: true }).click(),
+  ])
+  const archive = testInfo.outputPath('existing-deck.zip')
+  await download.saveAs(archive)
+  execFileSync('unzip', ['-t', archive])
+  expect(execFileSync('unzip', ['-p', archive, 'existing/index.html'], { encoding: 'utf8' })).toContain('Edited persisted heading')
+  expect(execFileSync('unzip', ['-p', archive, 'existing/assets/*'], { encoding: 'utf8' })).toContain('Existing CUID file contents')
   expect(await page.evaluate(() => JSON.stringify({ cookie: document.cookie, local: { ...localStorage }, session: { ...sessionStorage } }))).not.toMatch(/eyJ|fixture-session/)
   const identity = await (await page.request.get('/slide-maker/api/auth/me')).json()
   expect(identity.user.authentication).toBe('institutional')

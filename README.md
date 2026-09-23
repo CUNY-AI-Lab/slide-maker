@@ -169,3 +169,7 @@ Institutional integration is source-only until the receiver release and private 
 ## Contributing
 
 See `AGENTS.md` for coding style, testing guidelines, and commit conventions.
+
+Architecture proposals #11 and #12 are reconciled in the
+[September 7 design review](docs/superpowers/specs/2026-09-07-architecture-reconciliation.md),
+which separates current behavior, proposed consolidation, and unresolved host/data decisions.
