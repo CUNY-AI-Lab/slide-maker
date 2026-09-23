@@ -81,11 +81,21 @@ again. Failed release directories and state snapshots remain for investigation.
 
 ## Remaining acceptance
 
-Source safeguards and disposable tests do not prove this host's credentials,
-network ACLs, storage paths, installed runtime or live traffic. The host release
-has not been run. The existing SSH account rejected the available local key.
-An operator must establish the prerequisites above and rehearse against actual
-production state before calling the release accepted.
+The [September 23 host audit](operations/2026-09-23-private-host-audit.md)
+verified administrative SSH access, the existing database/uploads paths, and a
+backup, restoration and additive identity migration against a private copy of
+actual production state. It also repaired an existing native SQLite/Node ABI
+mismatch by pinning only the legacy API to Node 22.23.1. The live application
+source and identity schema were not migrated.
+
+The protected host release has not been run. Its Tailscale OAuth connection,
+dedicated SSH key, private release configuration/directories and release runtime
+still need provisioning. The shared host defaults remain Node 24.19.0, pnpm
+10.33.0 and PM2 6.0.13. Do not globally upgrade or replace these to satisfy the
+release pins: the account also runs other applications. The API's private Node
+22 runtime does not by itself satisfy the CI host's PATH/toolchain contract.
+Source checks and the successful production-copy rehearsal do not prove the
+remaining network, credential or live traffic requirements.
 
 The CI connection does not create the private Doorway-to-Node browser ingress.
 Keep that mount disabled until its transport is established and the receiver is
