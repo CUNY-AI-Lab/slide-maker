@@ -41,7 +41,11 @@ The script refuses invalid subjects, unknown users, collisions and replacing an 
 
 Set a random operator-held `READINESS_TOKEN` and the exact 40-character deployed `RELEASE_SHA`. `GET /internal/ready` requires `Authorization: Bearer <READINESS_TOKEN>`; unauthenticated probes get 404. It awaits identity configuration, checks the migrated user column, requires Gateway configuration and returns the exact release. It does not prove a successful Gateway model call or a browser sign-in. Do not publish this route through the institutional application mount.
 
-The existing SSH/manual staging workflow is historical and is not an approved institutional release mechanism. A subsequent reviewed release PR must establish the actual CI runner's supported private reachability; this proposal supplies no invented transport. The release design must:
+The protected manual CI workflow and host scripts are implemented in the
+[private release runbook](private-ci-release.md). They replace the historical
+password/sudo workflow with pinned Tailscale access, verified SSH keys and an
+immutable source archive. Host credentials, the protected environment and live
+reachability remain operator prerequisites. The implementation follows this order:
 
 1. Run the authoritative checks on main with private package read access, no deploy credentials in PR jobs, and a reviewed dependency lockfile.
 2. Serialize releases, reject stale queued SHAs, deploy the exact checked SHA, and obtain a consistent database/upload backup before the additive migration.
@@ -50,6 +54,13 @@ The existing SSH/manual staging workflow is historical and is not an approved in
 5. Verify one active version at 100%. Roll back application code separately from data; never restore SQLite or uploads implicitly during rollback.
 
 Source checks and disposable synthetic-provider tests are deterministic gates. Production traffic, paid model calls, deployment, mount activation and operator mappings are outside this branch's execution authority.
+
+The release additionally rechecks current main after its snapshot/restore
+rehearsal, verifies the existing database and upload paths against the running
+API, and restores prior process definitions on failure without replacing live
+data. Release safeguard tests exercise stale/failed sources, unsafe storage,
+partial stops, failed snapshots/rehearsals and failed readiness/recovery. CI
+transport does not establish browser ingress or live sign-in/model acceptance.
 
 ## Verification commands and scope
 
