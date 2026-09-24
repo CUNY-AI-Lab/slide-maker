@@ -1,56 +1,52 @@
-name: Deploy to Staging
-
-# Disabled: server is on Tailscale (100.x.x.x), not reachable from GitHub Actions.
-# Use `./deploy-staging.sh` from a machine on the Tailscale network instead.
+name: Private fleet release
 on:
   workflow_dispatch:
-
+    inputs:
+      release_sha:
+        description: Exact current-main SHA with successful CI
+        required: true
+        type: string
 permissions:
   contents: read
-
+  actions: read
+  deployments: read
+  packages: read
+concurrency:
+  group: slide-maker-production
+  cancel-in-progress: false
 jobs:
-  check:
-    name: Test and build
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
+  release:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    environment: production
+    env:
+      RELEASE_SHA: ${{ inputs.release_sha }}
+      GITHUB_TOKEN: ${{ github.token }}
     steps:
-      - name: Check out source
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # Evaluate the guard from trusted main, never an untrusted input ref.
+          ref: main
           persist-credentials: false
-
-      - name: Set up pnpm
-        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          version: 9.15.0
-
-      - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+          node-version: '22.23.1'
+      - name: Verify main, successful checks and protected environment
+        run: node scripts/release/verify-source.mjs
+      - name: Connect only to the authorized private deployment host
+        uses: tailscale/github-action@6cae46e2d796f265265cfcf628b72a32b4d7cade # v3
         with:
-          node-version: 20.x
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build workspaces
-        run: pnpm build
-
-      - name: Run tests
-        run: pnpm test
-
-  deploy:
-    needs: check
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@0ff4204d59e8e51228ff73bce53f80d53301dee2 # v1.2.5
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:slide-maker-deploy
+          version: '1.102.4'
+          sha256sum: '50748df1045e60b5b695f19f4c56b0da36c019948b440fb456b6584a50f0d8b9'
+          targets: 100.111.252.53
+          retry: '1'
+      - name: Upload exact source, rehearse restoration and verify private release
         env:
-          DEPLOY_PASSWORD: ${{ secrets.DEPLOY_PASSWORD }}
-        with:
-          host: 100.111.252.53
-          username: smorello.adm@gc.cuny.edu
-          password: ${{ secrets.DEPLOY_PASSWORD }}
-          envs: DEPLOY_PASSWORD
-          script: |
-            printf '%s\n' "$DEPLOY_PASSWORD" | sudo -S /data/slide-maker/deploy.sh
+          SLIDE_SSH_USER: ${{ secrets.SLIDE_SSH_USER }}
+          SLIDE_SSH_KEY: ${{ secrets.SLIDE_SSH_KEY }}
+          SLIDE_SSH_KNOWN_HOSTS: ${{ secrets.SLIDE_SSH_KNOWN_HOSTS }}
+        run: node scripts/release/private-ssh.mjs

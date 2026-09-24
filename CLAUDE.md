@@ -6,7 +6,7 @@ Check `TODO.md` for the current task list when planning work, but default to the
 
 ## Institutional integration authority
 
-The current receiver contract and release proposal are in [docs/fleet-integration.md](docs/fleet-integration.md). They supersede the historical direct-provider, local-token-cap, password-production-auth and manual-deployment descriptions below. Model calls now use Gateway; production identity maps verified canonical subjects to unchanged local IDs. Do not deploy or activate a mount from historical staging instructions.
+The current receiver contract is in [docs/fleet-integration.md](docs/fleet-integration.md), and the protected CI release implementation and host prerequisites are in [docs/private-ci-release.md](docs/private-ci-release.md). They supersede the historical direct-provider, local-token-cap, password-production-auth and manual-deployment descriptions below. Model calls now use Gateway; production identity maps verified canonical subjects to unchanged local IDs. Do not deploy or activate a mount from historical staging instructions.
 
 ## What This Is
 
