@@ -70,8 +70,6 @@
   let usageLoading = $state(false);
 
   // Inline editing
-  let editingCapId = $state<string | null>(null);
-  let editingCapValue = $state('');
 
   const filteredUsers = $derived.by(() => {
     let filtered = allUsers;
@@ -187,32 +185,6 @@
     }
   }
 
-  function startEditCap(userId: string, currentCap: number) {
-    editingCapId = userId;
-    editingCapValue = String(currentCap);
-  }
-
-  async function saveCapEdit(userId: string) {
-    const newCap = parseInt(editingCapValue, 10);
-    if (isNaN(newCap) || newCap < 0) {
-      editingCapId = null;
-      return;
-    }
-    actionInProgress = userId;
-    error = '';
-    try {
-      await api.updateUser(userId, { tokenCap: newCap });
-      const user = allUsers.find((u) => u.id === userId);
-      if (user) user.tokenCap = newCap;
-      allUsers = [...allUsers];
-    } catch (err: any) {
-      error = err.message || 'Failed to update token cap';
-    } finally {
-      actionInProgress = null;
-      editingCapId = null;
-    }
-  }
-
   let resetInProgress = $state<string | null>(null);
   let resetMessage = $state('');
 
@@ -302,7 +274,7 @@
     </div>
     <div class="stat-card">
       <span class="stat-value">{formatTokens(stats.totalTokens)}</span>
-      <span class="stat-label">Total Tokens Used</span>
+      <span class="stat-label">Historical token estimates (year)</span>
     </div>
   </div>
 
@@ -339,8 +311,7 @@
             <th class="sortable" onclick={() => toggleSort('role')} role="button" tabindex="0" onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleSort('role')}>Role{sortIndicator('role')}</th>
             <th class="sortable" onclick={() => toggleSort('status')} role="button" tabindex="0" onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleSort('status')}>Status{sortIndicator('status')}</th>
             <th class="sortable" onclick={() => toggleSort('deckCount')} role="button" tabindex="0" onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleSort('deckCount')}>Decks{sortIndicator('deckCount')}</th>
-            <th class="sortable" onclick={() => toggleSort('tokensUsed')} role="button" tabindex="0" onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleSort('tokensUsed')}>Tokens{sortIndicator('tokensUsed')}</th>
-            <th>Cap</th>
+            <th class="sortable" onclick={() => toggleSort('tokensUsed')} role="button" tabindex="0" onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleSort('tokensUsed')}>Historical tokens{sortIndicator('tokensUsed')}</th>
             <th class="sortable" onclick={() => toggleSort('lastActive')} role="button" tabindex="0" onkeydown={(e) => (e.key === 'Enter' || e.key === ' ') && toggleSort('lastActive')}>Last Active{sortIndicator('lastActive')}</th>
             <th>Actions</th>
           </tr>
@@ -367,21 +338,6 @@
               </td>
               <td class="num-cell">{u.deckCount}</td>
               <td class="num-cell">{formatTokens(u.tokensUsed)}</td>
-              <td class="cap-cell">
-                {#if editingCapId === u.id}
-                  <input
-                    class="cap-input"
-                    type="number"
-                    bind:value={editingCapValue}
-                    onkeydown={(e) => { if (e.key === 'Enter') saveCapEdit(u.id); if (e.key === 'Escape') editingCapId = null; }}
-                    onblur={() => saveCapEdit(u.id)}
-                  />
-                {:else}
-                  <button class="cap-display" onclick={() => startEditCap(u.id, u.tokenCap)} title="Click to edit">
-                    {formatTokens(u.tokenCap)}
-                  </button>
-                {/if}
-              </td>
               <td class="date-cell">{formatDate(u.lastActive)}</td>
               <td class="actions-cell">
                 {#if u.status === 'pending'}
@@ -422,7 +378,7 @@
   <div class="modal-overlay" onclick={closeUsageModal} onkeydown={(e) => e.key === 'Escape' && closeUsageModal()} role="dialog" aria-modal="true" tabindex="-1">
     <div class="modal-content" role="presentation" onclick={(e) => e.stopPropagation()}>
       <div class="modal-header">
-        <h2>Token Usage: {usageModalUser.name}</h2>
+        <h2>Historical token estimates: {usageModalUser.name}</h2>
         <button class="modal-close" onclick={closeUsageModal} aria-label="Close">&times;</button>
       </div>
 
@@ -432,30 +388,10 @@
         <div class="usage-summary">
           <div class="usage-stat">
             <span class="usage-stat-value">{formatTokens(usageData.totalUsed)}</span>
-            <span class="usage-stat-label">Used this year</span>
-          </div>
-          <div class="usage-stat">
-            <span class="usage-stat-value">{formatTokens(usageData.remaining)}</span>
-            <span class="usage-stat-label">Remaining</span>
-          </div>
-          <div class="usage-stat">
-            <span class="usage-stat-value">{formatTokens(usageData.tokenCap)}</span>
-            <span class="usage-stat-label">Annual Cap</span>
+            <span class="usage-stat-label">Estimated this year</span>
           </div>
         </div>
-
-        <!-- Cap usage bar -->
-        <div class="cap-bar-container">
-          <div class="cap-bar">
-            <div
-              class="cap-bar-fill"
-              class:cap-warning={usageData.tokenCap > 0 && (usageData.totalUsed / usageData.tokenCap) > 0.8}
-              class:cap-exceeded={usageData.tokenCap > 0 && (usageData.totalUsed / usageData.tokenCap) >= 1}
-              style="width: {Math.min(100, usageData.tokenCap > 0 ? (usageData.totalUsed / usageData.tokenCap * 100) : 0)}%"
-            ></div>
-          </div>
-          <span class="cap-bar-label">{usageData.tokenCap > 0 ? Math.round(usageData.totalUsed / usageData.tokenCap * 100) : 0}% used</span>
-        </div>
+        <p>Historical local estimates from before Gateway integration. Current model spending and limits are managed by Gateway.</p>
 
         <!-- Input/Output breakdown -->
         <div class="io-breakdown">
@@ -717,37 +653,6 @@
     cursor: pointer;
   }
 
-  /* Cap Editing */
-  .cap-cell {
-    text-align: center;
-  }
-
-  .cap-display {
-    background: none;
-    border: 1px dashed var(--color-border);
-    border-radius: var(--radius-md);
-    padding: 0.2rem 0.5rem;
-    font-size: 0.75rem;
-    font-family: var(--font-body);
-    color: var(--color-text-secondary);
-    cursor: pointer;
-  }
-
-  .cap-display:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-  }
-
-  .cap-input {
-    width: 80px;
-    padding: 0.2rem 0.375rem;
-    font-size: 0.75rem;
-    font-family: var(--font-body);
-    border: 1px solid var(--color-primary);
-    border-radius: var(--radius-md);
-    text-align: center;
-  }
-
   /* Action Buttons */
   .actions-cell {
     display: flex;
@@ -931,40 +836,6 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     margin-top: 0.125rem;
-  }
-
-  /* Cap Bar */
-  .cap-bar-container {
-    margin-bottom: 1.25rem;
-  }
-
-  .cap-bar {
-    height: 8px;
-    background: var(--color-bg-tertiary);
-    border-radius: 4px;
-    overflow: hidden;
-  }
-
-  .cap-bar-fill {
-    height: 100%;
-    background: var(--color-primary);
-    border-radius: 4px;
-    transition: width 0.3s ease;
-  }
-
-  .cap-bar-fill.cap-warning {
-    background: #f59e0b;
-  }
-
-  .cap-bar-fill.cap-exceeded {
-    background: var(--color-error);
-  }
-
-  .cap-bar-label {
-    font-size: 0.75rem;
-    color: var(--color-text-secondary);
-    margin-top: 0.25rem;
-    display: block;
   }
 
   .io-breakdown {

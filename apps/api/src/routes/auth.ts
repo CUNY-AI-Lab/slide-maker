@@ -3,22 +3,22 @@ import { hash, verify } from '@node-rs/argon2'
 import { createId } from '@paralleldrive/cuid2'
 import { eq } from 'drizzle-orm'
 import { isValidCunyEmail } from '@slide-maker/shared'
-import type { Session, User } from 'lucia'
 import { db } from '../db/index.js'
 import { users, emailVerifications, passwordResets } from '../db/schema.js'
 import { lucia } from '../auth/lucia.js'
-import { authMiddleware } from '../middleware/auth.js'
+import { authMiddleware, type AuthEnv } from '../middleware/auth.js'
 import { loginRateLimit, registerRateLimit, passwordChangeRateLimit, forgotPasswordRateLimit } from '../middleware/rate-limit.js'
 import { sendVerificationEmail, sendPasswordResetEmail } from '../email/index.js'
 
-type AuthEnv = {
-  Variables: {
-    user: User
-    session: Session
-  }
-}
-
 const auth = new Hono<AuthEnv>()
+
+// Password-era account lifecycle is available only in local development.
+auth.use('*', async (c, next) => {
+  if (process.env.NODE_ENV === 'production' && !c.req.path.endsWith('/me')) {
+    return c.json({ error: 'Use CAIL sign-in' }, 403)
+  }
+  return next()
+})
 
 // POST /register
 auth.post('/register', registerRateLimit, async (c) => {
@@ -144,6 +144,7 @@ auth.post('/login', loginRateLimit, async (c) => {
       name: user.name,
       role: user.role,
       status: user.status,
+      authentication: c.get('canonicalSubject') ? 'institutional' : 'local',
     },
   })
 })
@@ -151,7 +152,7 @@ auth.post('/login', loginRateLimit, async (c) => {
 // POST /logout
 auth.post('/logout', authMiddleware, async (c) => {
   const session = c.get('session')
-  await lucia.invalidateSession(session.id)
+  if (session) await lucia.invalidateSession(session.id)
   const blankCookie = lucia.createBlankSessionCookie()
   c.header('Set-Cookie', blankCookie.serialize())
   return c.json({ message: 'Logged out successfully' })
@@ -167,6 +168,7 @@ auth.get('/me', authMiddleware, async (c) => {
       name: user.name,
       role: user.role,
       status: user.status,
+      authentication: c.get('canonicalSubject') ? 'institutional' : 'local',
     },
   })
 })

@@ -7,7 +7,7 @@ const config = {
 	kit: {
 		adapter: adapter(),
 		paths: {
-			base: process.env.PUBLIC_URL?.includes('/slide-maker') ? '/slide-maker' : '',
+			base: process.env.NODE_ENV === 'production' || process.env.PUBLIC_URL?.includes('/slide-maker') ? '/slide-maker' : '',
 		},
 	}
 };

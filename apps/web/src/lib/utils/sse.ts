@@ -39,40 +39,65 @@ export async function streamChat(
     return
   }
 
-  const reader = response.body?.getReader()
-  if (!reader) return
+  await consumeChatStream(response, onText, onDone, onError, signal)
+}
 
+/** Success requires the server's done event and a clean EOF. */
+export async function consumeChatStream(
+  response: Response,
+  onText: (text: string) => void,
+  onDone: () => void,
+  onError: (message: string) => void,
+  signal?: AbortSignal,
+): Promise<void> {
+  const reader = response.body?.getReader()
+  if (!reader) { onError('Chat response was empty'); return }
+  const cancel = () => { void reader.cancel().catch(() => {}) }
+  signal?.addEventListener('abort', cancel, { once: true })
   const decoder = new TextDecoder()
   let buffer = ''
   let gotDone = false
-
+  let failure: string | null = null
+  function parse(frame: string) {
+    const data = frame.split('\n').filter(line => line.startsWith('data:')).map(line => line.slice(5).trimStart()).join('\n')
+    if (!data) return
+    const event: unknown = JSON.parse(data)
+    if (!event || typeof event !== 'object' || !('type' in event)) throw new Error('Invalid chat response')
+    if (event.type === 'error') {
+      const message = 'message' in event && typeof event.message === 'string' ? event.message : 'Chat request failed'
+      const requestId = 'requestId' in event && typeof event.requestId === 'string'
+        && /^[0-9a-f]{8}-[0-9a-f]{4}-[47][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(event.requestId)
+        ? event.requestId : null
+      throw new Error(requestId ? `${message} Reference: ${requestId}` : message)
+    }
+    if (event.type === 'done') { gotDone = true; return }
+    if (event.type !== 'text' || gotDone || !('content' in event) || typeof event.content !== 'string') throw new Error('Invalid chat response')
+    onText(event.content)
+  }
   try {
     while (true) {
-      if (signal?.aborted) { onError('aborted'); break }
-      const { done, value } = await reader.read()
-      if (done) break
-
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() ?? ''
-
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue
-        const data = line.slice(6).trim()
-        if (!data) continue
-        try {
-          const event = JSON.parse(data)
-          if (event.type === 'text') onText(event.content)
-          else if (event.type === 'done') { gotDone = true; onDone() }
-          else if (event.type === 'error') onError(event.message || 'Server error')
-        } catch {
-          /* ignore malformed SSE data */
-        }
+      signal?.throwIfAborted()
+      const chunk = await reader.read()
+      signal?.throwIfAborted()
+      buffer += decoder.decode(chunk.value, { stream: !chunk.done })
+      buffer = buffer.replace(/\r\n/g, '\n')
+      let boundary: number
+      while ((boundary = buffer.indexOf('\n\n')) !== -1) {
+        const frame = buffer.slice(0, boundary)
+        buffer = buffer.slice(boundary + 2)
+        parse(frame)
       }
+      if (chunk.done) break
     }
-  } catch (e: any) {
-    if (signal?.aborted) return
-    // Stream was cut (e.g. by proxy/Cloudflare) — if we got content, treat as done
-    if (!gotDone) onDone()
+    if (buffer.trim()) parse(buffer)
+    if (!gotDone) throw new Error('Chat response ended before completion. Please try again.')
+  } catch (error) {
+    failure = signal?.aborted ? 'aborted' : error instanceof Error ? error.message : 'Chat response interrupted. Please try again.'
+  } finally {
+    signal?.removeEventListener('abort', cancel)
+    await reader.cancel().catch(() => {})
+    reader.releaseLock()
   }
+  if (failure !== null) onError(failure)
+  else onDone()
 }
