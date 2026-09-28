@@ -24,7 +24,7 @@ Open http://localhost:5173, log in with a seeded admin account, create a deck, a
 
 1. **Install dependencies**
 
-   The pinned CAIL packages require authorized GitHub Packages read access. The checked-in `.npmrc` contains registry resolution only; supply credentials through your user configuration or CI environment.
+   The pinned CAIL packages install from public npm with no token. The checked-in `.npmrc` maps the `@cuny-ai-lab` scope to `registry.npmjs.org`, so a user configuration that still points it at GitHub Packages does not redirect the install.
 
    ```bash
    pnpm install

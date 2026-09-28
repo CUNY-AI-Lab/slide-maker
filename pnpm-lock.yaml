@@ -305,15 +305,15 @@ packages:
     resolution: {integrity: sha512-FxfJMwoLB8MEMConeXUCqtMGqxdtePQxRBOiGip9ULcYYam3WfCgoY6xdnMaSkYvRvmosp5iuG+TiPofm65+Pw==}
 
   '@cuny-ai-lab/cail-client@6.2.2':
-    resolution: {integrity: sha512-5Pcdu++6cHKjlBRVC/JtRPORzd6qE3LbR/0qnhbzTmLrZASUibFOQZ3Xbh7p1JQNMqF1H5DSkKXwhMGd324BWw==, tarball: https://npm.pkg.github.com/download/@cuny-ai-lab/cail-client/6.2.2/6efb4d2e477e255737f44899d98c606099c61ac1}
+    resolution: {integrity: sha512-4aBjULb7Bd7O8kBT7lrM5OGC7sTHkTp9Lc/5mMpK9f+QRSCkEK+eUCJjl/+ZPRdXoOk+XpyUdLZB8OtUvE5+xQ==}
     engines: {node: '>=20'}
 
   '@cuny-ai-lab/cail-identity@5.2.6':
-    resolution: {integrity: sha512-eaSX7lfSzZLqceTwiqkfz0I9EwFXHch3dNlpoHy+EzbHHRKwBz45mJGBpaK6znp7BAUJiJDffTw7t10JR+pslQ==, tarball: https://npm.pkg.github.com/download/@cuny-ai-lab/cail-identity/5.2.6/9744f7c35813cda8e6f07804a5d99fc1250e42f6}
+    resolution: {integrity: sha512-j4Klru5ivG6ZWoGQBvIIiI2v7EDwDPiDIOvzsOV73n7LrUj3deCXM4tzFTfhZntaYdonFh4lJ9xs933YwNRnNA==}
     engines: {node: '>=20'}
 
   '@cuny-ai-lab/cail-log@0.6.4':
-    resolution: {integrity: sha512-HnHbutsDhZyBD/SD8YFSITycujuX1Lhc1xHaELEemk2dYKPA5IF5fFlwyfkIqsZiCpaJdWo7H2QPQnD2uHXmYQ==, tarball: https://npm.pkg.github.com/download/@cuny-ai-lab/cail-log/0.6.4/7d30c2cf3e0b915eef23a2348cc5d3685cb208cc}
+    resolution: {integrity: sha512-j/YEmBC1hi/64rYTmHp8sawk5xJCQMCBU0F2ZllFIMbXMEG3mq0yF5SYo9sgqjn0MHy+ZQLdE2Svbz/oUbOTRA==}
     engines: {node: '>=20'}
 
   '@daybrush/utils@1.13.0':

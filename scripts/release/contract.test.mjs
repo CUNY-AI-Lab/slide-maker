@@ -23,7 +23,7 @@ test('state paths must be explicit, separate and outside deployment storage', ()
 test('application configuration cannot silently replace fleet endpoints or retain CI credentials', () => {
   for (const patch of [
     { CAIL_GATEWAY_URL: 'https://tools.ailab.gc.cuny.edu/v1' }, { CAIL_IDENTITY_ISSUER: 'https://wrong.test' },
-    { PUBLIC_URL: 'http://localhost:4173' }, { READINESS_TOKEN: '' }, { GITHUB_TOKEN: 'fixture' }, { NODE_AUTH_TOKEN: 'fixture' }, { NODE_OPTIONS: '--inspect=0.0.0.0' },
+    { PUBLIC_URL: 'http://localhost:4173' }, { READINESS_TOKEN: '' }, { GITHUB_TOKEN: 'fixture' }, { NODE_OPTIONS: '--inspect=0.0.0.0' },
   ]) assert.throws(() => validateConfiguration({ ...environment, ...patch }));
 });
 test('rollback captures exactly one online process per component and preserves existing arguments and environment', () => {

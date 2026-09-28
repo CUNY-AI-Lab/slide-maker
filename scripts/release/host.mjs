@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, renameSync, rmSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, renameSync, statSync, symlinkSync, writeFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { parseEnv } from 'node:util';
 import { pathToFileURL } from 'node:url';
@@ -46,13 +46,10 @@ export async function main() {
   if (command('pm2', ['--version']).trim() !== '7.0.4') throw new Error('Release host requires the tested PM2 CLI 7.0.4.');
   command('lsof', ['-v']);
   await verifySource();
-  // Install output stays private. The temporary credential is never written or
-  // included in PM2 environment; the only config file contains a placeholder.
-  if (readFileSync(join(root, '.npmrc'), 'utf8').trim() !== '@cuny-ai-lab:registry=https://npm.pkg.github.com') throw new Error('Unexpected tracked npm configuration.');
-  const npmrc = join(root, '.release-npmrc');
-  writeFileSync(npmrc, '@cuny-ai-lab:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}\n', { mode: 0o600, flag: 'wx' });
-  try { command('pnpm', ['install', '--frozen-lockfile'], { timeout: 600000, env: { ...baseEnv, NODE_AUTH_TOKEN: sourceToken, NPM_CONFIG_USERCONFIG: npmrc } }); }
-  finally { rmSync(npmrc, { force: true }); }
+  // Install output stays private. The CAIL packages come from public npm, so
+  // the install needs no credential; the tracked .npmrc pins their scope there.
+  if (readFileSync(join(root, '.npmrc'), 'utf8').trim() !== '@cuny-ai-lab:registry=https://registry.npmjs.org') throw new Error('Unexpected tracked npm configuration.');
+  command('pnpm', ['install', '--frozen-lockfile'], { timeout: 600000 });
   command('pnpm', ['build'], { timeout: 600000, env: { ...baseEnv, NODE_ENV: 'production' } });
   const apiDir = join(root, 'apps/api');
   const node = (args, extraEnv = {}) => command(process.execPath, ['--import', 'tsx', ...args], { cwd: apiDir, env: { ...appEnv, ...extraEnv } });
