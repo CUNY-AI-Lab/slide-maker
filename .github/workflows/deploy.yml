@@ -10,7 +10,6 @@ permissions:
   contents: read
   actions: read
   deployments: read
-  packages: read
 concurrency:
   group: slide-maker-production
   cancel-in-progress: false

@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  packages: read
 
 concurrency:
   group: slide-maker-ci-${{ github.workflow }}-${{ github.ref }}
@@ -35,13 +34,9 @@ jobs:
         with:
           node-version: '22.23.1'
           cache: pnpm
-          registry-url: https://npm.pkg.github.com
-          scope: "@cuny-ai-lab"
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check frontend types
         run: pnpm --filter @slide-maker/web check

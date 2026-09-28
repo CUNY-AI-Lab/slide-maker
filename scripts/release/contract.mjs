@@ -20,7 +20,7 @@ export function validateConfiguration(env) {
   if (env.CAIL_IDENTITY_ISSUER !== 'https://tools.ailab.gc.cuny.edu/cail-sso' ||
       env.CAIL_GATEWAY_URL !== 'https://tools.ailab.gc.cuny.edu' ||
       env.PUBLIC_URL !== 'https://tools.ailab.gc.cuny.edu/slide-maker') throw new Error('Production identity, Gateway or public URL is not canonical.');
-  for (const key of ['NODE_OPTIONS', 'NODE_PATH', 'NODE_AUTH_TOKEN', 'GITHUB_TOKEN', 'NPM_CONFIG_USERCONFIG', 'PM2_HOME']) {
+  for (const key of ['NODE_OPTIONS', 'NODE_PATH', 'GITHUB_TOKEN', 'NPM_CONFIG_USERCONFIG', 'PM2_HOME']) {
     if (env[key]) throw new Error(`Remove deployment-only or runtime-override setting ${key} from the application environment.`);
   }
   const database = env.DATABASE_URL?.startsWith('file:') ? env.DATABASE_URL.slice(5) : '';
