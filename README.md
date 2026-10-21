@@ -17,7 +17,7 @@ Open http://localhost:5173, log in with a seeded admin account, create a deck, a
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 22.23.4
 - [pnpm](https://pnpm.io/) 9.x (`corepack enable && corepack prepare pnpm@9.15.0 --activate`)
 
 ## Setup

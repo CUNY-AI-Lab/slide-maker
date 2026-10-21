@@ -10,7 +10,7 @@ access mechanism or expose a new public listener.
 
 - Merge the receiver and release PRs, and wait for **Test and build** and
   **Release safeguards** on the exact `main` push. The source check and release
-  use Node 22.23.1; the existing pnpm lock and version 9.15.0 remain unchanged.
+  use Node 22.23.4; the existing pnpm lock and version 9.15.0 remain unchanged.
 - Create the GitHub `production` environment with exactly one deployment branch
   rule: branch `main`. Supply its `TS_OAUTH_CLIENT_ID`, `TS_OAUTH_SECRET`,
   `SLIDE_SSH_USER`, `SLIDE_SSH_KEY` and `SLIDE_SSH_KNOWN_HOSTS` secrets. Obtain the
@@ -19,7 +19,7 @@ access mechanism or expose a new public listener.
 - Restrict the OAuth client/tag to `tag:slide-maker-deploy`, with network access
   only to this host's SSH port. Tailscale action, binary version and binary digest
   are pinned. A network connection does not grant an SSH account permission.
-- The existing service owner must have key-based SSH access, Node 22.23.1,
+- The existing service owner must have key-based SSH access, Node 22.23.4,
   pnpm 9.15.0, the tested PM2 CLI 7.0.4, `flock`, `lsof`, `ps`, `tar` and `sha256sum`. Use the same
   service account and PM2 home as the existing API/web processes. No sudo,
   password injection or automatic user creation is performed.
@@ -90,12 +90,20 @@ source and identity schema were not migrated.
 
 The protected host release has not been run. Its Tailscale OAuth connection,
 dedicated SSH key, private release configuration/directories and release runtime
-still need provisioning. The shared host defaults remain Node 24.19.0, pnpm
-10.33.0 and PM2 6.0.13. Do not globally upgrade or replace these to satisfy the
-release pins: the account also runs other applications. The API's private Node
-22 runtime does not by itself satisfy the CI host's PATH/toolchain contract.
-Source checks and the successful production-copy rehearsal do not prove the
-remaining network, credential or live traffic requirements.
+still need provisioning. At the October 21, 2026 pre-maintenance audit, the live
+API used the private Node 22.23.1 runtime, while the live web process and shared
+PM2 installation used the host's Node 24.19.0 default. Both versions preceded
+that day's security releases. Separate controlled host maintenance must move
+them to Node 22.23.4 and 24.22.1, respectively, or later supported releases
+containing the same fixes, while preserving application data and the pinned pnpm
+9.15.0 release contract. This source change does not alter either live runtime
+or restart any process.
+
+Do not globally replace the shared runtime merely to satisfy the release pin:
+the account also runs other applications. The API's private Node runtime does
+not by itself satisfy the CI host's PATH/toolchain contract. Source checks and
+the successful production-copy rehearsal do not prove the remaining network,
+credential or live traffic requirements.
 
 The CI connection does not create the private Doorway-to-Node browser ingress.
 Keep that mount disabled until its transport is established and the receiver is
