@@ -22,7 +22,7 @@ function privatePath(path, directory = true) {
 async function pause() { await new Promise(resolve => setTimeout(resolve, 1000)); }
 export async function main() {
   process.umask(0o077);
-  if (process.platform !== 'linux' || process.version !== 'v22.23.1') throw new Error('Release host requires Linux and Node 22.23.1.');
+  if (process.platform !== 'linux' || process.version !== 'v22.23.4') throw new Error('Release host requires Linux and Node 22.23.4.');
   const [sha, runId, attempt] = process.argv.slice(2);
   const id = releaseIdentity(sha, runId, attempt);
   const root = join(paths.releases, id);
