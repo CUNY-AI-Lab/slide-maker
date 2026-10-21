@@ -90,19 +90,16 @@ source and identity schema were not migrated.
 
 The protected host release has not been run. Its Tailscale OAuth connection,
 dedicated SSH key, private release configuration/directories and release runtime
-still need provisioning. At the October 21, 2026 pre-maintenance audit, the live
-API used the private Node 22.23.1 runtime, while the live web process and shared
-PM2 installation used the host's Node 24.19.0 default. Both versions preceded
-that day's security releases. Separate controlled host maintenance must move
-them to Node 22.23.4 and 24.22.1, respectively, or later supported releases
-containing the same fixes, while preserving application data and the pinned pnpm
-9.15.0 release contract. This source change does not alter either live runtime
-or restart any process.
+still need provisioning. The [October 21 runtime maintenance](operations/2026-10-21-node-runtime-maintenance.md)
+moved the live API to a private Node 22.23.4 runtime and the live web process to
+Node 24.22.1 without changing application data or pnpm 9.15.0. The root-owned
+systemd boot definition for the shared PM2 daemon still required the documented
+administrator step at the handoff cutoff; this source does not perform it.
 
-Do not globally replace the shared runtime merely to satisfy the release pin:
-the account also runs other applications. The API's private Node runtime does
-not by itself satisfy the CI host's PATH/toolchain contract. Source checks and
-the successful production-copy rehearsal do not prove the remaining network,
+Do not replace the shared system Node merely to satisfy the release pin: the
+account also runs other applications. The side-by-side application runtimes do
+not by themselves satisfy the CI host's PATH/toolchain contract. Source checks
+and the successful production-copy rehearsal do not prove the remaining network,
 credential or live traffic requirements.
 
 The CI connection does not create the private Doorway-to-Node browser ingress.
