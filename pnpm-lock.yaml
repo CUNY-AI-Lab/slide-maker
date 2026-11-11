@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  zod: 4.6.6
+
 importers:
 
   .:
@@ -2894,8 +2897,8 @@ packages:
     resolution: {integrity: sha512-zK7YHHz4ZXpW89AHXUPbQVGKI7uvkd3hzusTdotCg1UxyaVtg0zFJSTfW/Dq5f7OBBVnq6cZIaC8Ti4hb6dtCA==}
     engines: {node: '>= 14'}
 
-  zod@4.4.3:
-    resolution: {integrity: sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==}
+  zod@4.6.6:
+    resolution: {integrity: sha512-4UmzQUF5fxvfcYHlbjBmejU+w+hbDnWFx4aS8kBx7nPBHcO2SqPbpAG8snbdg+Xse4pRefR98hgjFgIMCI/UhA==}
 
 snapshots:
 
@@ -3232,16 +3235,16 @@ snapshots:
 
   '@cuny-ai-lab/cail-client@6.2.2':
     dependencies:
-      zod: 4.4.3
+      zod: 4.6.6
 
   '@cuny-ai-lab/cail-identity@5.2.6':
     dependencies:
       jose: 6.2.3
-      zod: 4.4.3
+      zod: 4.6.6
 
   '@cuny-ai-lab/cail-log@0.6.4':
     dependencies:
-      zod: 4.4.3
+      zod: 4.6.6
 
   '@daybrush/utils@1.13.0': {}
 
@@ -5718,4 +5721,4 @@ snapshots:
       compress-commons: 6.0.2
       readable-stream: 4.7.0
 
-  zod@4.4.3: {}
+  zod@4.6.6: {}
