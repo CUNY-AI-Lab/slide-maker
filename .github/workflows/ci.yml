@@ -17,6 +17,8 @@ jobs:
   check:
     name: Test and build
     runs-on: ubuntu-24.04
+    container:
+      image: mcr.microsoft.com/playwright:v1.58.2-noble@sha256:5bdfa9e125367842206f66ac7e7022c18cd5cf2e13198fba9b68b8f0dc8b0468
     timeout-minutes: 20
     steps:
       - name: Check out source
@@ -48,7 +50,9 @@ jobs:
         run: pnpm test
 
       - name: Install browser for institutional-path acceptance
-        run: pnpm exec playwright install --with-deps chromium
+        # The pinned Playwright image supplies the matching browser and OS libraries;
+        # avoid the runner's unavailable Ubuntu mirror during apt dependency setup.
+        run: pnpm exec playwright install chromium
 
       - name: Verify mounted sign-in, persisted editing, model refusal and export
         run: pnpm exec playwright test --config e2e/fleet.config.ts
