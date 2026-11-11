@@ -1,5 +1,5 @@
 import nodemailer from 'nodemailer'
-import { SESClient, SendRawEmailCommand } from '@aws-sdk/client-ses'
+import { SESv2Client, SendEmailCommand } from '@aws-sdk/client-sesv2'
 import { escapeHtml } from '@slide-maker/shared'
 import { env } from '../env.js'
 
@@ -10,9 +10,9 @@ function stripTags(str: string): string {
 function createTransport() {
   // Prefer SES when AWS region is set and no SMTP host configured
   if (env.ses.enabled) {
-    const ses = new SESClient({ region: env.ses.region })
+    const sesClient = new SESv2Client({ region: env.ses.region })
     return nodemailer.createTransport({
-      SES: { ses, aws: { SendRawEmailCommand } },
+      SES: { sesClient, SendEmailCommand },
     })
   }
 

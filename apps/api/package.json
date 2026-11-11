@@ -14,7 +14,7 @@
     "state:snapshot": "tsx scripts/state-snapshot.ts"
   },
   "dependencies": {
-    "@aws-sdk/client-ses": "^3.1029.0",
+    "@aws-sdk/client-sesv2": "^3.1029.0",
     "@cuny-ai-lab/cail-client": "6.2.2",
     "@cuny-ai-lab/cail-identity": "5.2.6",
     "@cuny-ai-lab/cail-log": "0.6.4",
