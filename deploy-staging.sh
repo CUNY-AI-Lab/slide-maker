@@ -4,11 +4,12 @@
 #
 # Usage: ./deploy-staging.sh
 # Requires: sshpass, Tailscale/VPN connection
+# Set DEPLOY_SERVER (user@host; see the private ops notes)
 # Set DEPLOY_PASS env var or it will prompt
 
 set -e
 
-SERVER="smorello.adm@gc.cuny.edu@100.111.252.53"
+SERVER="${DEPLOY_SERVER:?Set DEPLOY_SERVER to the staging SSH target (see the private ops notes)}"
 
 if [ -z "$DEPLOY_PASS" ]; then
   echo -n "Server password: "
